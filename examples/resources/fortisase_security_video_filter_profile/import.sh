@@ -1,0 +1,1 @@
+terraform import fortisase_security_video_filter_profile.{{your_resource_name}} {{direction}}/{{primary_key}}

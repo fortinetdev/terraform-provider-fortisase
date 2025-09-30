@@ -1,0 +1,1 @@
+terraform import fortisase_security_dlp_profile.{{your_resource_name}} {{direction}}/{{primary_key}}
