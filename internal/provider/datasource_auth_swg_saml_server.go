@@ -21,13 +21,13 @@ func newDatasourceAuthSwgSamlServer() datasource.DataSource {
 }
 
 type datasourceAuthSwgSamlServer struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceAuthSwgSamlServerModel describes the datasource data model.
 type datasourceAuthSwgSamlServerModel struct {
 	PrimaryKey     types.String                                    `tfsdk:"primary_key"`
-	Enabled        types.Bool                                      `tfsdk:"enabled"`
 	IdpEntityId    types.String                                    `tfsdk:"idp_entity_id"`
 	IdpSignOnUrl   types.String                                    `tfsdk:"idp_sign_on_url"`
 	IdpLogOutUrl   types.String                                    `tfsdk:"idp_log_out_url"`
@@ -53,10 +53,6 @@ func (r *datasourceAuthSwgSamlServer) Schema(ctx context.Context, req datasource
 					stringvalidator.OneOf("$sase-global"),
 				},
 				Required: true,
-			},
-			"enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
@@ -189,6 +185,7 @@ func (r *datasourceAuthSwgSamlServer) Configure(ctx context.Context, req datasou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_swg_saml_server"
 }
 
 func (r *datasourceAuthSwgSamlServer) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -211,8 +208,8 @@ func (r *datasourceAuthSwgSamlServer) Read(ctx context.Context, req datasource.R
 	read_output, err := c.ReadAuthSwgSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -229,14 +226,6 @@ func (m *datasourceAuthSwgSamlServerModel) refreshAuthSwgSamlServer(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["enabled"]; ok {
-		m.Enabled = parseBoolValue(v)
 	}
 
 	if v, ok := o["idpEntityId"]; ok {

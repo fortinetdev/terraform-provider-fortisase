@@ -19,7 +19,8 @@ func newDatasourceSecurityVideoFilterFortiguardCategories() datasource.DataSourc
 }
 
 type datasourceSecurityVideoFilterFortiguardCategories struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityVideoFilterFortiguardCategoriesModel describes the datasource data model.
@@ -65,6 +66,7 @@ func (r *datasourceSecurityVideoFilterFortiguardCategories) Configure(ctx contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_video_filter_fortiguard_categories"
 }
 
 func (r *datasourceSecurityVideoFilterFortiguardCategories) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -88,8 +90,8 @@ func (r *datasourceSecurityVideoFilterFortiguardCategories) Read(ctx context.Con
 	read_output, err := c.ReadSecurityVideoFilterFortiguardCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -106,10 +108,6 @@ func (m *datasourceSecurityVideoFilterFortiguardCategoriesModel) refreshSecurity
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["id"]; ok {

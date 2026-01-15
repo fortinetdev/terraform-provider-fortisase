@@ -21,7 +21,8 @@ func newDatasourceSecurityDlpDictionaries() datasource.DataSource {
 }
 
 type datasourceSecurityDlpDictionaries struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityDlpDictionariesModel describes the datasource data model.
@@ -134,6 +135,7 @@ func (r *datasourceSecurityDlpDictionaries) Configure(ctx context.Context, req d
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_dictionaries"
 }
 
 func (r *datasourceSecurityDlpDictionaries) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -157,8 +159,8 @@ func (r *datasourceSecurityDlpDictionaries) Read(ctx context.Context, req dataso
 	read_output, err := c.ReadSecurityDlpDictionaries(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -175,10 +177,6 @@ func (m *datasourceSecurityDlpDictionariesModel) refreshSecurityDlpDictionaries(
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["dictionaryType"]; ok {

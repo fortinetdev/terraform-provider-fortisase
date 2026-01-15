@@ -24,7 +24,8 @@ func newResourceInfraSsids() resource.Resource {
 }
 
 type resourceInfraSsids struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceInfraSsidsModel describes the resource data model.
@@ -166,9 +167,13 @@ func (r *resourceInfraSsids) Configure(ctx context.Context, req resource.Configu
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_infra_ssids"
 }
 
 func (r *resourceInfraSsids) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("InfraSsids")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceInfraSsidsModel
 	diags := &resp.Diagnostics
 
@@ -189,8 +194,8 @@ func (r *resourceInfraSsids) Create(ctx context.Context, req resource.CreateRequ
 	output, err := c.CreateInfraSsids(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -204,8 +209,8 @@ func (r *resourceInfraSsids) Create(ctx context.Context, req resource.CreateRequ
 	read_output, err := c.ReadInfraSsids(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -219,6 +224,9 @@ func (r *resourceInfraSsids) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (r *resourceInfraSsids) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("InfraSsids")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -247,11 +255,11 @@ func (r *resourceInfraSsids) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	_, err := c.UpdateInfraSsids(&input_model)
+	output, err := c.UpdateInfraSsids(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -262,8 +270,8 @@ func (r *resourceInfraSsids) Update(ctx context.Context, req resource.UpdateRequ
 	read_output, err := c.ReadInfraSsids(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -277,6 +285,9 @@ func (r *resourceInfraSsids) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 func (r *resourceInfraSsids) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("InfraSsids")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceInfraSsidsModel
 
@@ -294,11 +305,11 @@ func (r *resourceInfraSsids) Delete(ctx context.Context, req resource.DeleteRequ
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectInfraSsids(ctx, "delete", diags))
 
-	err := c.DeleteInfraSsids(&input_model)
+	output, err := c.DeleteInfraSsids(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -325,8 +336,8 @@ func (r *resourceInfraSsids) Read(ctx context.Context, req resource.ReadRequest,
 	read_output, err := c.ReadInfraSsids(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -347,10 +358,6 @@ func (m *resourceInfraSsidsModel) refreshInfraSsids(ctx context.Context, o map[s
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["wifiSsid"]; ok {
@@ -418,7 +425,7 @@ func (data *resourceInfraSsidsModel) getCreateObjectInfraSsids(ctx context.Conte
 		result["captivePortal"] = data.CaptivePortal.ValueBool()
 	}
 
-	if len(data.SecurityGroups) > 0 {
+	if data.SecurityGroups != nil {
 		result["securityGroups"] = data.expandInfraSsidsSecurityGroupsList(ctx, data.SecurityGroups, diags)
 	}
 
@@ -430,7 +437,7 @@ func (data *resourceInfraSsidsModel) getCreateObjectInfraSsids(ctx context.Conte
 		result["radiusServer"] = data.RadiusServer.expandInfraSsidsRadiusServer(ctx, diags)
 	}
 
-	if len(data.UserGroups) > 0 {
+	if data.UserGroups != nil {
 		result["userGroups"] = data.expandInfraSsidsUserGroupsList(ctx, data.UserGroups, diags)
 	}
 
@@ -439,7 +446,7 @@ func (data *resourceInfraSsidsModel) getCreateObjectInfraSsids(ctx context.Conte
 
 func (data *resourceInfraSsidsModel) getUpdateObjectInfraSsids(ctx context.Context, state resourceInfraSsidsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -459,23 +466,23 @@ func (data *resourceInfraSsidsModel) getUpdateObjectInfraSsids(ctx context.Conte
 		result["securityMode"] = data.SecurityMode.ValueString()
 	}
 
-	if !data.CaptivePortal.IsNull() && !data.CaptivePortal.Equal(state.CaptivePortal) {
+	if !data.CaptivePortal.IsNull() {
 		result["captivePortal"] = data.CaptivePortal.ValueBool()
 	}
 
-	if len(data.SecurityGroups) > 0 || !isSameStruct(data.SecurityGroups, state.SecurityGroups) {
+	if data.SecurityGroups != nil {
 		result["securityGroups"] = data.expandInfraSsidsSecurityGroupsList(ctx, data.SecurityGroups, diags)
 	}
 
-	if !data.PreSharedKey.IsNull() && !data.PreSharedKey.Equal(state.PreSharedKey) {
+	if !data.PreSharedKey.IsNull() {
 		result["preSharedKey"] = data.PreSharedKey.ValueString()
 	}
 
-	if data.RadiusServer != nil && !isSameStruct(data.RadiusServer, state.RadiusServer) {
+	if data.RadiusServer != nil {
 		result["radiusServer"] = data.RadiusServer.expandInfraSsidsRadiusServer(ctx, diags)
 	}
 
-	if len(data.UserGroups) > 0 || !isSameStruct(data.UserGroups, state.UserGroups) {
+	if data.UserGroups != nil {
 		result["userGroups"] = data.expandInfraSsidsUserGroupsList(ctx, data.UserGroups, diags)
 	}
 

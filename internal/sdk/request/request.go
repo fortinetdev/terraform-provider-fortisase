@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -96,76 +96,6 @@ func (r *Request) Send() error {
 	return err
 }
 
-// todo
-// checkValid check whether given credential is valid.
-// If errors are encountered, it returns the error.
-func (r *Request) CheckValid() error {
-	// retries := 15
-
-	// var err error
-	// var cookies *Cookies
-	// token := r.Config.Auth.Token
-
-	// if r.Config.Auth.Token == "" {
-	// 	token, err = r.LoginToken()
-	// 	if err != nil {
-	// 		cookies, err = r.LoginSession()
-	// 		if err != nil {
-	// 			log.Printf("[ERROR] Failed to login: %v", err)
-	// 			return err
-	// 		}
-	// 		r.HTTPRequest.Header.Set("X-CSRFTOKEN", cookies.CSRFToken)
-	// 		r.HTTPRequest.Header.Set("Cookie", cookies.Cookie)
-	// 		// logout session
-	// 		errLogout := r.LogoutSession(cookies)
-	// 		if errLogout != nil {
-	// 			log.Printf("[WARNING] Issue occurs when logout session: %v", errLogout)
-	// 		}
-	// 		return nil
-	// 	}
-	// 	log.Printf("token: %v", token)
-	// 	// logout token
-	// 	errLogout := r.LogoutToken(token)
-	// 	if errLogout != nil {
-	// 		log.Printf("[WARNING] Issue occurs when logout token: %v", errLogout)
-	// 	}
-	// 	return nil
-	// }
-	// r.HTTPRequest.Header.Set("Content-Type", "application/json")
-	// u := r.buildURL("", "")
-	// r.HTTPRequest.URL, err = url.Parse(u)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// retry := 0
-	// for {
-	// 	//Send
-	// 	rsp, errdo := r.Config.HTTPCon.Do(r.HTTPRequest)
-	// 	r.HTTPResponse = rsp
-	// 	if errdo != nil {
-	// 		if strings.Contains(errdo.Error(), "x509: ") {
-	// 			err = fmt.Errorf("Error found: %v", filterapikey(errdo.Error()))
-	// 			break
-	// 		}
-
-	// 		if retry > retries {
-	// 			err = fmt.Errorf("lost connection to firewall with error: %v", filterapikey(errdo.Error()))
-	// 			break
-	// 		}
-	// 		time.Sleep(time.Second)
-	// 		log.Printf("Error found: %v, will resend again %s, %d", filterapikey(errdo.Error()), u, retry)
-
-	// 		retry++
-
-	// 	} else {
-	// 		break
-	// 	}
-	// }
-
-	return nil
-}
-
 func (r *Request) buildURL() string {
 	u := "https://portal.prod.fortisase.com"
 	u += r.Path
@@ -218,7 +148,7 @@ func (r *Request) GenToken() (string, string, error) {
 		return access_token, refresh_token, err
 	}
 
-	body, err := ioutil.ReadAll(rsp.Body)
+	body, err := io.ReadAll(rsp.Body)
 	rsp.Body.Close()
 
 	if err != nil || body == nil {
@@ -241,36 +171,6 @@ func (r *Request) GenToken() (string, string, error) {
 // Logout current token based authentication.
 // If errors are encountered, it returns the error.
 func (r *Request) LogoutToken(token string) error {
-	// todo
 	// logout the token
-
-	// var err error
-
-	// data := "session_key="
-	// data += token
-
-	// bodyBytes := bytes.NewBufferString(data)
-
-	// req, _ := http.NewRequest("DELETE", "", bodyBytes)
-	// req.Header.Set("Content-Type", "application/json")
-	// u := "https://"
-	// u += r.Config.FwTarget
-	// u += "/api/v2/authentication"
-	// u += "?access_token="
-	// u += token
-	// req.URL, err = url.Parse(u)
-	// if err != nil {
-	// 	err = fmt.Errorf("Could not parse URL: %s", err)
-	// 	return err
-	// }
-
-	// _, err = r.Config.HTTPCon.Do(req)
-	// if err != nil {
-	// 	if strings.Contains(err.Error(), "x509: ") {
-	// 		err = fmt.Errorf("HTTP request error: %v", err)
-	// 		return err
-	// 	}
-	// }
-
 	return nil
 }

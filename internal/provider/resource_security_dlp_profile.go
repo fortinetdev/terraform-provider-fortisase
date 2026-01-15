@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -26,7 +25,8 @@ func newResourceSecurityDlpProfile() resource.Resource {
 }
 
 type resourceSecurityDlpProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpProfileModel describes the resource data model.
@@ -55,12 +55,12 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 				Required: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"dlp_rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -206,9 +206,13 @@ func (r *resourceSecurityDlpProfile) Configure(ctx context.Context, req resource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_profile"
 }
 
 func (r *resourceSecurityDlpProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpProfileModel
 	diags := &resp.Diagnostics
 
@@ -230,8 +234,8 @@ func (r *resourceSecurityDlpProfile) Create(ctx context.Context, req resource.Cr
 	output, err := c.UpdateSecurityDlpProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -245,8 +249,8 @@ func (r *resourceSecurityDlpProfile) Create(ctx context.Context, req resource.Cr
 	read_output, err := c.ReadSecurityDlpProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -260,6 +264,9 @@ func (r *resourceSecurityDlpProfile) Create(ctx context.Context, req resource.Cr
 }
 
 func (r *resourceSecurityDlpProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -288,11 +295,11 @@ func (r *resourceSecurityDlpProfile) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpProfile(&input_model)
+	output, err := c.UpdateSecurityDlpProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -303,8 +310,8 @@ func (r *resourceSecurityDlpProfile) Update(ctx context.Context, req resource.Up
 	read_output, err := c.ReadSecurityDlpProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -342,8 +349,8 @@ func (r *resourceSecurityDlpProfile) Read(ctx context.Context, req resource.Read
 	read_output, err := c.ReadSecurityDlpProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -357,27 +364,13 @@ func (r *resourceSecurityDlpProfile) Read(ctx context.Context, req resource.Read
 }
 
 func (r *resourceSecurityDlpProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityDlpProfileModel) refreshSecurityDlpProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["dlpRules"]; ok {
@@ -400,11 +393,11 @@ func (data *resourceSecurityDlpProfileModel) getCreateObjectSecurityDlpProfile(c
 
 func (data *resourceSecurityDlpProfileModel) getUpdateObjectSecurityDlpProfile(ctx context.Context, state resourceSecurityDlpProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.DlpRules) > 0 || !isSameStruct(data.DlpRules, state.DlpRules) {
+	if data.DlpRules != nil {
 		result["dlpRules"] = data.expandSecurityDlpProfileDlpRulesList(ctx, data.DlpRules, diags)
 	}
 
@@ -414,6 +407,9 @@ func (data *resourceSecurityDlpProfileModel) getUpdateObjectSecurityDlpProfile(c
 func (data *resourceSecurityDlpProfileModel) getURLObjectSecurityDlpProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -461,9 +457,6 @@ func (m *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 		m = &resourceSecurityDlpProfileDlpRulesModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Protocols = types.SetNull(types.StringType)
-	m.Sensitivities = types.SetNull(types.StringType)
-
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
 	}
@@ -646,7 +639,7 @@ func (data *resourceSecurityDlpProfileDlpRulesModel) expandSecurityDlpProfileDlp
 		result["protocols"] = expandSetToStringList(data.Protocols)
 	}
 
-	if len(data.DlpSensors) > 0 {
+	if data.DlpSensors != nil {
 		result["dlpSensors"] = data.expandSecurityDlpProfileDlpRulesDlpSensorsList(ctx, data.DlpSensors, diags)
 	}
 

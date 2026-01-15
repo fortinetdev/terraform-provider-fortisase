@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +24,8 @@ func newResourceSecurityIpsProfile() resource.Resource {
 }
 
 type resourceSecurityIpsProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityIpsProfileModel describes the resource data model.
@@ -86,12 +86,12 @@ func (r *resourceSecurityIpsProfile) Schema(ctx context.Context, req resource.Sc
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"custom_rule_groups": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -284,9 +284,13 @@ func (r *resourceSecurityIpsProfile) Configure(ctx context.Context, req resource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ips_profile"
 }
 
 func (r *resourceSecurityIpsProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpsProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityIpsProfileModel
 	diags := &resp.Diagnostics
 
@@ -308,8 +312,8 @@ func (r *resourceSecurityIpsProfile) Create(ctx context.Context, req resource.Cr
 	output, err := c.UpdateSecurityIpsProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -323,8 +327,8 @@ func (r *resourceSecurityIpsProfile) Create(ctx context.Context, req resource.Cr
 	read_output, err := c.ReadSecurityIpsProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -338,6 +342,9 @@ func (r *resourceSecurityIpsProfile) Create(ctx context.Context, req resource.Cr
 }
 
 func (r *resourceSecurityIpsProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpsProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -366,11 +373,11 @@ func (r *resourceSecurityIpsProfile) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err := c.UpdateSecurityIpsProfile(&input_model)
+	output, err := c.UpdateSecurityIpsProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -381,8 +388,8 @@ func (r *resourceSecurityIpsProfile) Update(ctx context.Context, req resource.Up
 	read_output, err := c.ReadSecurityIpsProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -420,8 +427,8 @@ func (r *resourceSecurityIpsProfile) Read(ctx context.Context, req resource.Read
 	read_output, err := c.ReadSecurityIpsProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -435,27 +442,13 @@ func (r *resourceSecurityIpsProfile) Read(ctx context.Context, req resource.Read
 }
 
 func (r *resourceSecurityIpsProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityIpsProfileModel) refreshSecurityIpsProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["profileType"]; ok {
@@ -499,7 +492,7 @@ func (data *resourceSecurityIpsProfileModel) getCreateObjectSecurityIpsProfile(c
 		result["profileType"] = data.ProfileType.ValueString()
 	}
 
-	if len(data.CustomRuleGroups) > 0 {
+	if data.CustomRuleGroups != nil {
 		result["customRuleGroups"] = data.expandSecurityIpsProfileCustomRuleGroupsList(ctx, data.CustomRuleGroups, diags)
 	}
 
@@ -526,15 +519,15 @@ func (data *resourceSecurityIpsProfileModel) getCreateObjectSecurityIpsProfile(c
 
 func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(ctx context.Context, state resourceSecurityIpsProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ProfileType.IsNull() && !data.ProfileType.Equal(state.ProfileType) {
+	if !data.ProfileType.IsNull() {
 		result["profileType"] = data.ProfileType.ValueString()
 	}
 
-	if len(data.CustomRuleGroups) > 0 || !isSameStruct(data.CustomRuleGroups, state.CustomRuleGroups) {
+	if data.CustomRuleGroups != nil {
 		result["customRuleGroups"] = data.expandSecurityIpsProfileCustomRuleGroupsList(ctx, data.CustomRuleGroups, diags)
 	}
 
@@ -554,7 +547,7 @@ func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(c
 		result["comment"] = data.Comment.ValueString()
 	}
 
-	if len(data.Entries) > 0 || !isSameStruct(data.Entries, state.Entries) {
+	if data.Entries != nil {
 		result["entries"] = data.expandSecurityIpsProfileEntriesList(ctx, data.Entries, diags)
 	}
 
@@ -564,6 +557,9 @@ func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(c
 func (data *resourceSecurityIpsProfileModel) getURLObjectSecurityIpsProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -713,8 +709,6 @@ func (m *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 		m = &resourceSecurityIpsProfileEntriesModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Cve = types.SetNull(types.StringType)
-
 	if v, ok := o["rule"]; ok {
 		m.Rule = m.flattenSecurityIpsProfileEntriesRuleList(ctx, v, diags)
 	}
@@ -981,7 +975,7 @@ func (s *resourceSecurityIpsProfileCustomRuleGroupsModel) expandSecurityIpsProfi
 
 func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntries(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if len(data.Rule) > 0 {
+	if data.Rule != nil {
 		result["rule"] = data.expandSecurityIpsProfileEntriesRuleList(ctx, data.Rule, diags)
 	}
 
@@ -1029,7 +1023,7 @@ func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntr
 		result["action"] = data.Action.ValueString()
 	}
 
-	if len(data.VulnType) > 0 {
+	if data.VulnType != nil {
 		result["vulnType"] = data.expandSecurityIpsProfileEntriesVulnTypeList(ctx, data.VulnType, diags)
 	}
 
@@ -1037,7 +1031,7 @@ func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntr
 		result["quarantine"] = data.Quarantine.ValueString()
 	}
 
-	if len(data.ExemptIp) > 0 {
+	if data.ExemptIp != nil {
 		result["exempt-ip"] = data.expandSecurityIpsProfileEntriesExemptIpList(ctx, data.ExemptIp, diags)
 	}
 

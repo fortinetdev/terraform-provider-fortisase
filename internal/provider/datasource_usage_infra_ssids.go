@@ -19,7 +19,8 @@ func newDatasourceUsageInfraSsids() datasource.DataSource {
 }
 
 type datasourceUsageInfraSsids struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageInfraSsidsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageInfraSsids) Schema(ctx context.Context, req datasource.S
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageInfraSsids) Configure(ctx context.Context, req datasourc
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_infra_ssids"
 }
 
 func (r *datasourceUsageInfraSsids) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageInfraSsids) Read(ctx context.Context, req datasource.Rea
 	read_output, err := c.ReadUsageInfraSsids(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

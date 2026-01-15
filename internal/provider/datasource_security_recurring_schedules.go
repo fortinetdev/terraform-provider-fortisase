@@ -22,7 +22,8 @@ func newDatasourceSecurityRecurringSchedules() datasource.DataSource {
 }
 
 type datasourceSecurityRecurringSchedules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityRecurringSchedulesModel describes the datasource data model.
@@ -85,6 +86,7 @@ func (r *datasourceSecurityRecurringSchedules) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_recurring_schedules"
 }
 
 func (r *datasourceSecurityRecurringSchedules) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -108,8 +110,8 @@ func (r *datasourceSecurityRecurringSchedules) Read(ctx context.Context, req dat
 	read_output, err := c.ReadSecurityRecurringSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -126,10 +128,6 @@ func (m *datasourceSecurityRecurringSchedulesModel) refreshSecurityRecurringSche
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["days"]; ok {

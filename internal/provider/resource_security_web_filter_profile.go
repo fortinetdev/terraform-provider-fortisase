@@ -11,10 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +25,8 @@ func newResourceSecurityWebFilterProfile() resource.Resource {
 }
 
 type resourceSecurityWebFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityWebFilterProfileModel describes the resource data model.
@@ -38,6 +39,7 @@ type resourceSecurityWebFilterProfileModel struct {
 	UseFortiguardFilters           types.String                                                          `tfsdk:"use_fortiguard_filters"`
 	BlockInvalidUrl                types.String                                                          `tfsdk:"block_invalid_url"`
 	EnforceSafeSearch              types.String                                                          `tfsdk:"enforce_safe_search"`
+	LogSearchedKeywords            types.String                                                          `tfsdk:"log_searched_keywords"`
 	TrafficOnRatingError           types.String                                                          `tfsdk:"traffic_on_rating_error"`
 	ContentFilters                 []resourceSecurityWebFilterProfileContentFiltersModel                 `tfsdk:"content_filters"`
 	UrlFilters                     []resourceSecurityWebFilterProfileUrlFiltersModel                     `tfsdk:"url_filters"`
@@ -83,6 +85,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 				Computed: true,
 				Optional: true,
 			},
+			"log_searched_keywords": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.OneOf("enable", "disable"),
+				},
+				Default:  stringdefault.StaticString("disable"),
+				Computed: true,
+				Optional: true,
+			},
 			"traffic_on_rating_error": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidator.OneOf("enable", "disable"),
@@ -91,12 +101,12 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -348,9 +358,13 @@ func (r *resourceSecurityWebFilterProfile) Configure(ctx context.Context, req re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_web_filter_profile"
 }
 
 func (r *resourceSecurityWebFilterProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityWebFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityWebFilterProfileModel
 	diags := &resp.Diagnostics
 
@@ -372,8 +386,8 @@ func (r *resourceSecurityWebFilterProfile) Create(ctx context.Context, req resou
 	output, err := c.UpdateSecurityWebFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -387,8 +401,8 @@ func (r *resourceSecurityWebFilterProfile) Create(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityWebFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -402,6 +416,9 @@ func (r *resourceSecurityWebFilterProfile) Create(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityWebFilterProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityWebFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -430,11 +447,11 @@ func (r *resourceSecurityWebFilterProfile) Update(ctx context.Context, req resou
 		return
 	}
 
-	_, err := c.UpdateSecurityWebFilterProfile(&input_model)
+	output, err := c.UpdateSecurityWebFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -445,8 +462,8 @@ func (r *resourceSecurityWebFilterProfile) Update(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityWebFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -484,8 +501,8 @@ func (r *resourceSecurityWebFilterProfile) Read(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityWebFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -499,17 +516,7 @@ func (r *resourceSecurityWebFilterProfile) Read(ctx context.Context, req resourc
 }
 
 func (r *resourceSecurityWebFilterProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
@@ -518,20 +525,28 @@ func (m *resourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfile(
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["fortiguardFilters"]; ok {
-		m.FortiguardFilters = m.flattenSecurityWebFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityWebFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		if m.FortiguardFilters == nil || !isSetSuperset(convert_v, m.FortiguardFilters) {
+			m.FortiguardFilters = convert_v
+		}
+
 	}
 
 	if v, ok := o["fortiguardLocalCategoryFilters"]; ok {
-		m.FortiguardLocalCategoryFilters = m.flattenSecurityWebFilterProfileFortiguardLocalCategoryFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityWebFilterProfileFortiguardLocalCategoryFiltersList(ctx, v, &diags)
+		if m.FortiguardLocalCategoryFilters == nil || !isSetSuperset(convert_v, m.FortiguardLocalCategoryFilters) {
+			m.FortiguardLocalCategoryFilters = convert_v
+		}
+
 	}
 
 	if v, ok := o["fqdnThreatFeedFilters"]; ok {
-		m.FqdnThreatFeedFilters = m.flattenSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, v, &diags)
+		if m.FqdnThreatFeedFilters == nil || !isSetSuperset(convert_v, m.FqdnThreatFeedFilters) {
+			m.FqdnThreatFeedFilters = convert_v
+		}
+
 	}
 
 	if v, ok := o["useFortiguardFilters"]; ok {
@@ -544,6 +559,10 @@ func (m *resourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfile(
 
 	if v, ok := o["enforceSafeSearch"]; ok {
 		m.EnforceSafeSearch = parseStringValue(v)
+	}
+
+	if v, ok := o["logSearchedKeywords"]; ok {
+		m.LogSearchedKeywords = parseStringValue(v)
 	}
 
 	if v, ok := o["trafficOnRatingError"]; ok {
@@ -589,6 +608,10 @@ func (data *resourceSecurityWebFilterProfileModel) getCreateObjectSecurityWebFil
 		result["enforceSafeSearch"] = data.EnforceSafeSearch.ValueString()
 	}
 
+	if !data.LogSearchedKeywords.IsNull() {
+		result["logSearchedKeywords"] = data.LogSearchedKeywords.ValueString()
+	}
+
 	if !data.TrafficOnRatingError.IsNull() {
 		result["trafficOnRatingError"] = data.TrafficOnRatingError.ValueString()
 	}
@@ -604,19 +627,19 @@ func (data *resourceSecurityWebFilterProfileModel) getCreateObjectSecurityWebFil
 
 func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFilterProfile(ctx context.Context, state resourceSecurityWebFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.FortiguardFilters) > 0 || !isSameStruct(data.FortiguardFilters, state.FortiguardFilters) {
+	if data.FortiguardFilters != nil {
 		result["fortiguardFilters"] = data.expandSecurityWebFilterProfileFortiguardFiltersList(ctx, data.FortiguardFilters, diags)
 	}
 
-	if len(data.FortiguardLocalCategoryFilters) > 0 || !isSameStruct(data.FortiguardLocalCategoryFilters, state.FortiguardLocalCategoryFilters) {
+	if data.FortiguardLocalCategoryFilters != nil {
 		result["fortiguardLocalCategoryFilters"] = data.expandSecurityWebFilterProfileFortiguardLocalCategoryFiltersList(ctx, data.FortiguardLocalCategoryFilters, diags)
 	}
 
-	if len(data.FqdnThreatFeedFilters) > 0 || !isSameStruct(data.FqdnThreatFeedFilters, state.FqdnThreatFeedFilters) {
+	if data.FqdnThreatFeedFilters != nil {
 		result["fqdnThreatFeedFilters"] = data.expandSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, data.FqdnThreatFeedFilters, diags)
 	}
 
@@ -632,19 +655,23 @@ func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFil
 		result["enforceSafeSearch"] = data.EnforceSafeSearch.ValueString()
 	}
 
+	if !data.LogSearchedKeywords.IsNull() {
+		result["logSearchedKeywords"] = data.LogSearchedKeywords.ValueString()
+	}
+
 	if !data.TrafficOnRatingError.IsNull() {
 		result["trafficOnRatingError"] = data.TrafficOnRatingError.ValueString()
 	}
 
-	if len(data.ContentFilters) > 0 || !isSameStruct(data.ContentFilters, state.ContentFilters) {
+	if data.ContentFilters != nil {
 		result["contentFilters"] = data.expandSecurityWebFilterProfileContentFiltersList(ctx, data.ContentFilters, diags)
 	}
 
-	if len(data.UrlFilters) > 0 || !isSameStruct(data.UrlFilters, state.UrlFilters) {
+	if data.UrlFilters != nil {
 		result["urlFilters"] = data.expandSecurityWebFilterProfileUrlFiltersList(ctx, data.UrlFilters, diags)
 	}
 
-	if len(data.HttpHeaders) > 0 || !isSameStruct(data.HttpHeaders, state.HttpHeaders) {
+	if data.HttpHeaders != nil {
 		result["httpHeaders"] = data.expandSecurityWebFilterProfileHttpHeadersList(ctx, data.HttpHeaders, diags)
 	}
 
@@ -654,6 +681,9 @@ func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFil
 func (data *resourceSecurityWebFilterProfileModel) getURLObjectSecurityWebFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

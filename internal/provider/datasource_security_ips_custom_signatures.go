@@ -21,7 +21,8 @@ func newDatasourceSecurityIpsCustomSignatures() datasource.DataSource {
 }
 
 type datasourceSecurityIpsCustomSignatures struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityIpsCustomSignaturesModel describes the datasource data model.
@@ -136,6 +137,7 @@ func (r *datasourceSecurityIpsCustomSignatures) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ips_custom_signatures"
 }
 
 func (r *datasourceSecurityIpsCustomSignatures) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -159,8 +161,8 @@ func (r *datasourceSecurityIpsCustomSignatures) Read(ctx context.Context, req da
 	read_output, err := c.ReadSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -177,10 +179,6 @@ func (m *datasourceSecurityIpsCustomSignaturesModel) refreshSecurityIpsCustomSig
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["tag"]; ok {

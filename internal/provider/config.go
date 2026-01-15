@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	forticlient "github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -347,7 +349,7 @@ func bZero(v interface{}) bool {
 func expandSetToStringList(varSet types.Set) []string {
 	elements := varSet.Elements()
 
-	var result []string
+	result := make([]string, 0, len(elements))
 	for _, e := range elements {
 		if strVal, ok := e.(types.String); ok {
 			result = append(result, strVal.ValueString())
@@ -360,7 +362,17 @@ func parseStringValue(v interface{}) basetypes.StringValue {
 	if v == nil {
 		return types.StringNull()
 	}
-	return types.StringValue(v.(string))
+	switch val := v.(type) {
+	case string:
+		return types.StringValue(val)
+	case bool:
+		if val {
+			return types.StringValue("enable")
+		}
+		return types.StringValue("disable")
+	default:
+		return types.StringValue(v.(string))
+	}
 }
 
 func parseBoolValue(v interface{}) basetypes.BoolValue {
@@ -399,6 +411,16 @@ func parseFloat64Value(v interface{}) basetypes.Float64Value {
 	return types.Float64Null()
 }
 
+func parseMapValue(ctx context.Context, v interface{}, element_type attr.Type) basetypes.MapValue {
+	var m basetypes.MapValue
+	if v != nil {
+		m, _ = types.MapValueFrom(ctx, element_type, v.(map[string]interface{}))
+	} else {
+		m = types.MapNull(element_type)
+	}
+	return m
+}
+
 func parseSetValue(ctx context.Context, v interface{}, element_type attr.Type) basetypes.SetValue {
 	var m basetypes.SetValue
 	if v != nil {
@@ -425,4 +447,80 @@ func isZeroStruct(s interface{}) bool {
 
 func isSameStruct(s1, s2 interface{}) bool {
 	return reflect.DeepEqual(s1, s2)
+}
+
+// extractValue extracts the actual value from attr.Value; if not an attr.Value, returns the original value
+func extractValue(v any) any {
+	// Check if the value implements the attr.Value interface (by checking for a Type() method)
+	if valuer, ok := v.(interface {
+		Type(context.Context) attr.Type
+	}); ok {
+		// This is an attr.Value, try to extract its underlying value
+		if stringer, ok := v.(interface{ ValueString() string }); ok {
+			return stringer.ValueString()
+		}
+		if inter, ok := v.(interface{ ValueInt64() int64 }); ok {
+			return inter.ValueInt64()
+		}
+		if booler, ok := v.(interface{ ValueBool() bool }); ok {
+			return booler.ValueBool()
+		}
+		if floater, ok := v.(interface{ ValueFloat64() float64 }); ok {
+			return floater.ValueFloat64()
+		}
+		// If value cannot be extracted, return the original value
+		_ = valuer // Use valuer to avoid unused variable warning
+	}
+	return v
+}
+
+// isSetSuperset checks if superset contains all elements from subset
+// Supports complex nested structures including list of maps, maps with nested maps, etc.
+// Handles both native Go types ([]interface{}) and Terraform types ([]attr.Value)
+func isSetSuperset(superset any, subset any) bool {
+	supersetVal := reflect.ValueOf(superset)
+	subsetVal := reflect.ValueOf(subset)
+
+	if supersetVal.Len() < subsetVal.Len() {
+		return false
+	}
+
+	// For each element in subset, check if it exists in superset
+	for i := 0; i < subsetVal.Len(); i++ {
+		subsetItem := extractValue(subsetVal.Index(i).Interface())
+		found := false
+
+		// Search for this item in superset
+		for j := 0; j < supersetVal.Len(); j++ {
+			supersetItem := extractValue(supersetVal.Index(j).Interface())
+			if isSameStruct(supersetItem, subsetItem) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
+func getErrorDetail(input_model *forticlient.InputModel, response map[string]interface{}) string {
+	result := ""
+	result += fmt.Sprintf("[API Request] %v (%v)\n", input_model.URL, input_model.HTTPMethod)
+	request_json_bytes, err := json.MarshalIndent(input_model.BodyParams, "", "  ")
+	if err != nil {
+		result += fmt.Sprintf("%v\n\n", input_model.HTTPMethod)
+	} else {
+		result += fmt.Sprintf("%s\n\n", string(request_json_bytes))
+	}
+	response_json_bytes, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		result += fmt.Sprintf("[API Response]\n%v\n", response)
+	} else {
+		result += fmt.Sprintf("[API Response]\n%s\n", string(response_json_bytes))
+	}
+	return result
 }

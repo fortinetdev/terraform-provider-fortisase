@@ -25,14 +25,15 @@ func newResourceEndpointSandboxProfiles() resource.Resource {
 }
 
 type resourceEndpointSandboxProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointSandboxProfilesModel describes the resource data model.
 type resourceEndpointSandboxProfilesModel struct {
 	ID                            types.String                                               `tfsdk:"id"`
 	SandboxMode                   types.String                                               `tfsdk:"sandbox_mode"`
-	NotificationType              types.String                                               `tfsdk:"notification_type"`
+	NotificationType              types.Float64                                              `tfsdk:"notification_type"`
 	TimeoutAwaitingSandboxResults types.Float64                                              `tfsdk:"timeout_awaiting_sandbox_results"`
 	FileSubmissionOptions         *resourceEndpointSandboxProfilesFileSubmissionOptionsModel `tfsdk:"file_submission_options"`
 	DetectionVerdictLevel         types.String                                               `tfsdk:"detection_verdict_level"`
@@ -66,13 +67,10 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 				Computed: true,
 				Optional: true,
 			},
-			"notification_type": schema.StringAttribute{
-				Description: "Integer representing how notifications should be handled on FortiSandbox file submission. 0 - display notification balloon when malware is detected in a submission. 1 - display a popup for all file submissions.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("0", "1"),
-				},
-				Computed: true,
-				Optional: true,
+			"notification_type": schema.Float64Attribute{
+				MarkdownDescription: "Integer representing how notifications should be handled on FortiSandbox file submission. 0 - display notification balloon when malware is detected in a submission. 1 - display a popup for all file submissions.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"timeout_awaiting_sandbox_results": schema.Float64Attribute{
 				Validators: []validator.Float64{
@@ -121,8 +119,11 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"file_submission_options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -204,9 +205,13 @@ func (r *resourceEndpointSandboxProfiles) Configure(ctx context.Context, req res
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_sandbox_profiles"
 }
 
 func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointSandboxProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointSandboxProfilesModel
 	diags := &resp.Diagnostics
 
@@ -228,8 +233,8 @@ func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resour
 	output, err := c.UpdateEndpointSandboxProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -243,8 +248,8 @@ func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resour
 	read_output, err := c.ReadEndpointSandboxProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -258,6 +263,9 @@ func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointSandboxProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointSandboxProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -286,11 +294,11 @@ func (r *resourceEndpointSandboxProfiles) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err := c.UpdateEndpointSandboxProfiles(&input_model)
+	output, err := c.UpdateEndpointSandboxProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -301,8 +309,8 @@ func (r *resourceEndpointSandboxProfiles) Update(ctx context.Context, req resour
 	read_output, err := c.ReadEndpointSandboxProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -340,8 +348,8 @@ func (r *resourceEndpointSandboxProfiles) Read(ctx context.Context, req resource
 	read_output, err := c.ReadEndpointSandboxProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -369,7 +377,7 @@ func (m *resourceEndpointSandboxProfilesModel) refreshEndpointSandboxProfiles(ct
 	}
 
 	if v, ok := o["notificationType"]; ok {
-		m.NotificationType = parseStringValue(v)
+		m.NotificationType = parseFloat64Value(v)
 	}
 
 	if v, ok := o["timeoutAwaitingSandboxResults"]; ok {
@@ -418,7 +426,7 @@ func (data *resourceEndpointSandboxProfilesModel) getCreateObjectEndpointSandbox
 	}
 
 	if !data.NotificationType.IsNull() {
-		result["notificationType"] = data.NotificationType.ValueString()
+		result["notificationType"] = data.NotificationType.ValueFloat64()
 	}
 
 	if !data.TimeoutAwaitingSandboxResults.IsNull() {
@@ -466,43 +474,43 @@ func (data *resourceEndpointSandboxProfilesModel) getUpdateObjectEndpointSandbox
 		result["sandboxMode"] = data.SandboxMode.ValueString()
 	}
 
-	if !data.NotificationType.IsNull() && !data.NotificationType.Equal(state.NotificationType) {
-		result["notificationType"] = data.NotificationType.ValueString()
+	if !data.NotificationType.IsNull() {
+		result["notificationType"] = data.NotificationType.ValueFloat64()
 	}
 
-	if !data.TimeoutAwaitingSandboxResults.IsNull() && !data.TimeoutAwaitingSandboxResults.Equal(state.TimeoutAwaitingSandboxResults) {
+	if !data.TimeoutAwaitingSandboxResults.IsNull() {
 		result["timeoutAwaitingSandboxResults"] = data.TimeoutAwaitingSandboxResults.ValueFloat64()
 	}
 
-	if data.FileSubmissionOptions != nil && !isSameStruct(data.FileSubmissionOptions, state.FileSubmissionOptions) {
+	if data.FileSubmissionOptions != nil {
 		result["fileSubmissionOptions"] = data.FileSubmissionOptions.expandEndpointSandboxProfilesFileSubmissionOptions(ctx, diags)
 	}
 
-	if !data.DetectionVerdictLevel.IsNull() && !data.DetectionVerdictLevel.Equal(state.DetectionVerdictLevel) {
+	if !data.DetectionVerdictLevel.IsNull() {
 		result["detectionVerdictLevel"] = data.DetectionVerdictLevel.ValueString()
 	}
 
-	if data.Exceptions != nil && !isSameStruct(data.Exceptions, state.Exceptions) {
+	if data.Exceptions != nil {
 		result["exceptions"] = data.Exceptions.expandEndpointSandboxProfilesExceptions(ctx, diags)
 	}
 
-	if !data.RemediationActions.IsNull() && !data.RemediationActions.Equal(state.RemediationActions) {
+	if !data.RemediationActions.IsNull() {
 		result["remediationActions"] = data.RemediationActions.ValueString()
 	}
 
-	if !data.HostName.IsNull() && !data.HostName.Equal(state.HostName) {
+	if !data.HostName.IsNull() {
 		result["hostName"] = data.HostName.ValueString()
 	}
 
-	if !data.Authentication.IsNull() && !data.Authentication.Equal(state.Authentication) {
+	if !data.Authentication.IsNull() {
 		result["authentication"] = data.Authentication.ValueBool()
 	}
 
-	if !data.Username.IsNull() && !data.Username.Equal(state.Username) {
+	if !data.Username.IsNull() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.Password.IsNull() && !data.Password.Equal(state.Password) {
+	if !data.Password.IsNull() {
 		result["password"] = data.Password.ValueString()
 	}
 
@@ -566,9 +574,6 @@ func (m *resourceEndpointSandboxProfilesExceptionsModel) flattenEndpointSandboxP
 		m = &resourceEndpointSandboxProfilesExceptionsModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Files = types.SetNull(types.StringType)
-	m.Folders = types.SetNull(types.StringType)
-
 	if v, ok := o["excludeFilesFromTrustedSources"]; ok {
 		m.ExcludeFilesFromTrustedSources = parseStringValue(v)
 	}

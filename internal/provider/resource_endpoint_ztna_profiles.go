@@ -24,7 +24,8 @@ func newResourceEndpointZtnaProfiles() resource.Resource {
 }
 
 type resourceEndpointZtnaProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointZtnaProfilesModel describes the resource data model.
@@ -58,8 +59,11 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"connection_rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -73,6 +77,14 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 							Optional: true,
 						},
 						"uid": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+						"mask": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+						"port": schema.StringAttribute{
 							Computed: true,
 							Optional: true,
 						},
@@ -156,9 +168,13 @@ func (r *resourceEndpointZtnaProfiles) Configure(ctx context.Context, req resour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_ztna_profiles"
 }
 
 func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointZtnaProfilesModel
 	diags := &resp.Diagnostics
 
@@ -180,8 +196,8 @@ func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.
 	output, err := c.UpdateEndpointZtnaProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -195,8 +211,8 @@ func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.
 	read_output, err := c.ReadEndpointZtnaProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -210,6 +226,9 @@ func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.
 }
 
 func (r *resourceEndpointZtnaProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -238,11 +257,11 @@ func (r *resourceEndpointZtnaProfiles) Update(ctx context.Context, req resource.
 		return
 	}
 
-	_, err := c.UpdateEndpointZtnaProfiles(&input_model)
+	output, err := c.UpdateEndpointZtnaProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -253,8 +272,8 @@ func (r *resourceEndpointZtnaProfiles) Update(ctx context.Context, req resource.
 	read_output, err := c.ReadEndpointZtnaProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -292,8 +311,8 @@ func (r *resourceEndpointZtnaProfiles) Read(ctx context.Context, req resource.Re
 	read_output, err := c.ReadEndpointZtnaProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -337,7 +356,7 @@ func (data *resourceEndpointZtnaProfilesModel) getCreateObjectEndpointZtnaProfil
 		result["allowAutomaticSignOn"] = data.AllowAutomaticSignOn.ValueString()
 	}
 
-	if len(data.ConnectionRules) > 0 {
+	if data.ConnectionRules != nil {
 		result["connectionRules"] = data.expandEndpointZtnaProfilesConnectionRulesList(ctx, data.ConnectionRules, diags)
 	}
 
@@ -354,11 +373,11 @@ func (data *resourceEndpointZtnaProfilesModel) getUpdateObjectEndpointZtnaProfil
 		result["allowAutomaticSignOn"] = data.AllowAutomaticSignOn.ValueString()
 	}
 
-	if len(data.ConnectionRules) > 0 || !isSameStruct(data.ConnectionRules, state.ConnectionRules) {
+	if data.ConnectionRules != nil {
 		result["connectionRules"] = data.expandEndpointZtnaProfilesConnectionRulesList(ctx, data.ConnectionRules, diags)
 	}
 
-	if data.EntraId != nil && !isSameStruct(data.EntraId, state.EntraId) {
+	if data.EntraId != nil {
 		result["entraId"] = data.EntraId.expandEndpointZtnaProfilesEntraId(ctx, diags)
 	}
 
@@ -379,6 +398,8 @@ type resourceEndpointZtnaProfilesConnectionRulesModel struct {
 	Address    types.String                                               `tfsdk:"address"`
 	Uid        types.String                                               `tfsdk:"uid"`
 	Gateways   []resourceEndpointZtnaProfilesConnectionRulesGatewaysModel `tfsdk:"gateways"`
+	Mask       types.String                                               `tfsdk:"mask"`
+	Port       types.String                                               `tfsdk:"port"`
 	Name       types.String                                               `tfsdk:"name"`
 	Encryption types.String                                               `tfsdk:"encryption"`
 }
@@ -417,6 +438,14 @@ func (m *resourceEndpointZtnaProfilesConnectionRulesModel) flattenEndpointZtnaPr
 
 	if v, ok := o["gateways"]; ok {
 		m.Gateways = m.flattenEndpointZtnaProfilesConnectionRulesGatewaysList(ctx, v, diags)
+	}
+
+	if v, ok := o["mask"]; ok {
+		m.Mask = parseStringValue(v)
+	}
+
+	if v, ok := o["port"]; ok {
+		m.Port = parseStringValue(v)
 	}
 
 	if v, ok := o["name"]; ok {
@@ -539,6 +568,14 @@ func (data *resourceEndpointZtnaProfilesConnectionRulesModel) expandEndpointZtna
 	}
 
 	result["gateways"] = data.expandEndpointZtnaProfilesConnectionRulesGatewaysList(ctx, data.Gateways, diags)
+
+	if !data.Mask.IsNull() {
+		result["mask"] = data.Mask.ValueString()
+	}
+
+	if !data.Port.IsNull() {
+		result["port"] = data.Port.ValueString()
+	}
 
 	if !data.Name.IsNull() {
 		result["name"] = data.Name.ValueString()

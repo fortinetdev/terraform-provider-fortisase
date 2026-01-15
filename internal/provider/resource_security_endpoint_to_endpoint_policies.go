@@ -24,7 +24,8 @@ func newResourceSecurityEndpointToEndpointPolicies() resource.Resource {
 }
 
 type resourceSecurityEndpointToEndpointPolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityEndpointToEndpointPoliciesModel describes the resource data model.
@@ -211,9 +212,13 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Configure(ctx context.Conte
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_endpoint_to_endpoint_policies"
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicies) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityEndpointToEndpointPoliciesModel
 	diags := &resp.Diagnostics
 
@@ -234,8 +239,8 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Create(ctx context.Context,
 	output, err := c.CreateSecurityEndpointToEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -249,8 +254,8 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Create(ctx context.Context,
 	read_output, err := c.ReadSecurityEndpointToEndpointPolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -264,6 +269,9 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Create(ctx context.Context,
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicies) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -292,11 +300,11 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Update(ctx context.Context,
 		return
 	}
 
-	_, err := c.UpdateSecurityEndpointToEndpointPolicies(&input_model)
+	output, err := c.UpdateSecurityEndpointToEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -307,8 +315,8 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Update(ctx context.Context,
 	read_output, err := c.ReadSecurityEndpointToEndpointPolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -322,6 +330,9 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Update(ctx context.Context,
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicies) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityEndpointToEndpointPoliciesModel
 
@@ -339,11 +350,11 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Delete(ctx context.Context,
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityEndpointToEndpointPolicies(ctx, "delete", diags))
 
-	err := c.DeleteSecurityEndpointToEndpointPolicies(&input_model)
+	output, err := c.DeleteSecurityEndpointToEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -370,8 +381,8 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Read(ctx context.Context, r
 	read_output, err := c.ReadSecurityEndpointToEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -392,10 +403,6 @@ func (m *resourceSecurityEndpointToEndpointPoliciesModel) refreshSecurityEndpoin
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["enabled"]; ok {
@@ -449,7 +456,7 @@ func (data *resourceSecurityEndpointToEndpointPoliciesModel) getCreateObjectSecu
 
 	result["users"] = data.expandSecurityEndpointToEndpointPoliciesUsersList(ctx, data.Users, diags)
 
-	if len(data.Sources) > 0 {
+	if data.Sources != nil {
 		result["sources"] = data.expandSecurityEndpointToEndpointPoliciesSourcesList(ctx, data.Sources, diags)
 	}
 
@@ -488,15 +495,15 @@ func (data *resourceSecurityEndpointToEndpointPoliciesModel) getUpdateObjectSecu
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if len(data.Users) > 0 || !isSameStruct(data.Users, state.Users) {
+	if data.Users != nil {
 		result["users"] = data.expandSecurityEndpointToEndpointPoliciesUsersList(ctx, data.Users, diags)
 	}
 
-	if len(data.Sources) > 0 || !isSameStruct(data.Sources, state.Sources) {
+	if data.Sources != nil {
 		result["sources"] = data.expandSecurityEndpointToEndpointPoliciesSourcesList(ctx, data.Sources, diags)
 	}
 
-	if len(data.Services) > 0 || !isSameStruct(data.Services, state.Services) {
+	if data.Services != nil {
 		result["services"] = data.expandSecurityEndpointToEndpointPoliciesServicesList(ctx, data.Services, diags)
 	}
 
@@ -504,19 +511,19 @@ func (data *resourceSecurityEndpointToEndpointPoliciesModel) getUpdateObjectSecu
 		result["action"] = data.Action.ValueString()
 	}
 
-	if data.Schedule != nil && !isSameStruct(data.Schedule, state.Schedule) {
+	if data.Schedule != nil {
 		result["schedule"] = data.Schedule.expandSecurityEndpointToEndpointPoliciesSchedule(ctx, diags)
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.Equal(state.Comments) {
+	if !data.Comments.IsNull() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
-	if data.ProfileGroup != nil && !isSameStruct(data.ProfileGroup, state.ProfileGroup) {
+	if data.ProfileGroup != nil {
 		result["profileGroup"] = data.ProfileGroup.expandSecurityEndpointToEndpointPoliciesProfileGroup(ctx, diags)
 	}
 
-	if !data.LogTraffic.IsNull() && !data.LogTraffic.Equal(state.LogTraffic) {
+	if !data.LogTraffic.IsNull() {
 		result["logTraffic"] = data.LogTraffic.ValueString()
 	}
 

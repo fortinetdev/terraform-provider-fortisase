@@ -21,7 +21,8 @@ func newDatasourcePrivateAccessServiceConnections() datasource.DataSource {
 }
 
 type datasourcePrivateAccessServiceConnections struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourcePrivateAccessServiceConnectionsModel describes the datasource data model.
@@ -45,7 +46,7 @@ type datasourcePrivateAccessServiceConnectionsModel struct {
 	Config              *datasourcePrivateAccessServiceConnectionsConfigModel       `tfsdk:"config"`
 	CommonConfig        *datasourcePrivateAccessServiceConnectionsCommonConfigModel `tfsdk:"common_config"`
 	IpAssigned          []datasourcePrivateAccessServiceConnectionsIpAssignedModel  `tfsdk:"ip_assigned"`
-	RegionCost          *datasourcePrivateAccessServiceConnectionsRegionCostModel   `tfsdk:"region_cost"`
+	RegionCost          types.Map                                                   `tfsdk:"region_cost"`
 	ServiceConnectionId types.String                                                `tfsdk:"service_connection_id"`
 }
 
@@ -57,208 +58,135 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"alias": schema.StringAttribute{
-				Description: "alias for serivce connection",
-				Optional:    true,
+				MarkdownDescription: "alias for serivce connection",
+				Optional:            true,
 			},
 			"bgp_peer_ip": schema.StringAttribute{
-				Description: "BGP Routing Peer IP.",
-				Optional:    true,
+				MarkdownDescription: "BGP Routing Peer IP.",
+				Optional:            true,
 			},
 			"ipsec_remote_gw": schema.StringAttribute{
-				Description: "IPSEC Remote Gateway IP",
-				Optional:    true,
+				MarkdownDescription: "IPSEC Remote Gateway IP",
+				Optional:            true,
 			},
 			"overlay_network_id": schema.StringAttribute{
-				Description: "integer id for overlay",
-				Optional:    true,
+				MarkdownDescription: "integer id for overlay",
+				Optional:            true,
 			},
 			"route_map_tag": schema.StringAttribute{
-				Description: "route map tag",
-				Optional:    true,
+				MarkdownDescription: "route map tag",
+				Optional:            true,
 			},
 			"auth": schema.StringAttribute{
-				Description: "IPSEC authentication method",
 				Validators: []validator.String{
 					stringvalidator.OneOf("pki", "psk"),
 				},
-				Optional: true,
+				MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
+				Optional:            true,
 			},
 			"ipsec_pre_shared_key": schema.StringAttribute{
-				Description: "IPSEC auth by pre shared key.",
-				Optional:    true,
+				MarkdownDescription: "IPSEC auth by pre shared key.",
+				Optional:            true,
 			},
 			"ipsec_cert_name": schema.StringAttribute{
-				Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-				Optional:    true,
+				MarkdownDescription: "the name of IPSEC authentication certificate that uploaded to SASE",
+				Optional:            true,
 			},
 			"ipsec_ike_version": schema.StringAttribute{
-				Description: "IKE version for IPSEC",
 				Validators: []validator.String{
 					stringvalidator.OneOf("2"),
 				},
-				Optional: true,
+				MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
+				Optional:            true,
 			},
 			"ipsec_peer_name": schema.StringAttribute{
-				Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-				Optional:    true,
+				MarkdownDescription: "Peer PKI user name that created on SASE for IPSEC authentication",
+				Optional:            true,
 			},
 			"ftntid": schema.StringAttribute{
-				Description: "unique id for service connection",
-				Computed:    true,
+				MarkdownDescription: "unique id for service connection",
+				Computed:            true,
 			},
 			"type": schema.StringAttribute{
-				Description: "BGP Routing Design. Must be same as network configuration.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("overlay", "loopback"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "BGP Routing Design. Must be same as network configuration.\nSupported values: overlay, loopback.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"config_state": schema.StringAttribute{
-				Description: "Configuration state of service connection.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
-				Computed: true,
+				MarkdownDescription: "Configuration state of service connection.\nSupported values: success, failed, creating, updating, deleting.",
+				Computed:            true,
 			},
 			"seq_num": schema.Float64Attribute{
-				Description: "sequential unique number for service connection",
-				Computed:    true,
+				MarkdownDescription: "sequential unique number for service connection",
+				Computed:            true,
 			},
 			"failed_message": schema.StringAttribute{
-				Description: "failure message while config service connection",
-				Computed:    true,
+				MarkdownDescription: "failure message while config service connection",
+				Computed:            true,
+			},
+			"region_cost": schema.MapAttribute{
+				MarkdownDescription: "Cost value to determine the priority of SASE spokes. Default cost is 5 if not provided through initial api request.",
+				Optional:            true,
+				ElementType:         types.Int64Type,
 			},
 			"service_connection_id": schema.StringAttribute{
-				Description: "the unique uuid for service connection",
-				Required:    true,
+				MarkdownDescription: "the unique uuid for service connection",
+				Required:            true,
 			},
 			"backup_links": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-
-						"delete": schema.ListNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"id": schema.StringAttribute{
-										Description: "unique id for additional IPsec overlays.",
-										Computed:    true,
-										Optional:    true,
-									},
-								},
-							},
-							Optional: true,
+						"alias": schema.StringAttribute{
+							MarkdownDescription: "alias for serivce connection additional overlay",
+							Computed:            true,
+							Optional:            true,
 						},
-						"update": schema.ListNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"id": schema.StringAttribute{
-										Description: "unique id for additional IPsec overlays.",
-										Computed:    true,
-										Optional:    true,
-									},
-									"alias": schema.StringAttribute{
-										Description: "alias for serivce connection additional overlay",
-										Computed:    true,
-										Optional:    true,
-									},
-									"auth": schema.StringAttribute{
-										Description: "IPSEC authentication method",
-										Validators: []validator.String{
-											stringvalidator.OneOf("pki", "psk"),
-										},
-										Computed: true,
-										Optional: true,
-									},
-									"ipsec_cert_name": schema.StringAttribute{
-										Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_ike_version": schema.StringAttribute{
-										Description: "IKE version for IPSEC",
-										Validators: []validator.String{
-											stringvalidator.OneOf("2"),
-										},
-										Computed: true,
-										Optional: true,
-									},
-									"ipsec_peer_name": schema.StringAttribute{
-										Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_remote_gw": schema.StringAttribute{
-										Description: "IPSEC Remote Gateway IP",
-										Computed:    true,
-										Optional:    true,
-									},
-									"overlay_network_id": schema.StringAttribute{
-										Description: "integer id for overlay",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_pre_shared_key": schema.StringAttribute{
-										Description: "IPSEC auth by pre shared key.",
-										Computed:    true,
-										Optional:    true,
-									},
-								},
+						"auth": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("pki", "psk"),
 							},
-							Optional: true,
+							MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
+							Computed:            true,
+							Optional:            true,
 						},
-						"create": schema.ListNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"alias": schema.StringAttribute{
-										Description: "alias for serivce connection additional overlay",
-										Computed:    true,
-										Optional:    true,
-									},
-									"auth": schema.StringAttribute{
-										Description: "IPSEC authentication method",
-										Validators: []validator.String{
-											stringvalidator.OneOf("pki", "psk"),
-										},
-										Computed: true,
-										Optional: true,
-									},
-									"ipsec_cert_name": schema.StringAttribute{
-										Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_ike_version": schema.StringAttribute{
-										Description: "IKE version for IPSEC",
-										Validators: []validator.String{
-											stringvalidator.OneOf("2"),
-										},
-										Computed: true,
-										Optional: true,
-									},
-									"ipsec_peer_name": schema.StringAttribute{
-										Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_remote_gw": schema.StringAttribute{
-										Description: "IPSEC Remote Gateway IP",
-										Computed:    true,
-										Optional:    true,
-									},
-									"overlay_network_id": schema.StringAttribute{
-										Description: "integer id for overlay",
-										Computed:    true,
-										Optional:    true,
-									},
-									"ipsec_pre_shared_key": schema.StringAttribute{
-										Description: "IPSEC auth by pre shared key.",
-										Computed:    true,
-										Optional:    true,
-									},
-								},
+						"ipsec_cert_name": schema.StringAttribute{
+							MarkdownDescription: "the name of IPSEC authentication certificate that uploaded to SASE",
+							Computed:            true,
+							Optional:            true,
+						},
+						"ipsec_ike_version": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("2"),
 							},
-							Optional: true,
+							MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"ipsec_peer_name": schema.StringAttribute{
+							MarkdownDescription: "Peer PKI user name that created on SASE for IPSEC authentication",
+							Computed:            true,
+							Optional:            true,
+						},
+						"ipsec_remote_gw": schema.StringAttribute{
+							MarkdownDescription: "IPSEC Remote Gateway IP",
+							Computed:            true,
+							Optional:            true,
+						},
+						"overlay_network_id": schema.StringAttribute{
+							MarkdownDescription: "integer id for overlay",
+							Computed:            true,
+							Optional:            true,
+						},
+						"ipsec_pre_shared_key": schema.StringAttribute{
+							MarkdownDescription: "IPSEC auth by pre shared key.",
+							Computed:            true,
+							Optional:            true,
 						},
 					},
 				},
@@ -267,127 +195,110 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			"config": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"alias": schema.StringAttribute{
-						Description: "alias for serivce connection",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "alias for serivce connection",
+						Computed:            true,
+						Optional:            true,
 					},
 					"auth": schema.StringAttribute{
-						Description: "IPSEC authentication method",
 						Validators: []validator.String{
 							stringvalidator.OneOf("pki", "psk"),
 						},
-						Computed: true,
-						Optional: true,
+						MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"bgp_peer_ip": schema.StringAttribute{
-						Description: "BGP Routing Peer IP.",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "BGP Routing Peer IP.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"ipsec_cert_name": schema.StringAttribute{
-						Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "the name of IPSEC authentication certificate that uploaded to SASE",
+						Computed:            true,
+						Optional:            true,
 					},
 					"ipsec_ike_version": schema.StringAttribute{
-						Description: "IKE version for IPSEC",
 						Validators: []validator.String{
 							stringvalidator.OneOf("2"),
 						},
-						Computed: true,
-						Optional: true,
+						MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"ipsec_peer_name": schema.StringAttribute{
-						Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "Peer PKI user name that created on SASE for IPSEC authentication",
+						Computed:            true,
+						Optional:            true,
 					},
 					"ipsec_remote_gw": schema.StringAttribute{
-						Description: "IPSEC Remote Gateway IP",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "IPSEC Remote Gateway IP",
+						Computed:            true,
+						Optional:            true,
 					},
 					"overlay_network_id": schema.StringAttribute{
-						Description: "integer id for overlay",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "integer id for overlay",
+						Computed:            true,
+						Optional:            true,
 					},
 					"route_map_tag": schema.StringAttribute{
-						Description: "route map tag",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "route map tag",
+						Computed:            true,
+						Optional:            true,
 					},
-					"region_cost": schema.SingleNestedAttribute{
-						Description: "cost value to determine the priority of SASE spokes",
-						Attributes: map[string]schema.Attribute{
-							"sjc_f1": schema.Float64Attribute{
-								Computed: true,
-								Optional: true,
-							},
-							"lon_f1": schema.Float64Attribute{
-								Computed: true,
-								Optional: true,
-							},
-							"fra_f1": schema.Float64Attribute{
-								Computed: true,
-								Optional: true,
-							},
-							"iad_f1": schema.Float64Attribute{
-								Computed: true,
-								Optional: true,
-							},
-						},
-						Computed: true,
-						Optional: true,
+					"region_cost": schema.MapAttribute{
+						MarkdownDescription: "cost value to determine the priority of SASE spokes",
+						Computed:            true,
+						Optional:            true,
+						ElementType:         types.Int64Type,
 					},
 					"backup_links": schema.ListNestedAttribute{
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
-									Description: "unique id for additional IPsec overlays.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "unique id for additional IPsec overlays.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"alias": schema.StringAttribute{
-									Description: "alias for serivce connection additional overlay",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "alias for serivce connection additional overlay",
+									Computed:            true,
+									Optional:            true,
 								},
 								"auth": schema.StringAttribute{
-									Description: "IPSEC authentication method",
 									Validators: []validator.String{
 										stringvalidator.OneOf("pki", "psk"),
 									},
-									Computed: true,
-									Optional: true,
+									MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"ipsec_cert_name": schema.StringAttribute{
-									Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "the name of IPSEC authentication certificate that uploaded to SASE",
+									Computed:            true,
+									Optional:            true,
 								},
 								"ipsec_ike_version": schema.StringAttribute{
-									Description: "IKE version for IPSEC",
 									Validators: []validator.String{
 										stringvalidator.OneOf("2"),
 									},
-									Computed: true,
-									Optional: true,
+									MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"ipsec_peer_name": schema.StringAttribute{
-									Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Peer PKI user name that created on SASE for IPSEC authentication",
+									Computed:            true,
+									Optional:            true,
 								},
 								"ipsec_remote_gw": schema.StringAttribute{
-									Description: "IPSEC Remote Gateway IP",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "IPSEC Remote Gateway IP",
+									Computed:            true,
+									Optional:            true,
 								},
 								"overlay_network_id": schema.StringAttribute{
-									Description: "integer id for overlay",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "integer id for overlay",
+									Computed:            true,
+									Optional:            true,
 								},
 							},
 						},
@@ -400,45 +311,45 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			"common_config": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"config_state": schema.StringAttribute{
-						Description: "Configuration state of network configuration.",
 						Validators: []validator.String{
 							stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
 						},
-						Computed: true,
-						Optional: true,
+						MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"bgp_design": schema.StringAttribute{
-						Description: "BGP Routing Design.",
 						Validators: []validator.String{
 							stringvalidator.OneOf("overlay", "loopback"),
 						},
-						Computed: true,
-						Optional: true,
+						MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"bgp_router_ids_subnet": schema.StringAttribute{
-						Description: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"as_number": schema.StringAttribute{
-						Description: "Autonomous System Number (ASN).",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "Autonomous System Number (ASN).",
+						Computed:            true,
+						Optional:            true,
 					},
 					"recursive_next_hop": schema.BoolAttribute{
-						Description: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"sdwan_rule_enable": schema.BoolAttribute{
-						Description: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
+						Computed:            true,
+						Optional:            true,
 					},
 					"sdwan_health_check_vm": schema.StringAttribute{
-						Description: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
+						Computed:            true,
+						Optional:            true,
 					},
 				},
 				Computed: true,
@@ -447,55 +358,33 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
-							Description: "unique id for bgp router id assignment",
-							Computed:    true,
-							Optional:    true,
+							MarkdownDescription: "unique id for bgp router id assignment",
+							Computed:            true,
+							Optional:            true,
 						},
 						"sdwan_common_id": schema.StringAttribute{
-							Description: "unique id related to network configuration",
-							Computed:    true,
-							Optional:    true,
+							MarkdownDescription: "unique id related to network configuration",
+							Computed:            true,
+							Optional:            true,
 						},
 						"bgp_router_id": schema.StringAttribute{
-							Description: "BGP Router ID generated from Router ID Subnets",
-							Computed:    true,
-							Optional:    true,
+							MarkdownDescription: "BGP Router ID generated from Router ID Subnets",
+							Computed:            true,
+							Optional:            true,
 						},
 						"site_id": schema.StringAttribute{
-							Description: "id for SASE spoke",
-							Computed:    true,
-							Optional:    true,
+							MarkdownDescription: "id for SASE spoke",
+							Computed:            true,
+							Optional:            true,
 						},
 						"region": schema.StringAttribute{
-							Description: "air port code for SASE spoke physical region",
-							Computed:    true,
-							Optional:    true,
+							MarkdownDescription: "air port code for SASE spoke physical region",
+							Computed:            true,
+							Optional:            true,
 						},
 					},
 				},
 				Computed: true,
-			},
-			"region_cost": schema.SingleNestedAttribute{
-				Description: "Cost value to determine the priority of SASE spokes. Default cost is 5 if not provided through initial api request.",
-				Attributes: map[string]schema.Attribute{
-					"sjc_f1": schema.Float64Attribute{
-						Computed: true,
-						Optional: true,
-					},
-					"lon_f1": schema.Float64Attribute{
-						Computed: true,
-						Optional: true,
-					},
-					"fra_f1": schema.Float64Attribute{
-						Computed: true,
-						Optional: true,
-					},
-					"iad_f1": schema.Float64Attribute{
-						Computed: true,
-						Optional: true,
-					},
-				},
-				Optional: true,
 			},
 		},
 	}
@@ -520,6 +409,7 @@ func (r *datasourcePrivateAccessServiceConnections) Configure(ctx context.Contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_private_access_service_connections"
 }
 
 func (r *datasourcePrivateAccessServiceConnections) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -543,8 +433,8 @@ func (r *datasourcePrivateAccessServiceConnections) Read(ctx context.Context, re
 	read_output, err := c.ReadPrivateAccessServiceConnections(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -561,50 +451,6 @@ func (m *datasourcePrivateAccessServiceConnectionsModel) refreshPrivateAccessSer
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["alias"]; ok {
-		m.Alias = parseStringValue(v)
-	}
-
-	if v, ok := o["bgp_peer_ip"]; ok {
-		m.BgpPeerIp = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_remote_gw"]; ok {
-		m.IpsecRemoteGw = parseStringValue(v)
-	}
-
-	if v, ok := o["overlay_network_id"]; ok {
-		m.OverlayNetworkId = parseStringValue(v)
-	}
-
-	if v, ok := o["route_map_tag"]; ok {
-		m.RouteMapTag = parseStringValue(v)
-	}
-
-	if v, ok := o["auth"]; ok {
-		m.Auth = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_pre_shared_key"]; ok {
-		m.IpsecPreSharedKey = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_cert_name"]; ok {
-		m.IpsecCertName = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_ike_version"]; ok {
-		m.IpsecIkeVersion = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_peer_name"]; ok {
-		m.IpsecPeerName = parseStringValue(v)
-	}
-
-	if v, ok := o["backup_links"]; ok {
-		m.BackupLinks = m.flattenPrivateAccessServiceConnectionsBackupLinksList(ctx, v, &diags)
 	}
 
 	if v, ok := o["id"]; ok {
@@ -639,10 +485,6 @@ func (m *datasourcePrivateAccessServiceConnectionsModel) refreshPrivateAccessSer
 		m.IpAssigned = m.flattenPrivateAccessServiceConnectionsIpAssignedList(ctx, v, &diags)
 	}
 
-	if v, ok := o["region_cost"]; ok {
-		m.RegionCost = m.RegionCost.flattenPrivateAccessServiceConnectionsRegionCost(ctx, v, &diags)
-	}
-
 	return diags
 }
 
@@ -656,28 +498,6 @@ func (data *datasourcePrivateAccessServiceConnectionsModel) getURLObjectPrivateA
 }
 
 type datasourcePrivateAccessServiceConnectionsBackupLinksModel struct {
-	Delete []datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel `tfsdk:"delete"`
-	Update []datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel `tfsdk:"update"`
-	Create []datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel `tfsdk:"create"`
-}
-
-type datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel struct {
-	Id types.String `tfsdk:"id"`
-}
-
-type datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel struct {
-	Id                types.String `tfsdk:"id"`
-	Alias             types.String `tfsdk:"alias"`
-	Auth              types.String `tfsdk:"auth"`
-	IpsecCertName     types.String `tfsdk:"ipsec_cert_name"`
-	IpsecIkeVersion   types.String `tfsdk:"ipsec_ike_version"`
-	IpsecPeerName     types.String `tfsdk:"ipsec_peer_name"`
-	IpsecRemoteGw     types.String `tfsdk:"ipsec_remote_gw"`
-	OverlayNetworkId  types.String `tfsdk:"overlay_network_id"`
-	IpsecPreSharedKey types.String `tfsdk:"ipsec_pre_shared_key"`
-}
-
-type datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel struct {
 	Alias             types.String `tfsdk:"alias"`
 	Auth              types.String `tfsdk:"auth"`
 	IpsecCertName     types.String `tfsdk:"ipsec_cert_name"`
@@ -698,15 +518,8 @@ type datasourcePrivateAccessServiceConnectionsConfigModel struct {
 	IpsecRemoteGw    types.String                                                      `tfsdk:"ipsec_remote_gw"`
 	OverlayNetworkId types.String                                                      `tfsdk:"overlay_network_id"`
 	RouteMapTag      types.String                                                      `tfsdk:"route_map_tag"`
-	RegionCost       *datasourcePrivateAccessServiceConnectionsConfigRegionCostModel   `tfsdk:"region_cost"`
+	RegionCost       types.Map                                                         `tfsdk:"region_cost"`
 	BackupLinks      []datasourcePrivateAccessServiceConnectionsConfigBackupLinksModel `tfsdk:"backup_links"`
-}
-
-type datasourcePrivateAccessServiceConnectionsConfigRegionCostModel struct {
-	SjcF1 types.Float64 `tfsdk:"sjc_f1"`
-	LonF1 types.Float64 `tfsdk:"lon_f1"`
-	FraF1 types.Float64 `tfsdk:"fra_f1"`
-	IadF1 types.Float64 `tfsdk:"iad_f1"`
 }
 
 type datasourcePrivateAccessServiceConnectionsConfigBackupLinksModel struct {
@@ -738,13 +551,6 @@ type datasourcePrivateAccessServiceConnectionsIpAssignedModel struct {
 	Region        types.String `tfsdk:"region"`
 }
 
-type datasourcePrivateAccessServiceConnectionsRegionCostModel struct {
-	SjcF1 types.Float64 `tfsdk:"sjc_f1"`
-	LonF1 types.Float64 `tfsdk:"lon_f1"`
-	FraF1 types.Float64 `tfsdk:"fra_f1"`
-	IadF1 types.Float64 `tfsdk:"iad_f1"`
-}
-
 func (m *datasourcePrivateAccessServiceConnectionsBackupLinksModel) flattenPrivateAccessServiceConnectionsBackupLinks(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsBackupLinksModel {
 	if input == nil {
 		return &datasourcePrivateAccessServiceConnectionsBackupLinksModel{}
@@ -753,16 +559,36 @@ func (m *datasourcePrivateAccessServiceConnectionsBackupLinksModel) flattenPriva
 		m = &datasourcePrivateAccessServiceConnectionsBackupLinksModel{}
 	}
 	o := input.(map[string]interface{})
-	if v, ok := o["delete"]; ok {
-		m.Delete = m.flattenPrivateAccessServiceConnectionsBackupLinksDeleteList(ctx, v, diags)
+	if v, ok := o["alias"]; ok {
+		m.Alias = parseStringValue(v)
 	}
 
-	if v, ok := o["update"]; ok {
-		m.Update = m.flattenPrivateAccessServiceConnectionsBackupLinksUpdateList(ctx, v, diags)
+	if v, ok := o["auth"]; ok {
+		m.Auth = parseStringValue(v)
 	}
 
-	if v, ok := o["create"]; ok {
-		m.Create = m.flattenPrivateAccessServiceConnectionsBackupLinksCreateList(ctx, v, diags)
+	if v, ok := o["ipsec_cert_name"]; ok {
+		m.IpsecCertName = parseStringValue(v)
+	}
+
+	if v, ok := o["ipsec_ike_version"]; ok {
+		m.IpsecIkeVersion = parseStringValue(v)
+	}
+
+	if v, ok := o["ipsec_peer_name"]; ok {
+		m.IpsecPeerName = parseStringValue(v)
+	}
+
+	if v, ok := o["ipsec_remote_gw"]; ok {
+		m.IpsecRemoteGw = parseStringValue(v)
+	}
+
+	if v, ok := o["overlay_network_id"]; ok {
+		m.OverlayNetworkId = parseStringValue(v)
+	}
+
+	if v, ok := o["ipsec_pre_shared_key"]; ok {
+		m.IpsecPreSharedKey = parseStringValue(v)
 	}
 
 	return m
@@ -787,183 +613,6 @@ func (s *datasourcePrivateAccessServiceConnectionsModel) flattenPrivateAccessSer
 	for i, ele := range l {
 		var m datasourcePrivateAccessServiceConnectionsBackupLinksModel
 		values[i] = *m.flattenPrivateAccessServiceConnectionsBackupLinks(ctx, ele, diags)
-	}
-
-	return values
-}
-
-func (m *datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel) flattenPrivateAccessServiceConnectionsBackupLinksDelete(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel {
-	if input == nil {
-		return &datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel{}
-	}
-	if m == nil {
-		m = &datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["id"]; ok {
-		m.Id = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (s *datasourcePrivateAccessServiceConnectionsBackupLinksModel) flattenPrivateAccessServiceConnectionsBackupLinksDeleteList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel {
-	if o == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument delete is not type of []interface{}.", "")
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel{}
-	}
-
-	values := make([]datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel, len(l))
-	for i, ele := range l {
-		var m datasourcePrivateAccessServiceConnectionsBackupLinksDeleteModel
-		values[i] = *m.flattenPrivateAccessServiceConnectionsBackupLinksDelete(ctx, ele, diags)
-	}
-
-	return values
-}
-
-func (m *datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel) flattenPrivateAccessServiceConnectionsBackupLinksUpdate(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel {
-	if input == nil {
-		return &datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel{}
-	}
-	if m == nil {
-		m = &datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["id"]; ok {
-		m.Id = parseStringValue(v)
-	}
-
-	if v, ok := o["alias"]; ok {
-		m.Alias = parseStringValue(v)
-	}
-
-	if v, ok := o["auth"]; ok {
-		m.Auth = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_cert_name"]; ok {
-		m.IpsecCertName = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_ike_version"]; ok {
-		m.IpsecIkeVersion = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_peer_name"]; ok {
-		m.IpsecPeerName = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_remote_gw"]; ok {
-		m.IpsecRemoteGw = parseStringValue(v)
-	}
-
-	if v, ok := o["overlay_network_id"]; ok {
-		m.OverlayNetworkId = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_pre_shared_key"]; ok {
-		m.IpsecPreSharedKey = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (s *datasourcePrivateAccessServiceConnectionsBackupLinksModel) flattenPrivateAccessServiceConnectionsBackupLinksUpdateList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel {
-	if o == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument update is not type of []interface{}.", "")
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel{}
-	}
-
-	values := make([]datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel, len(l))
-	for i, ele := range l {
-		var m datasourcePrivateAccessServiceConnectionsBackupLinksUpdateModel
-		values[i] = *m.flattenPrivateAccessServiceConnectionsBackupLinksUpdate(ctx, ele, diags)
-	}
-
-	return values
-}
-
-func (m *datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel) flattenPrivateAccessServiceConnectionsBackupLinksCreate(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel {
-	if input == nil {
-		return &datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel{}
-	}
-	if m == nil {
-		m = &datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["alias"]; ok {
-		m.Alias = parseStringValue(v)
-	}
-
-	if v, ok := o["auth"]; ok {
-		m.Auth = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_cert_name"]; ok {
-		m.IpsecCertName = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_ike_version"]; ok {
-		m.IpsecIkeVersion = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_peer_name"]; ok {
-		m.IpsecPeerName = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_remote_gw"]; ok {
-		m.IpsecRemoteGw = parseStringValue(v)
-	}
-
-	if v, ok := o["overlay_network_id"]; ok {
-		m.OverlayNetworkId = parseStringValue(v)
-	}
-
-	if v, ok := o["ipsec_pre_shared_key"]; ok {
-		m.IpsecPreSharedKey = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (s *datasourcePrivateAccessServiceConnectionsBackupLinksModel) flattenPrivateAccessServiceConnectionsBackupLinksCreateList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel {
-	if o == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument create is not type of []interface{}.", "")
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel{}
-	}
-
-	values := make([]datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel, len(l))
-	for i, ele := range l {
-		var m datasourcePrivateAccessServiceConnectionsBackupLinksCreateModel
-		values[i] = *m.flattenPrivateAccessServiceConnectionsBackupLinksCreate(ctx, ele, diags)
 	}
 
 	return values
@@ -1014,38 +663,11 @@ func (m *datasourcePrivateAccessServiceConnectionsConfigModel) flattenPrivateAcc
 	}
 
 	if v, ok := o["region_cost"]; ok {
-		m.RegionCost = m.RegionCost.flattenPrivateAccessServiceConnectionsConfigRegionCost(ctx, v, diags)
+		m.RegionCost = parseMapValue(ctx, v, types.Int64Type)
 	}
 
 	if v, ok := o["backup_links"]; ok {
 		m.BackupLinks = m.flattenPrivateAccessServiceConnectionsConfigBackupLinksList(ctx, v, diags)
-	}
-
-	return m
-}
-
-func (m *datasourcePrivateAccessServiceConnectionsConfigRegionCostModel) flattenPrivateAccessServiceConnectionsConfigRegionCost(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsConfigRegionCostModel {
-	if input == nil {
-		return &datasourcePrivateAccessServiceConnectionsConfigRegionCostModel{}
-	}
-	if m == nil {
-		m = &datasourcePrivateAccessServiceConnectionsConfigRegionCostModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["sjc-f1"]; ok {
-		m.SjcF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["lon-f1"]; ok {
-		m.LonF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["fra-f1"]; ok {
-		m.FraF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["iad-f1"]; ok {
-		m.IadF1 = parseFloat64Value(v)
 	}
 
 	return m
@@ -1210,31 +832,4 @@ func (s *datasourcePrivateAccessServiceConnectionsModel) flattenPrivateAccessSer
 	}
 
 	return values
-}
-
-func (m *datasourcePrivateAccessServiceConnectionsRegionCostModel) flattenPrivateAccessServiceConnectionsRegionCost(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourcePrivateAccessServiceConnectionsRegionCostModel {
-	if input == nil {
-		return &datasourcePrivateAccessServiceConnectionsRegionCostModel{}
-	}
-	if m == nil {
-		m = &datasourcePrivateAccessServiceConnectionsRegionCostModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["sjc-f1"]; ok {
-		m.SjcF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["lon-f1"]; ok {
-		m.LonF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["fra-f1"]; ok {
-		m.FraF1 = parseFloat64Value(v)
-	}
-
-	if v, ok := o["iad-f1"]; ok {
-		m.IadF1 = parseFloat64Value(v)
-	}
-
-	return m
 }

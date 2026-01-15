@@ -24,7 +24,8 @@ func newResourceNetworkHostGroups() resource.Resource {
 }
 
 type resourceNetworkHostGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceNetworkHostGroupsModel describes the resource data model.
@@ -96,9 +97,13 @@ func (r *resourceNetworkHostGroups) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_host_groups"
 }
 
 func (r *resourceNetworkHostGroups) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHostGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceNetworkHostGroupsModel
 	diags := &resp.Diagnostics
 
@@ -119,8 +124,8 @@ func (r *resourceNetworkHostGroups) Create(ctx context.Context, req resource.Cre
 	output, err := c.CreateNetworkHostGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -134,8 +139,8 @@ func (r *resourceNetworkHostGroups) Create(ctx context.Context, req resource.Cre
 	read_output, err := c.ReadNetworkHostGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -149,6 +154,9 @@ func (r *resourceNetworkHostGroups) Create(ctx context.Context, req resource.Cre
 }
 
 func (r *resourceNetworkHostGroups) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHostGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -177,11 +185,11 @@ func (r *resourceNetworkHostGroups) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	_, err := c.UpdateNetworkHostGroups(&input_model)
+	output, err := c.UpdateNetworkHostGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -192,8 +200,8 @@ func (r *resourceNetworkHostGroups) Update(ctx context.Context, req resource.Upd
 	read_output, err := c.ReadNetworkHostGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -207,6 +215,9 @@ func (r *resourceNetworkHostGroups) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *resourceNetworkHostGroups) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHostGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceNetworkHostGroupsModel
 
@@ -224,11 +235,11 @@ func (r *resourceNetworkHostGroups) Delete(ctx context.Context, req resource.Del
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectNetworkHostGroups(ctx, "delete", diags))
 
-	err := c.DeleteNetworkHostGroups(&input_model)
+	output, err := c.DeleteNetworkHostGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -255,8 +266,8 @@ func (r *resourceNetworkHostGroups) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadNetworkHostGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -279,10 +290,6 @@ func (m *resourceNetworkHostGroupsModel) refreshNetworkHostGroups(ctx context.Co
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["members"]; ok {
 		m.Members = m.flattenNetworkHostGroupsMembersList(ctx, v, &diags)
 	}
@@ -303,11 +310,11 @@ func (data *resourceNetworkHostGroupsModel) getCreateObjectNetworkHostGroups(ctx
 
 func (data *resourceNetworkHostGroupsModel) getUpdateObjectNetworkHostGroups(ctx context.Context, state resourceNetworkHostGroupsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.Members) > 0 || !isSameStruct(data.Members, state.Members) {
+	if data.Members != nil {
 		result["members"] = data.expandNetworkHostGroupsMembersList(ctx, data.Members, diags)
 	}
 

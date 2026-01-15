@@ -21,7 +21,8 @@ func newDatasourceSecurityWebFilterProfile() datasource.DataSource {
 }
 
 type datasourceSecurityWebFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityWebFilterProfileModel describes the datasource data model.
@@ -33,6 +34,7 @@ type datasourceSecurityWebFilterProfileModel struct {
 	UseFortiguardFilters           types.String                                                            `tfsdk:"use_fortiguard_filters"`
 	BlockInvalidUrl                types.String                                                            `tfsdk:"block_invalid_url"`
 	EnforceSafeSearch              types.String                                                            `tfsdk:"enforce_safe_search"`
+	LogSearchedKeywords            types.String                                                            `tfsdk:"log_searched_keywords"`
 	TrafficOnRatingError           types.String                                                            `tfsdk:"traffic_on_rating_error"`
 	ContentFilters                 []datasourceSecurityWebFilterProfileContentFiltersModel                 `tfsdk:"content_filters"`
 	UrlFilters                     []datasourceSecurityWebFilterProfileUrlFiltersModel                     `tfsdk:"url_filters"`
@@ -71,6 +73,13 @@ func (r *datasourceSecurityWebFilterProfile) Schema(ctx context.Context, req dat
 				Computed: true,
 				Optional: true,
 			},
+			"log_searched_keywords": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
 			"traffic_on_rating_error": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidator.OneOf("enable", "disable"),
@@ -79,12 +88,12 @@ func (r *datasourceSecurityWebFilterProfile) Schema(ctx context.Context, req dat
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -336,6 +345,7 @@ func (r *datasourceSecurityWebFilterProfile) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_web_filter_profile"
 }
 
 func (r *datasourceSecurityWebFilterProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -359,8 +369,8 @@ func (r *datasourceSecurityWebFilterProfile) Read(ctx context.Context, req datas
 	read_output, err := c.ReadSecurityWebFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -377,10 +387,6 @@ func (m *datasourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfil
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["fortiguardFilters"]; ok {
@@ -407,6 +413,10 @@ func (m *datasourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfil
 		m.EnforceSafeSearch = parseStringValue(v)
 	}
 
+	if v, ok := o["logSearchedKeywords"]; ok {
+		m.LogSearchedKeywords = parseStringValue(v)
+	}
+
 	if v, ok := o["trafficOnRatingError"]; ok {
 		m.TrafficOnRatingError = parseStringValue(v)
 	}
@@ -429,6 +439,9 @@ func (m *datasourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfil
 func (data *datasourceSecurityWebFilterProfileModel) getURLObjectSecurityWebFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

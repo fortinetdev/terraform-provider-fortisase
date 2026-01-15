@@ -21,7 +21,8 @@ func newDatasourceEndpointZtnaProfiles() datasource.DataSource {
 }
 
 type datasourceEndpointZtnaProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointZtnaProfilesModel describes the datasource data model.
@@ -47,8 +48,8 @@ func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasou
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 			"connection_rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -62,6 +63,14 @@ func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasou
 							Optional: true,
 						},
 						"uid": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+						"mask": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+						"port": schema.StringAttribute{
 							Computed: true,
 							Optional: true,
 						},
@@ -145,6 +154,7 @@ func (r *datasourceEndpointZtnaProfiles) Configure(ctx context.Context, req data
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_ztna_profiles"
 }
 
 func (r *datasourceEndpointZtnaProfiles) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -168,8 +178,8 @@ func (r *datasourceEndpointZtnaProfiles) Read(ctx context.Context, req datasourc
 	read_output, err := c.ReadEndpointZtnaProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -217,6 +227,8 @@ type datasourceEndpointZtnaProfilesConnectionRulesModel struct {
 	Address    types.String                                                 `tfsdk:"address"`
 	Uid        types.String                                                 `tfsdk:"uid"`
 	Gateways   []datasourceEndpointZtnaProfilesConnectionRulesGatewaysModel `tfsdk:"gateways"`
+	Mask       types.String                                                 `tfsdk:"mask"`
+	Port       types.String                                                 `tfsdk:"port"`
 	Name       types.String                                                 `tfsdk:"name"`
 	Encryption types.String                                                 `tfsdk:"encryption"`
 }
@@ -255,6 +267,14 @@ func (m *datasourceEndpointZtnaProfilesConnectionRulesModel) flattenEndpointZtna
 
 	if v, ok := o["gateways"]; ok {
 		m.Gateways = m.flattenEndpointZtnaProfilesConnectionRulesGatewaysList(ctx, v, diags)
+	}
+
+	if v, ok := o["mask"]; ok {
+		m.Mask = parseStringValue(v)
+	}
+
+	if v, ok := o["port"]; ok {
+		m.Port = parseStringValue(v)
 	}
 
 	if v, ok := o["name"]; ok {

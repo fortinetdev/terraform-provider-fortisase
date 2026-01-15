@@ -22,7 +22,8 @@ func newDatasourceSecurityUrlThreatFeeds() datasource.DataSource {
 }
 
 type datasourceSecurityUrlThreatFeeds struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityUrlThreatFeedsModel describes the datasource data model.
@@ -114,6 +115,7 @@ func (r *datasourceSecurityUrlThreatFeeds) Configure(ctx context.Context, req da
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_url_threat_feeds"
 }
 
 func (r *datasourceSecurityUrlThreatFeeds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -137,8 +139,8 @@ func (r *datasourceSecurityUrlThreatFeeds) Read(ctx context.Context, req datasou
 	read_output, err := c.ReadSecurityUrlThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -155,10 +157,6 @@ func (m *datasourceSecurityUrlThreatFeedsModel) refreshSecurityUrlThreatFeeds(ct
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["comments"]; ok {

@@ -21,7 +21,8 @@ func newDatasourceSecurityCertRemoteCaCerts() datasource.DataSource {
 }
 
 type datasourceSecurityCertRemoteCaCerts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityCertRemoteCaCertsModel describes the datasource data model.
@@ -151,6 +152,7 @@ func (r *datasourceSecurityCertRemoteCaCerts) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_cert_remote_ca_certs"
 }
 
 func (r *datasourceSecurityCertRemoteCaCerts) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -174,8 +176,8 @@ func (r *datasourceSecurityCertRemoteCaCerts) Read(ctx context.Context, req data
 	read_output, err := c.ReadSecurityCertRemoteCaCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -200,10 +202,6 @@ func (m *datasourceSecurityCertRemoteCaCertsModel) refreshSecurityCertRemoteCaCe
 
 	if v, ok := o["name"]; ok {
 		m.Name = parseStringValue(v)
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["type"]; ok {
@@ -232,14 +230,6 @@ func (m *datasourceSecurityCertRemoteCaCertsModel) refreshSecurityCertRemoteCaCe
 
 	if v, ok := o["usages"]; ok {
 		m.Usages = m.flattenSecurityCertRemoteCaCertsUsagesList(ctx, v, &diags)
-	}
-
-	if v, ok := o["certName"]; ok {
-		m.CertName = parseStringValue(v)
-	}
-
-	if v, ok := o["fileContent"]; ok {
-		m.FileContent = parseStringValue(v)
 	}
 
 	return diags

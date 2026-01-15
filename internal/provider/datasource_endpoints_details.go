@@ -21,7 +21,8 @@ func newDatasourceEndpointsDetails() datasource.DataSource {
 }
 
 type datasourceEndpointsDetails struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointsDetailsModel describes the datasource data model.
@@ -139,11 +140,11 @@ func (r *datasourceEndpointsDetails) Schema(ctx context.Context, req datasource.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"device_id": schema.Float64Attribute{
-				Description: "The device ID of the endpoint",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1),
 				},
-				Required: true,
+				MarkdownDescription: "The device ID of the endpoint.\nValue at least 1.",
+				Required:            true,
 			},
 			"host": schema.StringAttribute{
 				Computed: true,
@@ -698,6 +699,7 @@ func (r *datasourceEndpointsDetails) Configure(ctx context.Context, req datasour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_details"
 }
 
 func (r *datasourceEndpointsDetails) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -721,8 +723,8 @@ func (r *datasourceEndpointsDetails) Read(ctx context.Context, req datasource.Re
 	read_output, err := c.ReadEndpointsDetails(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -739,10 +741,6 @@ func (m *datasourceEndpointsDetailsModel) refreshEndpointsDetails(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["deviceId"]; ok {
-		m.DeviceId = parseFloat64Value(v)
 	}
 
 	if v, ok := o["host"]; ok {

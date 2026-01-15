@@ -24,7 +24,8 @@ func newResourceAuthUsers() resource.Resource {
 }
 
 type resourceAuthUsers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthUsersModel describes the resource data model.
@@ -124,9 +125,13 @@ func (r *resourceAuthUsers) Configure(ctx context.Context, req resource.Configur
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_users"
 }
 
 func (r *resourceAuthUsers) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUsers")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceAuthUsersModel
 	diags := &resp.Diagnostics
 
@@ -147,8 +152,8 @@ func (r *resourceAuthUsers) Create(ctx context.Context, req resource.CreateReque
 	output, err := c.CreateAuthUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -162,8 +167,8 @@ func (r *resourceAuthUsers) Create(ctx context.Context, req resource.CreateReque
 	read_output, err := c.ReadAuthUsers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -177,6 +182,9 @@ func (r *resourceAuthUsers) Create(ctx context.Context, req resource.CreateReque
 }
 
 func (r *resourceAuthUsers) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUsers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -205,11 +213,11 @@ func (r *resourceAuthUsers) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	_, err := c.UpdateAuthUsers(&input_model)
+	output, err := c.UpdateAuthUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -220,8 +228,8 @@ func (r *resourceAuthUsers) Update(ctx context.Context, req resource.UpdateReque
 	read_output, err := c.ReadAuthUsers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -235,6 +243,9 @@ func (r *resourceAuthUsers) Update(ctx context.Context, req resource.UpdateReque
 }
 
 func (r *resourceAuthUsers) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUsers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthUsersModel
 
@@ -252,11 +263,11 @@ func (r *resourceAuthUsers) Delete(ctx context.Context, req resource.DeleteReque
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectAuthUsers(ctx, "delete", diags))
 
-	err := c.DeleteAuthUsers(&input_model)
+	output, err := c.DeleteAuthUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -283,8 +294,8 @@ func (r *resourceAuthUsers) Read(ctx context.Context, req resource.ReadRequest, 
 	read_output, err := c.ReadAuthUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -305,10 +316,6 @@ func (m *resourceAuthUsersModel) refreshAuthUsers(ctx context.Context, o map[str
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["authType"]; ok {
@@ -377,7 +384,7 @@ func (data *resourceAuthUsersModel) getUpdateObjectAuthUsers(ctx context.Context
 		result["email"] = data.Email.ValueString()
 	}
 
-	if data.LdapServer != nil && !isSameStruct(data.LdapServer, state.LdapServer) {
+	if data.LdapServer != nil {
 		result["ldapServer"] = data.LdapServer.expandAuthUsersLdapServer(ctx, diags)
 	}
 

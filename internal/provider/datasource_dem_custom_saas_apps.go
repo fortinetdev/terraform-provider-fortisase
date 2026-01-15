@@ -21,7 +21,8 @@ func newDatasourceDemCustomSaasApps() datasource.DataSource {
 }
 
 type datasourceDemCustomSaasApps struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceDemCustomSaasAppsModel describes the datasource data model.
@@ -39,23 +40,23 @@ func (r *datasourceDemCustomSaasApps) Schema(ctx context.Context, req datasource
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key object of the DEM custom SaaS application. Can not be updated once created.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 253),
 				},
-				Required: true,
+				MarkdownDescription: "The primary key object of the DEM custom SaaS application. Can not be updated once created.\nLength between 1 and 253.",
+				Required:            true,
 			},
 			"alias": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
 			"fqdn": schema.StringAttribute{
-				Description: "The FQDN of the custom SaaS application.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 253),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The FQDN of the custom SaaS application.\nLength between 1 and 253.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -80,6 +81,7 @@ func (r *datasourceDemCustomSaasApps) Configure(ctx context.Context, req datasou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_dem_custom_saas_apps"
 }
 
 func (r *datasourceDemCustomSaasApps) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -103,8 +105,8 @@ func (r *datasourceDemCustomSaasApps) Read(ctx context.Context, req datasource.R
 	read_output, err := c.ReadDemCustomSaasApps(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -121,10 +123,6 @@ func (m *datasourceDemCustomSaasAppsModel) refreshDemCustomSaasApps(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["alias"]; ok {

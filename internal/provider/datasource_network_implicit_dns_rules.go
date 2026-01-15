@@ -22,7 +22,8 @@ func newDatasourceNetworkImplicitDnsRules() datasource.DataSource {
 }
 
 type datasourceNetworkImplicitDnsRules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceNetworkImplicitDnsRulesModel describes the datasource data model.
@@ -98,6 +99,7 @@ func (r *datasourceNetworkImplicitDnsRules) Configure(ctx context.Context, req d
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_implicit_dns_rules"
 }
 
 func (r *datasourceNetworkImplicitDnsRules) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -121,8 +123,8 @@ func (r *datasourceNetworkImplicitDnsRules) Read(ctx context.Context, req dataso
 	read_output, err := c.ReadNetworkImplicitDnsRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -139,10 +141,6 @@ func (m *datasourceNetworkImplicitDnsRulesModel) refreshNetworkImplicitDnsRules(
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["dnsServer"]; ok {

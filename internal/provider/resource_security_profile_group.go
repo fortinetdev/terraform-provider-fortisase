@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +24,8 @@ func newResourceSecurityProfileGroup() resource.Resource {
 }
 
 type resourceSecurityProfileGroup struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityProfileGroupModel describes the resource data model.
@@ -65,12 +65,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Required: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"antivirus_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -365,9 +365,13 @@ func (r *resourceSecurityProfileGroup) Configure(ctx context.Context, req resour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_profile_group"
 }
 
 func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityProfileGroupModel
 	diags := &resp.Diagnostics
 
@@ -388,14 +392,28 @@ func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.
 	output, err := c.CreateSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
 
 	mkey := fmt.Sprintf("%v", output["primaryKey"])
 	data.ID = types.StringValue(mkey)
+	var update_input_model forticlient.InputModel
+	update_input_model.Mkey = mkey
+	update_input_model.BodyParams = *(data.getUpdateObjectSecurityProfileGroup(ctx, data, diags))
+	update_input_model.URLParams = *(data.getURLObjectSecurityProfileGroup(ctx, "update", diags))
+	if !diags.HasError() {
+		output, err := c.UpdateSecurityProfileGroup(&update_input_model)
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf("Error to update resource after create %s: %v", r.resourceName, err),
+				getErrorDetail(&update_input_model, output),
+			)
+			return
+		}
+	}
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
 	read_input_model.URLParams = *(data.getURLObjectSecurityProfileGroup(ctx, "read", diags))
@@ -403,8 +421,8 @@ func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.
 	read_output, err := c.ReadSecurityProfileGroup(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -418,6 +436,9 @@ func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.
 }
 
 func (r *resourceSecurityProfileGroup) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -446,11 +467,11 @@ func (r *resourceSecurityProfileGroup) Update(ctx context.Context, req resource.
 		return
 	}
 
-	_, err := c.UpdateSecurityProfileGroup(&input_model)
+	output, err := c.UpdateSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -461,8 +482,8 @@ func (r *resourceSecurityProfileGroup) Update(ctx context.Context, req resource.
 	read_output, err := c.ReadSecurityProfileGroup(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -476,6 +497,9 @@ func (r *resourceSecurityProfileGroup) Update(ctx context.Context, req resource.
 }
 
 func (r *resourceSecurityProfileGroup) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityProfileGroupModel
 
@@ -493,11 +517,11 @@ func (r *resourceSecurityProfileGroup) Delete(ctx context.Context, req resource.
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityProfileGroup(ctx, "delete", diags))
 
-	err := c.DeleteSecurityProfileGroup(&input_model)
+	output, err := c.DeleteSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -524,8 +548,8 @@ func (r *resourceSecurityProfileGroup) Read(ctx context.Context, req resource.Re
 	read_output, err := c.ReadSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -539,27 +563,13 @@ func (r *resourceSecurityProfileGroup) Read(ctx context.Context, req resource.Re
 }
 
 func (r *resourceSecurityProfileGroup) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityProfileGroupModel) refreshSecurityProfileGroup(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["antivirusProfile"]; ok {
@@ -607,84 +617,48 @@ func (data *resourceSecurityProfileGroupModel) getCreateObjectSecurityProfileGro
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if data.AntivirusProfile != nil && !isZeroStruct(*data.AntivirusProfile) {
-		result["antivirusProfile"] = data.AntivirusProfile.expandSecurityProfileGroupAntivirusProfile(ctx, diags)
-	}
-
-	if data.WebFilterProfile != nil && !isZeroStruct(*data.WebFilterProfile) {
-		result["webFilterProfile"] = data.WebFilterProfile.expandSecurityProfileGroupWebFilterProfile(ctx, diags)
-	}
-
-	if data.VideoFilterProfile != nil && !isZeroStruct(*data.VideoFilterProfile) {
-		result["videoFilterProfile"] = data.VideoFilterProfile.expandSecurityProfileGroupVideoFilterProfile(ctx, diags)
-	}
-
-	if data.DnsFilterProfile != nil && !isZeroStruct(*data.DnsFilterProfile) {
-		result["dnsFilterProfile"] = data.DnsFilterProfile.expandSecurityProfileGroupDnsFilterProfile(ctx, diags)
-	}
-
-	if data.ApplicationControlProfile != nil && !isZeroStruct(*data.ApplicationControlProfile) {
-		result["applicationControlProfile"] = data.ApplicationControlProfile.expandSecurityProfileGroupApplicationControlProfile(ctx, diags)
-	}
-
-	if data.FileFilterProfile != nil && !isZeroStruct(*data.FileFilterProfile) {
-		result["fileFilterProfile"] = data.FileFilterProfile.expandSecurityProfileGroupFileFilterProfile(ctx, diags)
-	}
-
-	if data.DlpFilterProfile != nil && !isZeroStruct(*data.DlpFilterProfile) {
-		result["dlpFilterProfile"] = data.DlpFilterProfile.expandSecurityProfileGroupDlpFilterProfile(ctx, diags)
-	}
-
-	if data.IntrusionPreventionProfile != nil && !isZeroStruct(*data.IntrusionPreventionProfile) {
-		result["intrusionPreventionProfile"] = data.IntrusionPreventionProfile.expandSecurityProfileGroupIntrusionPreventionProfile(ctx, diags)
-	}
-
-	if data.SslSshProfile != nil && !isZeroStruct(*data.SslSshProfile) {
-		result["sslSshProfile"] = data.SslSshProfile.expandSecurityProfileGroupSslSshProfile(ctx, diags)
-	}
-
 	return &result
 }
 
 func (data *resourceSecurityProfileGroupModel) getUpdateObjectSecurityProfileGroup(ctx context.Context, state resourceSecurityProfileGroupModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if data.AntivirusProfile != nil && !isSameStruct(data.AntivirusProfile, state.AntivirusProfile) {
+	if data.AntivirusProfile != nil {
 		result["antivirusProfile"] = data.AntivirusProfile.expandSecurityProfileGroupAntivirusProfile(ctx, diags)
 	}
 
-	if data.WebFilterProfile != nil && !isSameStruct(data.WebFilterProfile, state.WebFilterProfile) {
+	if data.WebFilterProfile != nil {
 		result["webFilterProfile"] = data.WebFilterProfile.expandSecurityProfileGroupWebFilterProfile(ctx, diags)
 	}
 
-	if data.VideoFilterProfile != nil && !isSameStruct(data.VideoFilterProfile, state.VideoFilterProfile) {
+	if data.VideoFilterProfile != nil {
 		result["videoFilterProfile"] = data.VideoFilterProfile.expandSecurityProfileGroupVideoFilterProfile(ctx, diags)
 	}
 
-	if data.DnsFilterProfile != nil && !isSameStruct(data.DnsFilterProfile, state.DnsFilterProfile) {
+	if data.DnsFilterProfile != nil {
 		result["dnsFilterProfile"] = data.DnsFilterProfile.expandSecurityProfileGroupDnsFilterProfile(ctx, diags)
 	}
 
-	if data.ApplicationControlProfile != nil && !isSameStruct(data.ApplicationControlProfile, state.ApplicationControlProfile) {
+	if data.ApplicationControlProfile != nil {
 		result["applicationControlProfile"] = data.ApplicationControlProfile.expandSecurityProfileGroupApplicationControlProfile(ctx, diags)
 	}
 
-	if data.FileFilterProfile != nil && !isSameStruct(data.FileFilterProfile, state.FileFilterProfile) {
+	if data.FileFilterProfile != nil {
 		result["fileFilterProfile"] = data.FileFilterProfile.expandSecurityProfileGroupFileFilterProfile(ctx, diags)
 	}
 
-	if data.DlpFilterProfile != nil && !isSameStruct(data.DlpFilterProfile, state.DlpFilterProfile) {
+	if data.DlpFilterProfile != nil {
 		result["dlpFilterProfile"] = data.DlpFilterProfile.expandSecurityProfileGroupDlpFilterProfile(ctx, diags)
 	}
 
-	if data.IntrusionPreventionProfile != nil && !isSameStruct(data.IntrusionPreventionProfile, state.IntrusionPreventionProfile) {
+	if data.IntrusionPreventionProfile != nil {
 		result["intrusionPreventionProfile"] = data.IntrusionPreventionProfile.expandSecurityProfileGroupIntrusionPreventionProfile(ctx, diags)
 	}
 
-	if data.SslSshProfile != nil && !isSameStruct(data.SslSshProfile, state.SslSshProfile) {
+	if data.SslSshProfile != nil {
 		result["sslSshProfile"] = data.SslSshProfile.expandSecurityProfileGroupSslSshProfile(ctx, diags)
 	}
 
@@ -698,6 +672,9 @@ func (data *resourceSecurityProfileGroupModel) getURLObjectSecurityProfileGroup(
 	}
 
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

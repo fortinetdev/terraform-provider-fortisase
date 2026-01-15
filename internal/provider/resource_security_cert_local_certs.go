@@ -25,7 +25,8 @@ func newResourceSecurityCertLocalCerts() resource.Resource {
 }
 
 type resourceSecurityCertLocalCerts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityCertLocalCertsModel describes the resource data model.
@@ -217,6 +218,7 @@ func (r *resourceSecurityCertLocalCerts) Configure(ctx context.Context, req reso
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_cert_local_certs"
 }
 
 func (r *resourceSecurityCertLocalCerts) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -240,8 +242,8 @@ func (r *resourceSecurityCertLocalCerts) Create(ctx context.Context, req resourc
 	output, err := c.CreateSecurityCertLocalCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -255,8 +257,8 @@ func (r *resourceSecurityCertLocalCerts) Create(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityCertLocalCerts(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -295,11 +297,11 @@ func (r *resourceSecurityCertLocalCerts) Delete(ctx context.Context, req resourc
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityCertLocalCerts(ctx, "delete", diags))
 
-	err := c.DeleteSecurityCertLocalCerts(&input_model)
+	output, err := c.DeleteSecurityCertLocalCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -326,8 +328,8 @@ func (r *resourceSecurityCertLocalCerts) Read(ctx context.Context, req resource.
 	read_output, err := c.ReadSecurityCertLocalCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -388,26 +390,6 @@ func (m *resourceSecurityCertLocalCertsModel) refreshSecurityCertLocalCerts(ctx 
 
 	if v, ok := o["usages"]; ok {
 		m.Usages = m.flattenSecurityCertLocalCertsUsagesList(ctx, v, &diags)
-	}
-
-	if v, ok := o["format"]; ok {
-		m.Format = parseStringValue(v)
-	}
-
-	if v, ok := o["certName"]; ok {
-		m.CertName = parseStringValue(v)
-	}
-
-	if v, ok := o["password"]; ok {
-		m.Password = parseStringValue(v)
-	}
-
-	if v, ok := o["fileContent"]; ok {
-		m.FileContent = parseStringValue(v)
-	}
-
-	if v, ok := o["keyFileContent"]; ok {
-		m.KeyFileContent = parseStringValue(v)
 	}
 
 	return diags

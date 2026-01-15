@@ -19,7 +19,8 @@ func newDatasourceSecurityAntivirusFiletypes() datasource.DataSource {
 }
 
 type datasourceSecurityAntivirusFiletypes struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityAntivirusFiletypesModel describes the datasource data model.
@@ -65,6 +66,7 @@ func (r *datasourceSecurityAntivirusFiletypes) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_antivirus_filetypes"
 }
 
 func (r *datasourceSecurityAntivirusFiletypes) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -88,8 +90,8 @@ func (r *datasourceSecurityAntivirusFiletypes) Read(ctx context.Context, req dat
 	read_output, err := c.ReadSecurityAntivirusFiletypes(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -106,10 +108,6 @@ func (m *datasourceSecurityAntivirusFiletypesModel) refreshSecurityAntivirusFile
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["isPasswordProtected"]; ok {

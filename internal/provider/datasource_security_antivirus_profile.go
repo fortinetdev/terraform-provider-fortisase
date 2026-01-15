@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -21,19 +22,21 @@ func newDatasourceSecurityAntivirusProfile() datasource.DataSource {
 }
 
 type datasourceSecurityAntivirusProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityAntivirusProfileModel describes the datasource data model.
 type datasourceSecurityAntivirusProfileModel struct {
-	PrimaryKey types.String `tfsdk:"primary_key"`
-	Http       types.String `tfsdk:"http"`
-	Smtp       types.String `tfsdk:"smtp"`
-	Pop3       types.String `tfsdk:"pop3"`
-	Imap       types.String `tfsdk:"imap"`
-	Ftp        types.String `tfsdk:"ftp"`
-	Cifs       types.String `tfsdk:"cifs"`
-	Direction  types.String `tfsdk:"direction"`
+	PrimaryKey types.String                                `tfsdk:"primary_key"`
+	Http       types.String                                `tfsdk:"http"`
+	Smtp       types.String                                `tfsdk:"smtp"`
+	Pop3       types.String                                `tfsdk:"pop3"`
+	Imap       types.String                                `tfsdk:"imap"`
+	Ftp        types.String                                `tfsdk:"ftp"`
+	Cifs       types.String                                `tfsdk:"cifs"`
+	Cdr        *datasourceSecurityAntivirusProfileCdrModel `tfsdk:"cdr"`
+	Direction  types.String                                `tfsdk:"direction"`
 }
 
 func (r *datasourceSecurityAntivirusProfile) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -89,9 +92,33 @@ func (r *datasourceSecurityAntivirusProfile) Schema(ctx context.Context, req dat
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+				},
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
+			},
+			"cdr": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"enable": schema.BoolAttribute{
+						Computed: true,
+						Optional: true,
+					},
+					"file_types": schema.SetAttribute{
+						Validators: []validator.Set{
+							setvalidator.ValueStringsAre(
+								stringvalidator.OneOf("pdf", "office"),
+							),
+						},
+						Computed:    true,
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+					"allow_error_transmission": schema.BoolAttribute{
+						Computed: true,
+						Optional: true,
+					},
 				},
 				Computed: true,
 				Optional: true,
@@ -119,6 +146,7 @@ func (r *datasourceSecurityAntivirusProfile) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_antivirus_profile"
 }
 
 func (r *datasourceSecurityAntivirusProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -142,8 +170,8 @@ func (r *datasourceSecurityAntivirusProfile) Read(ctx context.Context, req datas
 	read_output, err := c.ReadSecurityAntivirusProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -160,10 +188,6 @@ func (m *datasourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfil
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["http"]; ok {
@@ -190,12 +214,19 @@ func (m *datasourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfil
 		m.Cifs = parseStringValue(v)
 	}
 
+	if v, ok := o["cdr"]; ok {
+		m.Cdr = m.Cdr.flattenSecurityAntivirusProfileCdr(ctx, v, &diags)
+	}
+
 	return diags
 }
 
 func (data *datasourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivirusProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -204,4 +235,33 @@ func (data *datasourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivir
 	}
 
 	return &result
+}
+
+type datasourceSecurityAntivirusProfileCdrModel struct {
+	Enable                 types.Bool `tfsdk:"enable"`
+	FileTypes              types.Set  `tfsdk:"file_types"`
+	AllowErrorTransmission types.Bool `tfsdk:"allow_error_transmission"`
+}
+
+func (m *datasourceSecurityAntivirusProfileCdrModel) flattenSecurityAntivirusProfileCdr(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceSecurityAntivirusProfileCdrModel {
+	if input == nil {
+		return &datasourceSecurityAntivirusProfileCdrModel{}
+	}
+	if m == nil {
+		m = &datasourceSecurityAntivirusProfileCdrModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["enable"]; ok {
+		m.Enable = parseBoolValue(v)
+	}
+
+	if v, ok := o["fileTypes"]; ok {
+		m.FileTypes = parseSetValue(ctx, v, types.StringType)
+	}
+
+	if v, ok := o["allowErrorTransmission"]; ok {
+		m.AllowErrorTransmission = parseBoolValue(v)
+	}
+
+	return m
 }

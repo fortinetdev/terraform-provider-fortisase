@@ -21,7 +21,8 @@ func newDatasourceSecurityVideoFilterProfile() datasource.DataSource {
 }
 
 type datasourceSecurityVideoFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityVideoFilterProfileModel describes the datasource data model.
@@ -48,12 +49,12 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -139,6 +140,7 @@ func (r *datasourceSecurityVideoFilterProfile) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_video_filter_profile"
 }
 
 func (r *datasourceSecurityVideoFilterProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -162,8 +164,8 @@ func (r *datasourceSecurityVideoFilterProfile) Read(ctx context.Context, req dat
 	read_output, err := c.ReadSecurityVideoFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -180,10 +182,6 @@ func (m *datasourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterPr
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["fortiguardFilters"]; ok {
@@ -204,6 +202,9 @@ func (m *datasourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterPr
 func (data *datasourceSecurityVideoFilterProfileModel) getURLObjectSecurityVideoFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

@@ -25,7 +25,8 @@ func newResourceEndpointZtnaRules() resource.Resource {
 }
 
 type resourceEndpointZtnaRules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointZtnaRulesModel describes the resource data model.
@@ -91,6 +92,7 @@ func (r *resourceEndpointZtnaRules) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 			},
 			"rules": schema.ListNestedAttribute{
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.Float64Attribute{
@@ -219,6 +221,7 @@ func (r *resourceEndpointZtnaRules) Schema(ctx context.Context, req resource.Sch
 				Optional: true,
 			},
 			"logic": schema.SingleNestedAttribute{
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
 				Attributes: map[string]schema.Attribute{
 					"windows": schema.StringAttribute{
 						Computed: true,
@@ -267,9 +270,13 @@ func (r *resourceEndpointZtnaRules) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_ztna_rules"
 }
 
 func (r *resourceEndpointZtnaRules) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaRules")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointZtnaRulesModel
 	diags := &resp.Diagnostics
 
@@ -290,8 +297,8 @@ func (r *resourceEndpointZtnaRules) Create(ctx context.Context, req resource.Cre
 	output, err := c.CreateEndpointZtnaRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -305,8 +312,8 @@ func (r *resourceEndpointZtnaRules) Create(ctx context.Context, req resource.Cre
 	read_output, err := c.ReadEndpointZtnaRules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -320,6 +327,9 @@ func (r *resourceEndpointZtnaRules) Create(ctx context.Context, req resource.Cre
 }
 
 func (r *resourceEndpointZtnaRules) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaRules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -348,11 +358,11 @@ func (r *resourceEndpointZtnaRules) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	_, err := c.UpdateEndpointZtnaRules(&input_model)
+	output, err := c.UpdateEndpointZtnaRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -363,8 +373,8 @@ func (r *resourceEndpointZtnaRules) Update(ctx context.Context, req resource.Upd
 	read_output, err := c.ReadEndpointZtnaRules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -378,6 +388,9 @@ func (r *resourceEndpointZtnaRules) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *resourceEndpointZtnaRules) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaRules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceEndpointZtnaRulesModel
 
@@ -395,11 +408,11 @@ func (r *resourceEndpointZtnaRules) Delete(ctx context.Context, req resource.Del
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectEndpointZtnaRules(ctx, "delete", diags))
 
-	err := c.DeleteEndpointZtnaRules(&input_model)
+	output, err := c.DeleteEndpointZtnaRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -426,8 +439,8 @@ func (r *resourceEndpointZtnaRules) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadEndpointZtnaRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -448,10 +461,6 @@ func (m *resourceEndpointZtnaRulesModel) refreshEndpointZtnaRules(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["status"]; ok {
@@ -506,7 +515,7 @@ func (data *resourceEndpointZtnaRulesModel) getCreateObjectEndpointZtnaRules(ctx
 
 func (data *resourceEndpointZtnaRulesModel) getUpdateObjectEndpointZtnaRules(ctx context.Context, state resourceEndpointZtnaRulesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -514,19 +523,19 @@ func (data *resourceEndpointZtnaRulesModel) getUpdateObjectEndpointZtnaRules(ctx
 		result["status"] = data.Status.ValueString()
 	}
 
-	if data.Tag != nil && !isSameStruct(data.Tag, state.Tag) {
+	if data.Tag != nil {
 		result["tag"] = data.Tag.expandEndpointZtnaRulesTag(ctx, diags)
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.Equal(state.Comments) {
+	if !data.Comments.IsNull() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
-	if len(data.Rules) > 0 || !isSameStruct(data.Rules, state.Rules) {
+	if data.Rules != nil {
 		result["rules"] = data.expandEndpointZtnaRulesRulesList(ctx, data.Rules, diags)
 	}
 
-	if data.Logic != nil && !isSameStruct(data.Logic, state.Logic) {
+	if data.Logic != nil {
 		result["logic"] = data.Logic.expandEndpointZtnaRulesLogic(ctx, diags)
 	}
 

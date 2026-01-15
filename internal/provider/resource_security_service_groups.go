@@ -24,7 +24,8 @@ func newResourceSecurityServiceGroups() resource.Resource {
 }
 
 type resourceSecurityServiceGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityServiceGroupsModel describes the resource data model.
@@ -101,9 +102,13 @@ func (r *resourceSecurityServiceGroups) Configure(ctx context.Context, req resou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_service_groups"
 }
 
 func (r *resourceSecurityServiceGroups) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServiceGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityServiceGroupsModel
 	diags := &resp.Diagnostics
 
@@ -124,8 +129,8 @@ func (r *resourceSecurityServiceGroups) Create(ctx context.Context, req resource
 	output, err := c.CreateSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -139,8 +144,8 @@ func (r *resourceSecurityServiceGroups) Create(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityServiceGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -154,6 +159,9 @@ func (r *resourceSecurityServiceGroups) Create(ctx context.Context, req resource
 }
 
 func (r *resourceSecurityServiceGroups) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServiceGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -182,11 +190,11 @@ func (r *resourceSecurityServiceGroups) Update(ctx context.Context, req resource
 		return
 	}
 
-	_, err := c.UpdateSecurityServiceGroups(&input_model)
+	output, err := c.UpdateSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -197,8 +205,8 @@ func (r *resourceSecurityServiceGroups) Update(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityServiceGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -212,6 +220,9 @@ func (r *resourceSecurityServiceGroups) Update(ctx context.Context, req resource
 }
 
 func (r *resourceSecurityServiceGroups) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServiceGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityServiceGroupsModel
 
@@ -229,11 +240,11 @@ func (r *resourceSecurityServiceGroups) Delete(ctx context.Context, req resource
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityServiceGroups(ctx, "delete", diags))
 
-	err := c.DeleteSecurityServiceGroups(&input_model)
+	output, err := c.DeleteSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -260,8 +271,8 @@ func (r *resourceSecurityServiceGroups) Read(ctx context.Context, req resource.R
 	read_output, err := c.ReadSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -282,10 +293,6 @@ func (m *resourceSecurityServiceGroupsModel) refreshSecurityServiceGroups(ctx co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["proxy"]; ok {
@@ -316,7 +323,7 @@ func (data *resourceSecurityServiceGroupsModel) getCreateObjectSecurityServiceGr
 
 func (data *resourceSecurityServiceGroupsModel) getUpdateObjectSecurityServiceGroups(ctx context.Context, state resourceSecurityServiceGroupsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -324,7 +331,7 @@ func (data *resourceSecurityServiceGroupsModel) getUpdateObjectSecurityServiceGr
 		result["proxy"] = data.Proxy.ValueBool()
 	}
 
-	if len(data.Members) > 0 || !isSameStruct(data.Members, state.Members) {
+	if data.Members != nil {
 		result["members"] = data.expandSecurityServiceGroupsMembersList(ctx, data.Members, diags)
 	}
 

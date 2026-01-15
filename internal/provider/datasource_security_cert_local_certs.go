@@ -21,7 +21,8 @@ func newDatasourceSecurityCertLocalCerts() datasource.DataSource {
 }
 
 type datasourceSecurityCertLocalCerts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityCertLocalCertsModel describes the datasource data model.
@@ -163,6 +164,7 @@ func (r *datasourceSecurityCertLocalCerts) Configure(ctx context.Context, req da
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_cert_local_certs"
 }
 
 func (r *datasourceSecurityCertLocalCerts) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -186,8 +188,8 @@ func (r *datasourceSecurityCertLocalCerts) Read(ctx context.Context, req datasou
 	read_output, err := c.ReadSecurityCertLocalCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -212,10 +214,6 @@ func (m *datasourceSecurityCertLocalCertsModel) refreshSecurityCertLocalCerts(ct
 
 	if v, ok := o["name"]; ok {
 		m.Name = parseStringValue(v)
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["type"]; ok {
@@ -244,26 +242,6 @@ func (m *datasourceSecurityCertLocalCertsModel) refreshSecurityCertLocalCerts(ct
 
 	if v, ok := o["usages"]; ok {
 		m.Usages = m.flattenSecurityCertLocalCertsUsagesList(ctx, v, &diags)
-	}
-
-	if v, ok := o["format"]; ok {
-		m.Format = parseStringValue(v)
-	}
-
-	if v, ok := o["certName"]; ok {
-		m.CertName = parseStringValue(v)
-	}
-
-	if v, ok := o["password"]; ok {
-		m.Password = parseStringValue(v)
-	}
-
-	if v, ok := o["fileContent"]; ok {
-		m.FileContent = parseStringValue(v)
-	}
-
-	if v, ok := o["keyFileContent"]; ok {
-		m.KeyFileContent = parseStringValue(v)
 	}
 
 	return diags

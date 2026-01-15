@@ -24,7 +24,8 @@ func newResourceEndpointSettingProfiles() resource.Resource {
 }
 
 type resourceEndpointSettingProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointSettingProfilesModel describes the resource data model.
@@ -93,8 +94,11 @@ func (r *resourceEndpointSettingProfiles) Schema(ctx context.Context, req resour
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}
@@ -119,9 +123,13 @@ func (r *resourceEndpointSettingProfiles) Configure(ctx context.Context, req res
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_setting_profiles"
 }
 
 func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointSettingProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointSettingProfilesModel
 	diags := &resp.Diagnostics
 
@@ -143,8 +151,8 @@ func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resour
 	output, err := c.UpdateEndpointSettingProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -158,8 +166,8 @@ func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resour
 	read_output, err := c.ReadEndpointSettingProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -173,6 +181,9 @@ func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointSettingProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointSettingProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -201,11 +212,11 @@ func (r *resourceEndpointSettingProfiles) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err := c.UpdateEndpointSettingProfiles(&input_model)
+	output, err := c.UpdateEndpointSettingProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -216,8 +227,8 @@ func (r *resourceEndpointSettingProfiles) Update(ctx context.Context, req resour
 	read_output, err := c.ReadEndpointSettingProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -255,8 +266,8 @@ func (r *resourceEndpointSettingProfiles) Read(ctx context.Context, req resource
 	read_output, err := c.ReadEndpointSettingProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -337,7 +348,7 @@ func (data *resourceEndpointSettingProfilesModel) getCreateObjectEndpointSetting
 
 func (data *resourceEndpointSettingProfilesModel) getUpdateObjectEndpointSettingProfiles(ctx context.Context, state resourceEndpointSettingProfilesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.AllowConfigBackup.IsNull() && !data.AllowConfigBackup.Equal(state.AllowConfigBackup) {
+	if !data.AllowConfigBackup.IsNull() {
 		result["allowConfigBackup"] = data.AllowConfigBackup.ValueString()
 	}
 
@@ -357,7 +368,7 @@ func (data *resourceEndpointSettingProfilesModel) getUpdateObjectEndpointSetting
 		result["usersCanDisconnect"] = data.UsersCanDisconnect.ValueString()
 	}
 
-	if !data.EmsDisconnectPassword.IsNull() && !data.EmsDisconnectPassword.Equal(state.EmsDisconnectPassword) {
+	if !data.EmsDisconnectPassword.IsNull() {
 		result["emsDisconnectPassword"] = data.EmsDisconnectPassword.ValueString()
 	}
 

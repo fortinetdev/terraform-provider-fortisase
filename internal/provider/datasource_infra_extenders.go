@@ -21,7 +21,8 @@ func newDatasourceInfraExtenders() datasource.DataSource {
 }
 
 type datasourceInfraExtenders struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceInfraExtendersModel describes the datasource data model.
@@ -70,6 +71,7 @@ func (r *datasourceInfraExtenders) Configure(ctx context.Context, req datasource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_infra_extenders"
 }
 
 func (r *datasourceInfraExtenders) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -93,8 +95,8 @@ func (r *datasourceInfraExtenders) Read(ctx context.Context, req datasource.Read
 	read_output, err := c.ReadInfraExtenders(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -111,10 +113,6 @@ func (m *datasourceInfraExtendersModel) refreshInfraExtenders(ctx context.Contex
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["status"]; ok {

@@ -19,7 +19,8 @@ func newDatasourceUsageAuthFssoAgents() datasource.DataSource {
 }
 
 type datasourceUsageAuthFssoAgents struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageAuthFssoAgentsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageAuthFssoAgents) Schema(ctx context.Context, req datasour
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageAuthFssoAgents) Configure(ctx context.Context, req datas
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_auth_fsso_agents"
 }
 
 func (r *datasourceUsageAuthFssoAgents) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageAuthFssoAgents) Read(ctx context.Context, req datasource
 	read_output, err := c.ReadUsageAuthFssoAgents(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

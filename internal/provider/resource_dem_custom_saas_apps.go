@@ -24,7 +24,8 @@ func newResourceDemCustomSaasApps() resource.Resource {
 }
 
 type resourceDemCustomSaasApps struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceDemCustomSaasAppsModel describes the resource data model.
@@ -50,23 +51,23 @@ func (r *resourceDemCustomSaasApps) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key object of the DEM custom SaaS application. Can not be updated once created.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 253),
 				},
-				Required: true,
+				MarkdownDescription: "The primary key object of the DEM custom SaaS application. Can not be updated once created.\nLength between 1 and 253.",
+				Required:            true,
 			},
 			"alias": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 			},
 			"fqdn": schema.StringAttribute{
-				Description: "The FQDN of the custom SaaS application.",
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 253),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The FQDN of the custom SaaS application.\nLength between 1 and 253.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -91,9 +92,13 @@ func (r *resourceDemCustomSaasApps) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_dem_custom_saas_apps"
 }
 
 func (r *resourceDemCustomSaasApps) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("DemCustomSaasApps")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceDemCustomSaasAppsModel
 	diags := &resp.Diagnostics
 
@@ -114,8 +119,8 @@ func (r *resourceDemCustomSaasApps) Create(ctx context.Context, req resource.Cre
 	output, err := c.CreateDemCustomSaasApps(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -129,8 +134,8 @@ func (r *resourceDemCustomSaasApps) Create(ctx context.Context, req resource.Cre
 	read_output, err := c.ReadDemCustomSaasApps(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -144,6 +149,9 @@ func (r *resourceDemCustomSaasApps) Create(ctx context.Context, req resource.Cre
 }
 
 func (r *resourceDemCustomSaasApps) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("DemCustomSaasApps")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -172,11 +180,11 @@ func (r *resourceDemCustomSaasApps) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	_, err := c.UpdateDemCustomSaasApps(&input_model)
+	output, err := c.UpdateDemCustomSaasApps(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -187,8 +195,8 @@ func (r *resourceDemCustomSaasApps) Update(ctx context.Context, req resource.Upd
 	read_output, err := c.ReadDemCustomSaasApps(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -202,6 +210,9 @@ func (r *resourceDemCustomSaasApps) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *resourceDemCustomSaasApps) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("DemCustomSaasApps")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceDemCustomSaasAppsModel
 
@@ -219,11 +230,11 @@ func (r *resourceDemCustomSaasApps) Delete(ctx context.Context, req resource.Del
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectDemCustomSaasApps(ctx, "delete", diags))
 
-	err := c.DeleteDemCustomSaasApps(&input_model)
+	output, err := c.DeleteDemCustomSaasApps(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -250,8 +261,8 @@ func (r *resourceDemCustomSaasApps) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadDemCustomSaasApps(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -272,10 +283,6 @@ func (m *resourceDemCustomSaasAppsModel) refreshDemCustomSaasApps(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["alias"]; ok {
@@ -308,7 +315,7 @@ func (data *resourceDemCustomSaasAppsModel) getCreateObjectDemCustomSaasApps(ctx
 
 func (data *resourceDemCustomSaasAppsModel) getUpdateObjectDemCustomSaasApps(ctx context.Context, state resourceDemCustomSaasAppsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

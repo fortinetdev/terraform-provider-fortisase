@@ -25,7 +25,8 @@ func newResourceAuthLdapServers() resource.Resource {
 }
 
 type resourceAuthLdapServers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthLdapServersModel describes the resource data model.
@@ -234,9 +235,13 @@ func (r *resourceAuthLdapServers) Configure(ctx context.Context, req resource.Co
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_ldap_servers"
 }
 
 func (r *resourceAuthLdapServers) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthLdapServers")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceAuthLdapServersModel
 	diags := &resp.Diagnostics
 
@@ -257,8 +262,8 @@ func (r *resourceAuthLdapServers) Create(ctx context.Context, req resource.Creat
 	output, err := c.CreateAuthLdapServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -272,8 +277,8 @@ func (r *resourceAuthLdapServers) Create(ctx context.Context, req resource.Creat
 	read_output, err := c.ReadAuthLdapServers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -287,6 +292,9 @@ func (r *resourceAuthLdapServers) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *resourceAuthLdapServers) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthLdapServers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -315,11 +323,11 @@ func (r *resourceAuthLdapServers) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	_, err := c.UpdateAuthLdapServers(&input_model)
+	output, err := c.UpdateAuthLdapServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -330,8 +338,8 @@ func (r *resourceAuthLdapServers) Update(ctx context.Context, req resource.Updat
 	read_output, err := c.ReadAuthLdapServers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -345,6 +353,9 @@ func (r *resourceAuthLdapServers) Update(ctx context.Context, req resource.Updat
 }
 
 func (r *resourceAuthLdapServers) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthLdapServers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthLdapServersModel
 
@@ -362,11 +373,11 @@ func (r *resourceAuthLdapServers) Delete(ctx context.Context, req resource.Delet
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectAuthLdapServers(ctx, "delete", diags))
 
-	err := c.DeleteAuthLdapServers(&input_model)
+	output, err := c.DeleteAuthLdapServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -393,8 +404,8 @@ func (r *resourceAuthLdapServers) Read(ctx context.Context, req resource.ReadReq
 	read_output, err := c.ReadAuthLdapServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -415,10 +426,6 @@ func (m *resourceAuthLdapServersModel) refreshAuthLdapServers(ctx context.Contex
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["server"]; ok {
@@ -587,7 +594,7 @@ func (data *resourceAuthLdapServersModel) getCreateObjectAuthLdapServers(ctx con
 
 func (data *resourceAuthLdapServersModel) getUpdateObjectAuthLdapServers(ctx context.Context, state resourceAuthLdapServersModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -619,51 +626,51 @@ func (data *resourceAuthLdapServersModel) getUpdateObjectAuthLdapServers(ctx con
 		result["advancedGroupMatchingEnabled"] = data.AdvancedGroupMatchingEnabled.ValueBool()
 	}
 
-	if !data.GroupMemberCheck.IsNull() && !data.GroupMemberCheck.Equal(state.GroupMemberCheck) {
+	if !data.GroupMemberCheck.IsNull() {
 		result["groupMemberCheck"] = data.GroupMemberCheck.ValueString()
 	}
 
-	if !data.MemberAttribute.IsNull() && !data.MemberAttribute.Equal(state.MemberAttribute) {
+	if !data.MemberAttribute.IsNull() {
 		result["memberAttribute"] = data.MemberAttribute.ValueString()
 	}
 
-	if !data.GroupFilter.IsNull() && !data.GroupFilter.Equal(state.GroupFilter) {
+	if !data.GroupFilter.IsNull() {
 		result["groupFilter"] = data.GroupFilter.ValueString()
 	}
 
-	if !data.GroupSearchBase.IsNull() && !data.GroupSearchBase.Equal(state.GroupSearchBase) {
+	if !data.GroupSearchBase.IsNull() {
 		result["groupSearchBase"] = data.GroupSearchBase.ValueString()
 	}
 
-	if !data.GroupObjectFilter.IsNull() && !data.GroupObjectFilter.Equal(state.GroupObjectFilter) {
+	if !data.GroupObjectFilter.IsNull() {
 		result["groupObjectFilter"] = data.GroupObjectFilter.ValueString()
 	}
 
-	if !data.ServerIdentityCheckEnabled.IsNull() && !data.ServerIdentityCheckEnabled.Equal(state.ServerIdentityCheckEnabled) {
+	if !data.ServerIdentityCheckEnabled.IsNull() {
 		result["serverIdentityCheckEnabled"] = data.ServerIdentityCheckEnabled.ValueBool()
 	}
 
-	if !data.PasswordRenewalEnabled.IsNull() && !data.PasswordRenewalEnabled.Equal(state.PasswordRenewalEnabled) {
+	if !data.PasswordRenewalEnabled.IsNull() {
 		result["passwordRenewalEnabled"] = data.PasswordRenewalEnabled.ValueBool()
 	}
 
-	if data.Certificate != nil && !isSameStruct(data.Certificate, state.Certificate) {
+	if data.Certificate != nil {
 		result["certificate"] = data.Certificate.expandAuthLdapServersCertificate(ctx, diags)
 	}
 
-	if !data.ClientCertAuthEnabled.IsNull() && !data.ClientCertAuthEnabled.Equal(state.ClientCertAuthEnabled) {
+	if !data.ClientCertAuthEnabled.IsNull() {
 		result["clientCertAuthEnabled"] = data.ClientCertAuthEnabled.ValueBool()
 	}
 
-	if data.ClientCert != nil && !isSameStruct(data.ClientCert, state.ClientCert) {
+	if data.ClientCert != nil {
 		result["clientCert"] = data.ClientCert.expandAuthLdapServersClientCert(ctx, diags)
 	}
 
-	if !data.Username.IsNull() && !data.Username.Equal(state.Username) {
+	if !data.Username.IsNull() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.Password.IsNull() && !data.Password.Equal(state.Password) {
+	if !data.Password.IsNull() {
 		result["password"] = data.Password.ValueString()
 	}
 

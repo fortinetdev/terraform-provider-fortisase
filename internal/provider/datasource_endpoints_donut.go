@@ -21,7 +21,8 @@ func newDatasourceEndpointsDonut() datasource.DataSource {
 }
 
 type datasourceEndpointsDonut struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointsDonutModel describes the datasource data model.
@@ -80,6 +81,7 @@ func (r *datasourceEndpointsDonut) Configure(ctx context.Context, req datasource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_donut"
 }
 
 func (r *datasourceEndpointsDonut) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -103,8 +105,8 @@ func (r *datasourceEndpointsDonut) Read(ctx context.Context, req datasource.Read
 	read_output, err := c.ReadEndpointsDonut(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

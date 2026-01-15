@@ -19,7 +19,8 @@ func newDatasourceUsageEndpointZtnaTags() datasource.DataSource {
 }
 
 type datasourceUsageEndpointZtnaTags struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageEndpointZtnaTagsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageEndpointZtnaTags) Schema(ctx context.Context, req dataso
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageEndpointZtnaTags) Configure(ctx context.Context, req dat
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_endpoint_ztna_tags"
 }
 
 func (r *datasourceUsageEndpointZtnaTags) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageEndpointZtnaTags) Read(ctx context.Context, req datasour
 	read_output, err := c.ReadUsageEndpointZtnaTags(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

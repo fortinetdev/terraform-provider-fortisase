@@ -22,7 +22,8 @@ func newDatasourceSecurityOnetimeSchedules() datasource.DataSource {
 }
 
 type datasourceSecurityOnetimeSchedules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityOnetimeSchedulesModel describes the datasource data model.
@@ -84,6 +85,7 @@ func (r *datasourceSecurityOnetimeSchedules) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_onetime_schedules"
 }
 
 func (r *datasourceSecurityOnetimeSchedules) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -107,8 +109,8 @@ func (r *datasourceSecurityOnetimeSchedules) Read(ctx context.Context, req datas
 	read_output, err := c.ReadSecurityOnetimeSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -125,10 +127,6 @@ func (m *datasourceSecurityOnetimeSchedulesModel) refreshSecurityOnetimeSchedule
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["expirationDays"]; ok {

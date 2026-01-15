@@ -21,7 +21,8 @@ func newDatasourceSecurityProfileGroup() datasource.DataSource {
 }
 
 type datasourceSecurityProfileGroup struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityProfileGroupModel describes the datasource data model.
@@ -53,12 +54,12 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 				Required: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"antivirus_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -353,6 +354,7 @@ func (r *datasourceSecurityProfileGroup) Configure(ctx context.Context, req data
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_profile_group"
 }
 
 func (r *datasourceSecurityProfileGroup) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -376,8 +378,8 @@ func (r *datasourceSecurityProfileGroup) Read(ctx context.Context, req datasourc
 	read_output, err := c.ReadSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -394,10 +396,6 @@ func (m *datasourceSecurityProfileGroupModel) refreshSecurityProfileGroup(ctx co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["antivirusProfile"]; ok {
@@ -446,6 +444,9 @@ func (data *datasourceSecurityProfileGroupModel) getURLObjectSecurityProfileGrou
 	}
 
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

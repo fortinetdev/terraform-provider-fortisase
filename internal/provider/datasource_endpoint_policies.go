@@ -21,7 +21,8 @@ func newDatasourceEndpointPolicies() datasource.DataSource {
 }
 
 type datasourceEndpointPolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointPoliciesModel describes the datasource data model.
@@ -75,6 +76,7 @@ func (r *datasourceEndpointPolicies) Configure(ctx context.Context, req datasour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_policies"
 }
 
 func (r *datasourceEndpointPolicies) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -98,8 +100,8 @@ func (r *datasourceEndpointPolicies) Read(ctx context.Context, req datasource.Re
 	read_output, err := c.ReadEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -116,10 +118,6 @@ func (m *datasourceEndpointPoliciesModel) refreshEndpointPolicies(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["enabled"]; ok {

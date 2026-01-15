@@ -22,7 +22,8 @@ func newDatasourceEndpointZtnaRules() datasource.DataSource {
 }
 
 type datasourceEndpointZtnaRules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointZtnaRulesModel describes the datasource data model.
@@ -80,6 +81,7 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 				Optional: true,
 			},
 			"rules": schema.ListNestedAttribute{
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.Float64Attribute{
@@ -208,6 +210,7 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 				Optional: true,
 			},
 			"logic": schema.SingleNestedAttribute{
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
 				Attributes: map[string]schema.Attribute{
 					"windows": schema.StringAttribute{
 						Computed: true,
@@ -256,6 +259,7 @@ func (r *datasourceEndpointZtnaRules) Configure(ctx context.Context, req datasou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_ztna_rules"
 }
 
 func (r *datasourceEndpointZtnaRules) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -279,8 +283,8 @@ func (r *datasourceEndpointZtnaRules) Read(ctx context.Context, req datasource.R
 	read_output, err := c.ReadEndpointZtnaRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -297,10 +301,6 @@ func (m *datasourceEndpointZtnaRulesModel) refreshEndpointZtnaRules(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["status"]; ok {

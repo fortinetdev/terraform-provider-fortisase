@@ -25,7 +25,8 @@ func newResourceSecurityDlpFingerprintDatabases() resource.Resource {
 }
 
 type resourceSecurityDlpFingerprintDatabases struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpFingerprintDatabasesModel describes the resource data model.
@@ -199,9 +200,13 @@ func (r *resourceSecurityDlpFingerprintDatabases) Configure(ctx context.Context,
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_fingerprint_databases"
 }
 
 func (r *resourceSecurityDlpFingerprintDatabases) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFingerprintDatabases")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpFingerprintDatabasesModel
 	diags := &resp.Diagnostics
 
@@ -222,8 +227,8 @@ func (r *resourceSecurityDlpFingerprintDatabases) Create(ctx context.Context, re
 	output, err := c.CreateSecurityDlpFingerprintDatabases(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -237,8 +242,8 @@ func (r *resourceSecurityDlpFingerprintDatabases) Create(ctx context.Context, re
 	read_output, err := c.ReadSecurityDlpFingerprintDatabases(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -252,6 +257,9 @@ func (r *resourceSecurityDlpFingerprintDatabases) Create(ctx context.Context, re
 }
 
 func (r *resourceSecurityDlpFingerprintDatabases) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFingerprintDatabases")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -280,11 +288,11 @@ func (r *resourceSecurityDlpFingerprintDatabases) Update(ctx context.Context, re
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpFingerprintDatabases(&input_model)
+	output, err := c.UpdateSecurityDlpFingerprintDatabases(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -295,8 +303,8 @@ func (r *resourceSecurityDlpFingerprintDatabases) Update(ctx context.Context, re
 	read_output, err := c.ReadSecurityDlpFingerprintDatabases(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -310,6 +318,9 @@ func (r *resourceSecurityDlpFingerprintDatabases) Update(ctx context.Context, re
 }
 
 func (r *resourceSecurityDlpFingerprintDatabases) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFingerprintDatabases")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityDlpFingerprintDatabasesModel
 
@@ -327,11 +338,11 @@ func (r *resourceSecurityDlpFingerprintDatabases) Delete(ctx context.Context, re
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityDlpFingerprintDatabases(ctx, "delete", diags))
 
-	err := c.DeleteSecurityDlpFingerprintDatabases(&input_model)
+	output, err := c.DeleteSecurityDlpFingerprintDatabases(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -358,8 +369,8 @@ func (r *resourceSecurityDlpFingerprintDatabases) Read(ctx context.Context, req 
 	read_output, err := c.ReadSecurityDlpFingerprintDatabases(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -380,10 +391,6 @@ func (m *resourceSecurityDlpFingerprintDatabasesModel) refreshSecurityDlpFingerp
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["server"]; ok {
@@ -480,7 +487,7 @@ func (data *resourceSecurityDlpFingerprintDatabasesModel) getCreateObjectSecurit
 
 func (data *resourceSecurityDlpFingerprintDatabasesModel) getUpdateObjectSecurityDlpFingerprintDatabases(ctx context.Context, state resourceSecurityDlpFingerprintDatabasesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -504,7 +511,7 @@ func (data *resourceSecurityDlpFingerprintDatabasesModel) getUpdateObjectSecurit
 		result["filePattern"] = data.FilePattern.ValueString()
 	}
 
-	if data.Schedule != nil && !isSameStruct(data.Schedule, state.Schedule) {
+	if data.Schedule != nil {
 		result["schedule"] = data.Schedule.expandSecurityDlpFingerprintDatabasesSchedule(ctx, diags)
 	}
 
@@ -520,7 +527,7 @@ func (data *resourceSecurityDlpFingerprintDatabasesModel) getUpdateObjectSecurit
 		result["scanOnCreation"] = data.ScanOnCreation.ValueString()
 	}
 
-	if data.Authentication != nil && !isSameStruct(data.Authentication, state.Authentication) {
+	if data.Authentication != nil {
 		result["authentication"] = data.Authentication.expandSecurityDlpFingerprintDatabasesAuthentication(ctx, diags)
 	}
 

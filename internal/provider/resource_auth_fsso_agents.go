@@ -24,7 +24,8 @@ func newResourceAuthFssoAgents() resource.Resource {
 }
 
 type resourceAuthFssoAgents struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthFssoAgentsModel describes the resource data model.
@@ -190,9 +191,13 @@ func (r *resourceAuthFssoAgents) Configure(ctx context.Context, req resource.Con
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_fsso_agents"
 }
 
 func (r *resourceAuthFssoAgents) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthFssoAgents")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceAuthFssoAgentsModel
 	diags := &resp.Diagnostics
 
@@ -213,8 +218,8 @@ func (r *resourceAuthFssoAgents) Create(ctx context.Context, req resource.Create
 	output, err := c.CreateAuthFssoAgents(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -228,8 +233,8 @@ func (r *resourceAuthFssoAgents) Create(ctx context.Context, req resource.Create
 	read_output, err := c.ReadAuthFssoAgents(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -243,6 +248,9 @@ func (r *resourceAuthFssoAgents) Create(ctx context.Context, req resource.Create
 }
 
 func (r *resourceAuthFssoAgents) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthFssoAgents")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -271,11 +279,11 @@ func (r *resourceAuthFssoAgents) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	_, err := c.UpdateAuthFssoAgents(&input_model)
+	output, err := c.UpdateAuthFssoAgents(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -286,8 +294,8 @@ func (r *resourceAuthFssoAgents) Update(ctx context.Context, req resource.Update
 	read_output, err := c.ReadAuthFssoAgents(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -301,6 +309,9 @@ func (r *resourceAuthFssoAgents) Update(ctx context.Context, req resource.Update
 }
 
 func (r *resourceAuthFssoAgents) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthFssoAgents")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthFssoAgentsModel
 
@@ -318,11 +329,11 @@ func (r *resourceAuthFssoAgents) Delete(ctx context.Context, req resource.Delete
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectAuthFssoAgents(ctx, "delete", diags))
 
-	err := c.DeleteAuthFssoAgents(&input_model)
+	output, err := c.DeleteAuthFssoAgents(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -349,8 +360,8 @@ func (r *resourceAuthFssoAgents) Read(ctx context.Context, req resource.ReadRequ
 	read_output, err := c.ReadAuthFssoAgents(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -371,10 +382,6 @@ func (m *resourceAuthFssoAgentsModel) refreshAuthFssoAgents(ctx context.Context,
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["activeServer"]; ok {
@@ -487,15 +494,15 @@ func (data *resourceAuthFssoAgentsModel) getUpdateObjectAuthFssoAgents(ctx conte
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ActiveServer.IsNull() && !data.ActiveServer.Equal(state.ActiveServer) {
+	if !data.ActiveServer.IsNull() {
 		result["activeServer"] = data.ActiveServer.ValueString()
 	}
 
-	if !data.Status.IsNull() && !data.Status.Equal(state.Status) {
+	if !data.Status.IsNull() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Name.IsNull() && !data.Name.Equal(state.Name) {
+	if !data.Name.IsNull() {
 		result["name"] = data.Name.ValueString()
 	}
 
@@ -507,35 +514,35 @@ func (data *resourceAuthFssoAgentsModel) getUpdateObjectAuthFssoAgents(ctx conte
 		result["password"] = data.Password.ValueString()
 	}
 
-	if !data.Server2.IsNull() && !data.Server2.Equal(state.Server2) {
+	if !data.Server2.IsNull() {
 		result["server2"] = data.Server2.ValueString()
 	}
 
-	if !data.Password2.IsNull() && !data.Password2.Equal(state.Password2) {
+	if !data.Password2.IsNull() {
 		result["password2"] = data.Password2.ValueString()
 	}
 
-	if !data.Server3.IsNull() && !data.Server3.Equal(state.Server3) {
+	if !data.Server3.IsNull() {
 		result["server3"] = data.Server3.ValueString()
 	}
 
-	if !data.Password3.IsNull() && !data.Password3.Equal(state.Password3) {
+	if !data.Password3.IsNull() {
 		result["password3"] = data.Password3.ValueString()
 	}
 
-	if !data.Server4.IsNull() && !data.Server4.Equal(state.Server4) {
+	if !data.Server4.IsNull() {
 		result["server4"] = data.Server4.ValueString()
 	}
 
-	if !data.Password4.IsNull() && !data.Password4.Equal(state.Password4) {
+	if !data.Password4.IsNull() {
 		result["password4"] = data.Password4.ValueString()
 	}
 
-	if !data.Server5.IsNull() && !data.Server5.Equal(state.Server5) {
+	if !data.Server5.IsNull() {
 		result["server5"] = data.Server5.ValueString()
 	}
 
-	if !data.Password5.IsNull() && !data.Password5.Equal(state.Password5) {
+	if !data.Password5.IsNull() {
 		result["password5"] = data.Password5.ValueString()
 	}
 

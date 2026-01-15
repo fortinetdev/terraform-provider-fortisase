@@ -25,7 +25,8 @@ func newResourceSecurityCertRemoteCaCerts() resource.Resource {
 }
 
 type resourceSecurityCertRemoteCaCerts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityCertRemoteCaCertsModel describes the resource data model.
@@ -196,6 +197,7 @@ func (r *resourceSecurityCertRemoteCaCerts) Configure(ctx context.Context, req r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_cert_remote_ca_certs"
 }
 
 func (r *resourceSecurityCertRemoteCaCerts) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -219,8 +221,8 @@ func (r *resourceSecurityCertRemoteCaCerts) Create(ctx context.Context, req reso
 	output, err := c.CreateSecurityCertRemoteCaCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -234,8 +236,8 @@ func (r *resourceSecurityCertRemoteCaCerts) Create(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityCertRemoteCaCerts(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -274,11 +276,11 @@ func (r *resourceSecurityCertRemoteCaCerts) Delete(ctx context.Context, req reso
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityCertRemoteCaCerts(ctx, "delete", diags))
 
-	err := c.DeleteSecurityCertRemoteCaCerts(&input_model)
+	output, err := c.DeleteSecurityCertRemoteCaCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -305,8 +307,8 @@ func (r *resourceSecurityCertRemoteCaCerts) Read(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityCertRemoteCaCerts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -367,14 +369,6 @@ func (m *resourceSecurityCertRemoteCaCertsModel) refreshSecurityCertRemoteCaCert
 
 	if v, ok := o["usages"]; ok {
 		m.Usages = m.flattenSecurityCertRemoteCaCertsUsagesList(ctx, v, &diags)
-	}
-
-	if v, ok := o["certName"]; ok {
-		m.CertName = parseStringValue(v)
-	}
-
-	if v, ok := o["fileContent"]; ok {
-		m.FileContent = parseStringValue(v)
 	}
 
 	return diags

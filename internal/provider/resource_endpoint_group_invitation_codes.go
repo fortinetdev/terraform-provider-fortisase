@@ -25,7 +25,8 @@ func newResourceEndpointGroupInvitationCodes() resource.Resource {
 }
 
 type resourceEndpointGroupInvitationCodes struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointGroupInvitationCodesModel describes the resource data model.
@@ -113,9 +114,13 @@ func (r *resourceEndpointGroupInvitationCodes) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_group_invitation_codes"
 }
 
 func (r *resourceEndpointGroupInvitationCodes) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointGroupInvitationCodes")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointGroupInvitationCodesModel
 	diags := &resp.Diagnostics
 
@@ -136,8 +141,8 @@ func (r *resourceEndpointGroupInvitationCodes) Create(ctx context.Context, req r
 	output, err := c.CreateEndpointGroupInvitationCodes(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -151,8 +156,8 @@ func (r *resourceEndpointGroupInvitationCodes) Create(ctx context.Context, req r
 	read_output, err := c.ReadEndpointGroupInvitationCodes(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -166,6 +171,9 @@ func (r *resourceEndpointGroupInvitationCodes) Create(ctx context.Context, req r
 }
 
 func (r *resourceEndpointGroupInvitationCodes) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointGroupInvitationCodes")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -194,11 +202,11 @@ func (r *resourceEndpointGroupInvitationCodes) Update(ctx context.Context, req r
 		return
 	}
 
-	_, err := c.UpdateEndpointGroupInvitationCodes(&input_model)
+	output, err := c.UpdateEndpointGroupInvitationCodes(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -209,8 +217,8 @@ func (r *resourceEndpointGroupInvitationCodes) Update(ctx context.Context, req r
 	read_output, err := c.ReadEndpointGroupInvitationCodes(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -224,6 +232,9 @@ func (r *resourceEndpointGroupInvitationCodes) Update(ctx context.Context, req r
 }
 
 func (r *resourceEndpointGroupInvitationCodes) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointGroupInvitationCodes")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceEndpointGroupInvitationCodesModel
 
@@ -241,11 +252,11 @@ func (r *resourceEndpointGroupInvitationCodes) Delete(ctx context.Context, req r
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectEndpointGroupInvitationCodes(ctx, "delete", diags))
 
-	err := c.DeleteEndpointGroupInvitationCodes(&input_model)
+	output, err := c.DeleteEndpointGroupInvitationCodes(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -272,8 +283,8 @@ func (r *resourceEndpointGroupInvitationCodes) Read(ctx context.Context, req res
 	read_output, err := c.ReadEndpointGroupInvitationCodes(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -294,10 +305,6 @@ func (m *resourceEndpointGroupInvitationCodesModel) refreshEndpointGroupInvitati
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["expireDate"]; ok {
@@ -334,11 +341,11 @@ func (data *resourceEndpointGroupInvitationCodesModel) getUpdateObjectEndpointGr
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ExpireDate.IsNull() && !data.ExpireDate.Equal(state.ExpireDate) {
+	if !data.ExpireDate.IsNull() {
 		result["expireDate"] = data.ExpireDate.ValueString()
 	}
 
-	if data.GroupAssignment != nil && !isSameStruct(data.GroupAssignment, state.GroupAssignment) {
+	if data.GroupAssignment != nil {
 		result["groupAssignment"] = data.GroupAssignment.expandEndpointGroupInvitationCodesGroupAssignment(ctx, diags)
 	}
 

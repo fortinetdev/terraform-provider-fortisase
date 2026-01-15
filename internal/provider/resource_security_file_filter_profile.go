@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +24,8 @@ func newResourceSecurityFileFilterProfile() resource.Resource {
 }
 
 type resourceSecurityFileFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityFileFilterProfileModel describes the resource data model.
@@ -60,12 +60,12 @@ func (r *resourceSecurityFileFilterProfile) Schema(ctx context.Context, req reso
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"block": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -93,6 +93,10 @@ func (r *resourceSecurityFileFilterProfile) Schema(ctx context.Context, req reso
 							Validators: []validator.String{
 								stringvalidator.OneOf("security/antivirus-filetypes"),
 							},
+							Computed: true,
+							Optional: true,
+						},
+						"primary_key": schema.StringAttribute{
 							Computed: true,
 							Optional: true,
 						},
@@ -124,9 +128,13 @@ func (r *resourceSecurityFileFilterProfile) Configure(ctx context.Context, req r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_file_filter_profile"
 }
 
 func (r *resourceSecurityFileFilterProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityFileFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityFileFilterProfileModel
 	diags := &resp.Diagnostics
 
@@ -148,8 +156,8 @@ func (r *resourceSecurityFileFilterProfile) Create(ctx context.Context, req reso
 	output, err := c.UpdateSecurityFileFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -163,8 +171,8 @@ func (r *resourceSecurityFileFilterProfile) Create(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityFileFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -178,6 +186,9 @@ func (r *resourceSecurityFileFilterProfile) Create(ctx context.Context, req reso
 }
 
 func (r *resourceSecurityFileFilterProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityFileFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -206,11 +217,11 @@ func (r *resourceSecurityFileFilterProfile) Update(ctx context.Context, req reso
 		return
 	}
 
-	_, err := c.UpdateSecurityFileFilterProfile(&input_model)
+	output, err := c.UpdateSecurityFileFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -221,8 +232,8 @@ func (r *resourceSecurityFileFilterProfile) Update(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityFileFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -260,8 +271,8 @@ func (r *resourceSecurityFileFilterProfile) Read(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityFileFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -275,27 +286,13 @@ func (r *resourceSecurityFileFilterProfile) Read(ctx context.Context, req resour
 }
 
 func (r *resourceSecurityFileFilterProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityFileFilterProfileModel) refreshSecurityFileFilterProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["block"]; ok {
@@ -332,19 +329,19 @@ func (data *resourceSecurityFileFilterProfileModel) getCreateObjectSecurityFileF
 
 func (data *resourceSecurityFileFilterProfileModel) getUpdateObjectSecurityFileFilterProfile(ctx context.Context, state resourceSecurityFileFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.Block) > 0 || !isSameStruct(data.Block, state.Block) {
+	if data.Block != nil {
 		result["block"] = data.expandSecurityFileFilterProfileBlockList(ctx, data.Block, diags)
 	}
 
-	if len(data.Monitor) > 0 || !isSameStruct(data.Monitor, state.Monitor) {
+	if data.Monitor != nil {
 		result["monitor"] = data.expandSecurityFileFilterProfileMonitorList(ctx, data.Monitor, diags)
 	}
 
-	if !data.BlockPasswordProtectedFiles.IsNull() && !data.BlockPasswordProtectedFiles.Equal(state.BlockPasswordProtectedFiles) {
+	if !data.BlockPasswordProtectedFiles.IsNull() {
 		result["blockPasswordProtectedFiles"] = data.BlockPasswordProtectedFiles.ValueBool()
 	}
 
@@ -354,6 +351,9 @@ func (data *resourceSecurityFileFilterProfileModel) getUpdateObjectSecurityFileF
 func (data *resourceSecurityFileFilterProfileModel) getURLObjectSecurityFileFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -371,6 +371,7 @@ type resourceSecurityFileFilterProfileBlockModel struct {
 
 type resourceSecurityFileFilterProfileMonitorModel struct {
 	Datasource types.String `tfsdk:"datasource"`
+	PrimaryKey types.String `tfsdk:"primary_key"`
 }
 
 func (m *resourceSecurityFileFilterProfileBlockModel) flattenSecurityFileFilterProfileBlock(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityFileFilterProfileBlockModel {
@@ -428,6 +429,10 @@ func (m *resourceSecurityFileFilterProfileMonitorModel) flattenSecurityFileFilte
 		m.Datasource = parseStringValue(v)
 	}
 
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
 	return m
 }
 
@@ -480,6 +485,10 @@ func (data *resourceSecurityFileFilterProfileMonitorModel) expandSecurityFileFil
 	result := make(map[string]interface{})
 	if !data.Datasource.IsNull() {
 		result["datasource"] = data.Datasource.ValueString()
+	}
+
+	if !data.PrimaryKey.IsNull() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
 	return result

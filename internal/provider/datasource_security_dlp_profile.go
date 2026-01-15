@@ -22,7 +22,8 @@ func newDatasourceSecurityDlpProfile() datasource.DataSource {
 }
 
 type datasourceSecurityDlpProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityDlpProfileModel describes the datasource data model.
@@ -43,12 +44,12 @@ func (r *datasourceSecurityDlpProfile) Schema(ctx context.Context, req datasourc
 				Required: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"dlp_rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -194,6 +195,7 @@ func (r *datasourceSecurityDlpProfile) Configure(ctx context.Context, req dataso
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_profile"
 }
 
 func (r *datasourceSecurityDlpProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -217,8 +219,8 @@ func (r *datasourceSecurityDlpProfile) Read(ctx context.Context, req datasource.
 	read_output, err := c.ReadSecurityDlpProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -237,10 +239,6 @@ func (m *datasourceSecurityDlpProfileModel) refreshSecurityDlpProfile(ctx contex
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["dlpRules"]; ok {
 		m.DlpRules = m.flattenSecurityDlpProfileDlpRulesList(ctx, v, &diags)
 	}
@@ -251,6 +249,9 @@ func (m *datasourceSecurityDlpProfileModel) refreshSecurityDlpProfile(ctx contex
 func (data *datasourceSecurityDlpProfileModel) getURLObjectSecurityDlpProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -298,9 +299,6 @@ func (m *datasourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlp
 		m = &datasourceSecurityDlpProfileDlpRulesModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Protocols = types.SetNull(types.StringType)
-	m.Sensitivities = types.SetNull(types.StringType)
-
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
 	}

@@ -21,7 +21,8 @@ func newDatasourceAuthRadiusServers() datasource.DataSource {
 }
 
 type datasourceAuthRadiusServers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceAuthRadiusServersModel describes the datasource data model.
@@ -94,6 +95,7 @@ func (r *datasourceAuthRadiusServers) Configure(ctx context.Context, req datasou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_radius_servers"
 }
 
 func (r *datasourceAuthRadiusServers) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -117,8 +119,8 @@ func (r *datasourceAuthRadiusServers) Read(ctx context.Context, req datasource.R
 	read_output, err := c.ReadAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -135,10 +137,6 @@ func (m *datasourceAuthRadiusServersModel) refreshAuthRadiusServers(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["authType"]; ok {

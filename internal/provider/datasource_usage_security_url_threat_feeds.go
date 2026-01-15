@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityUrlThreatFeeds() datasource.DataSource {
 }
 
 type datasourceUsageSecurityUrlThreatFeeds struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityUrlThreatFeedsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityUrlThreatFeeds) Schema(ctx context.Context, req 
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityUrlThreatFeeds) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_url_threat_feeds"
 }
 
 func (r *datasourceUsageSecurityUrlThreatFeeds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityUrlThreatFeeds) Read(ctx context.Context, req da
 	read_output, err := c.ReadUsageSecurityUrlThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

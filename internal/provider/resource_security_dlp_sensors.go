@@ -25,7 +25,8 @@ func newResourceSecurityDlpSensors() resource.Resource {
 }
 
 type resourceSecurityDlpSensors struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpSensorsModel describes the resource data model.
@@ -34,6 +35,7 @@ type resourceSecurityDlpSensorsModel struct {
 	PrimaryKey                  types.String                                        `tfsdk:"primary_key"`
 	EntryMatchesToTriggerSensor types.String                                        `tfsdk:"entry_matches_to_trigger_sensor"`
 	SensorDictionaries          []resourceSecurityDlpSensorsSensorDictionariesModel `tfsdk:"sensor_dictionaries"`
+	Description                 types.String                                        `tfsdk:"description"`
 }
 
 func (r *resourceSecurityDlpSensors) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -59,6 +61,13 @@ func (r *resourceSecurityDlpSensors) Schema(ctx context.Context, req resource.Sc
 			"entry_matches_to_trigger_sensor": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidator.OneOf("any", "all"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"description": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
 				},
 				Computed: true,
 				Optional: true,
@@ -129,9 +138,13 @@ func (r *resourceSecurityDlpSensors) Configure(ctx context.Context, req resource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_sensors"
 }
 
 func (r *resourceSecurityDlpSensors) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpSensors")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpSensorsModel
 	diags := &resp.Diagnostics
 
@@ -152,8 +165,8 @@ func (r *resourceSecurityDlpSensors) Create(ctx context.Context, req resource.Cr
 	output, err := c.CreateSecurityDlpSensors(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -167,8 +180,8 @@ func (r *resourceSecurityDlpSensors) Create(ctx context.Context, req resource.Cr
 	read_output, err := c.ReadSecurityDlpSensors(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -182,6 +195,9 @@ func (r *resourceSecurityDlpSensors) Create(ctx context.Context, req resource.Cr
 }
 
 func (r *resourceSecurityDlpSensors) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpSensors")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -210,11 +226,11 @@ func (r *resourceSecurityDlpSensors) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpSensors(&input_model)
+	output, err := c.UpdateSecurityDlpSensors(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -225,8 +241,8 @@ func (r *resourceSecurityDlpSensors) Update(ctx context.Context, req resource.Up
 	read_output, err := c.ReadSecurityDlpSensors(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -240,6 +256,9 @@ func (r *resourceSecurityDlpSensors) Update(ctx context.Context, req resource.Up
 }
 
 func (r *resourceSecurityDlpSensors) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpSensors")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityDlpSensorsModel
 
@@ -257,11 +276,11 @@ func (r *resourceSecurityDlpSensors) Delete(ctx context.Context, req resource.De
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityDlpSensors(ctx, "delete", diags))
 
-	err := c.DeleteSecurityDlpSensors(&input_model)
+	output, err := c.DeleteSecurityDlpSensors(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -288,8 +307,8 @@ func (r *resourceSecurityDlpSensors) Read(ctx context.Context, req resource.Read
 	read_output, err := c.ReadSecurityDlpSensors(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -312,16 +331,16 @@ func (m *resourceSecurityDlpSensorsModel) refreshSecurityDlpSensors(ctx context.
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["entryMatchesToTriggerSensor"]; ok {
 		m.EntryMatchesToTriggerSensor = parseStringValue(v)
 	}
 
 	if v, ok := o["sensorDictionaries"]; ok {
 		m.SensorDictionaries = m.flattenSecurityDlpSensorsSensorDictionariesList(ctx, v, &diags)
+	}
+
+	if v, ok := o["description"]; ok {
+		m.Description = parseStringValue(v)
 	}
 
 	return diags
@@ -339,12 +358,16 @@ func (data *resourceSecurityDlpSensorsModel) getCreateObjectSecurityDlpSensors(c
 
 	result["sensorDictionaries"] = data.expandSecurityDlpSensorsSensorDictionariesList(ctx, data.SensorDictionaries, diags)
 
+	if !data.Description.IsNull() {
+		result["description"] = data.Description.ValueString()
+	}
+
 	return &result
 }
 
 func (data *resourceSecurityDlpSensorsModel) getUpdateObjectSecurityDlpSensors(ctx context.Context, state resourceSecurityDlpSensorsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -352,8 +375,12 @@ func (data *resourceSecurityDlpSensorsModel) getUpdateObjectSecurityDlpSensors(c
 		result["entryMatchesToTriggerSensor"] = data.EntryMatchesToTriggerSensor.ValueString()
 	}
 
-	if len(data.SensorDictionaries) > 0 || !isSameStruct(data.SensorDictionaries, state.SensorDictionaries) {
+	if data.SensorDictionaries != nil {
 		result["sensorDictionaries"] = data.expandSecurityDlpSensorsSensorDictionariesList(ctx, data.SensorDictionaries, diags)
+	}
+
+	if !data.Description.IsNull() {
+		result["description"] = data.Description.ValueString()
 	}
 
 	return &result

@@ -25,7 +25,8 @@ func newResourceNetworkImplicitDnsRules() resource.Resource {
 }
 
 type resourceNetworkImplicitDnsRules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceNetworkImplicitDnsRulesModel describes the resource data model.
@@ -109,9 +110,13 @@ func (r *resourceNetworkImplicitDnsRules) Configure(ctx context.Context, req res
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_implicit_dns_rules"
 }
 
 func (r *resourceNetworkImplicitDnsRules) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkImplicitDnsRules")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceNetworkImplicitDnsRulesModel
 	diags := &resp.Diagnostics
 
@@ -133,8 +138,8 @@ func (r *resourceNetworkImplicitDnsRules) Create(ctx context.Context, req resour
 	output, err := c.UpdateNetworkImplicitDnsRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -148,8 +153,8 @@ func (r *resourceNetworkImplicitDnsRules) Create(ctx context.Context, req resour
 	read_output, err := c.ReadNetworkImplicitDnsRules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -163,6 +168,9 @@ func (r *resourceNetworkImplicitDnsRules) Create(ctx context.Context, req resour
 }
 
 func (r *resourceNetworkImplicitDnsRules) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkImplicitDnsRules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -191,11 +199,11 @@ func (r *resourceNetworkImplicitDnsRules) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err := c.UpdateNetworkImplicitDnsRules(&input_model)
+	output, err := c.UpdateNetworkImplicitDnsRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -206,8 +214,8 @@ func (r *resourceNetworkImplicitDnsRules) Update(ctx context.Context, req resour
 	read_output, err := c.ReadNetworkImplicitDnsRules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -245,8 +253,8 @@ func (r *resourceNetworkImplicitDnsRules) Read(ctx context.Context, req resource
 	read_output, err := c.ReadNetworkImplicitDnsRules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -267,10 +275,6 @@ func (m *resourceNetworkImplicitDnsRulesModel) refreshNetworkImplicitDnsRules(ct
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["dnsServer"]; ok {
@@ -335,19 +339,19 @@ func (data *resourceNetworkImplicitDnsRulesModel) getUpdateObjectNetworkImplicit
 		result["dnsServer"] = data.DnsServer.ValueString()
 	}
 
-	if !data.DnsServer1.IsNull() && !data.DnsServer1.Equal(state.DnsServer1) {
+	if !data.DnsServer1.IsNull() {
 		result["dnsServer1"] = data.DnsServer1.ValueString()
 	}
 
-	if !data.DnsServer2.IsNull() && !data.DnsServer2.Equal(state.DnsServer2) {
+	if !data.DnsServer2.IsNull() {
 		result["dnsServer2"] = data.DnsServer2.ValueString()
 	}
 
-	if !data.Protocols.IsNull() && !data.Protocols.Equal(state.Protocols) {
+	if !data.Protocols.IsNull() {
 		result["protocols"] = expandSetToStringList(data.Protocols)
 	}
 
-	if !data.ForPrivate.IsNull() && !data.ForPrivate.Equal(state.ForPrivate) {
+	if !data.ForPrivate.IsNull() {
 		result["forPrivate"] = data.ForPrivate.ValueBool()
 	}
 

@@ -24,7 +24,8 @@ func newResourceEndpointPolicies() resource.Resource {
 }
 
 type resourceEndpointPolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointPoliciesModel describes the resource data model.
@@ -54,6 +55,9 @@ func (r *resourceEndpointPolicies) Schema(ctx context.Context, req resource.Sche
 					stringvalidator.LengthBetween(1, 128),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"enabled": schema.BoolAttribute{
 				Computed: true,
@@ -86,9 +90,13 @@ func (r *resourceEndpointPolicies) Configure(ctx context.Context, req resource.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_policies"
 }
 
 func (r *resourceEndpointPolicies) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointPoliciesModel
 	diags := &resp.Diagnostics
 
@@ -109,8 +117,8 @@ func (r *resourceEndpointPolicies) Create(ctx context.Context, req resource.Crea
 	output, err := c.CreateEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -124,8 +132,8 @@ func (r *resourceEndpointPolicies) Create(ctx context.Context, req resource.Crea
 	read_output, err := c.ReadEndpointPolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -139,6 +147,9 @@ func (r *resourceEndpointPolicies) Create(ctx context.Context, req resource.Crea
 }
 
 func (r *resourceEndpointPolicies) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -167,11 +178,11 @@ func (r *resourceEndpointPolicies) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err := c.UpdateEndpointPolicies(&input_model)
+	output, err := c.UpdateEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -182,8 +193,8 @@ func (r *resourceEndpointPolicies) Update(ctx context.Context, req resource.Upda
 	read_output, err := c.ReadEndpointPolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -197,6 +208,9 @@ func (r *resourceEndpointPolicies) Update(ctx context.Context, req resource.Upda
 }
 
 func (r *resourceEndpointPolicies) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceEndpointPoliciesModel
 
@@ -214,11 +228,11 @@ func (r *resourceEndpointPolicies) Delete(ctx context.Context, req resource.Dele
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "delete", diags))
 
-	err := c.DeleteEndpointPolicies(&input_model)
+	output, err := c.DeleteEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -245,8 +259,8 @@ func (r *resourceEndpointPolicies) Read(ctx context.Context, req resource.ReadRe
 	read_output, err := c.ReadEndpointPolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -267,10 +281,6 @@ func (m *resourceEndpointPoliciesModel) refreshEndpointPolicies(ctx context.Cont
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["enabled"]; ok {
@@ -311,7 +321,7 @@ func (data *resourceEndpointPoliciesModel) getUpdateObjectEndpointPolicies(ctx c
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() && !data.SkipOffNetProfileCreationOnEdit.Equal(state.SkipOffNetProfileCreationOnEdit) {
+	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
 		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
 	}
 

@@ -25,7 +25,8 @@ func newResourceSecurityDlpExactDataMatches() resource.Resource {
 }
 
 type resourceSecurityDlpExactDataMatches struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpExactDataMatchesModel describes the resource data model.
@@ -156,9 +157,13 @@ func (r *resourceSecurityDlpExactDataMatches) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_exact_data_matches"
 }
 
 func (r *resourceSecurityDlpExactDataMatches) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpExactDataMatches")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpExactDataMatchesModel
 	diags := &resp.Diagnostics
 
@@ -179,8 +184,8 @@ func (r *resourceSecurityDlpExactDataMatches) Create(ctx context.Context, req re
 	output, err := c.CreateSecurityDlpExactDataMatches(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -194,8 +199,8 @@ func (r *resourceSecurityDlpExactDataMatches) Create(ctx context.Context, req re
 	read_output, err := c.ReadSecurityDlpExactDataMatches(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -209,6 +214,9 @@ func (r *resourceSecurityDlpExactDataMatches) Create(ctx context.Context, req re
 }
 
 func (r *resourceSecurityDlpExactDataMatches) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpExactDataMatches")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -237,11 +245,11 @@ func (r *resourceSecurityDlpExactDataMatches) Update(ctx context.Context, req re
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpExactDataMatches(&input_model)
+	output, err := c.UpdateSecurityDlpExactDataMatches(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -252,8 +260,8 @@ func (r *resourceSecurityDlpExactDataMatches) Update(ctx context.Context, req re
 	read_output, err := c.ReadSecurityDlpExactDataMatches(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -267,6 +275,9 @@ func (r *resourceSecurityDlpExactDataMatches) Update(ctx context.Context, req re
 }
 
 func (r *resourceSecurityDlpExactDataMatches) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpExactDataMatches")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityDlpExactDataMatchesModel
 
@@ -284,11 +295,11 @@ func (r *resourceSecurityDlpExactDataMatches) Delete(ctx context.Context, req re
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityDlpExactDataMatches(ctx, "delete", diags))
 
-	err := c.DeleteSecurityDlpExactDataMatches(&input_model)
+	output, err := c.DeleteSecurityDlpExactDataMatches(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -315,8 +326,8 @@ func (r *resourceSecurityDlpExactDataMatches) Read(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityDlpExactDataMatches(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -337,10 +348,6 @@ func (m *resourceSecurityDlpExactDataMatchesModel) refreshSecurityDlpExactDataMa
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["externalResourceData"]; ok {
@@ -379,19 +386,19 @@ func (data *resourceSecurityDlpExactDataMatchesModel) getCreateObjectSecurityDlp
 
 func (data *resourceSecurityDlpExactDataMatchesModel) getUpdateObjectSecurityDlpExactDataMatches(ctx context.Context, state resourceSecurityDlpExactDataMatchesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if data.ExternalResourceData != nil && !isSameStruct(data.ExternalResourceData, state.ExternalResourceData) {
+	if data.ExternalResourceData != nil {
 		result["externalResourceData"] = data.ExternalResourceData.expandSecurityDlpExactDataMatchesExternalResourceData(ctx, diags)
 	}
 
-	if len(data.Columns) > 0 || !isSameStruct(data.Columns, state.Columns) {
+	if data.Columns != nil {
 		result["columns"] = data.expandSecurityDlpExactDataMatchesColumnsList(ctx, data.Columns, diags)
 	}
 
-	if !data.OptionalCount.IsNull() && !data.OptionalCount.Equal(state.OptionalCount) {
+	if !data.OptionalCount.IsNull() {
 		result["optionalCount"] = data.OptionalCount.ValueFloat64()
 	}
 

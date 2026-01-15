@@ -24,7 +24,8 @@ func newResourceSecurityDlpFilePatterns() resource.Resource {
 }
 
 type resourceSecurityDlpFilePatterns struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpFilePatternsModel describes the resource data model.
@@ -63,6 +64,9 @@ func (r *resourceSecurityDlpFilePatterns) Schema(ctx context.Context, req resour
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"pattern": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+							},
 							Computed: true,
 							Optional: true,
 						},
@@ -108,9 +112,13 @@ func (r *resourceSecurityDlpFilePatterns) Configure(ctx context.Context, req res
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_file_patterns"
 }
 
 func (r *resourceSecurityDlpFilePatterns) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFilePatterns")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpFilePatternsModel
 	diags := &resp.Diagnostics
 
@@ -131,8 +139,8 @@ func (r *resourceSecurityDlpFilePatterns) Create(ctx context.Context, req resour
 	output, err := c.CreateSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -146,8 +154,8 @@ func (r *resourceSecurityDlpFilePatterns) Create(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityDlpFilePatterns(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -161,6 +169,9 @@ func (r *resourceSecurityDlpFilePatterns) Create(ctx context.Context, req resour
 }
 
 func (r *resourceSecurityDlpFilePatterns) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFilePatterns")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -189,11 +200,11 @@ func (r *resourceSecurityDlpFilePatterns) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpFilePatterns(&input_model)
+	output, err := c.UpdateSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -204,8 +215,8 @@ func (r *resourceSecurityDlpFilePatterns) Update(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityDlpFilePatterns(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -219,6 +230,9 @@ func (r *resourceSecurityDlpFilePatterns) Update(ctx context.Context, req resour
 }
 
 func (r *resourceSecurityDlpFilePatterns) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpFilePatterns")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityDlpFilePatternsModel
 
@@ -236,11 +250,11 @@ func (r *resourceSecurityDlpFilePatterns) Delete(ctx context.Context, req resour
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityDlpFilePatterns(ctx, "delete", diags))
 
-	err := c.DeleteSecurityDlpFilePatterns(&input_model)
+	output, err := c.DeleteSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -267,8 +281,8 @@ func (r *resourceSecurityDlpFilePatterns) Read(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -320,7 +334,7 @@ func (data *resourceSecurityDlpFilePatternsModel) getCreateObjectSecurityDlpFile
 
 func (data *resourceSecurityDlpFilePatternsModel) getUpdateObjectSecurityDlpFilePatterns(ctx context.Context, state resourceSecurityDlpFilePatternsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -328,7 +342,7 @@ func (data *resourceSecurityDlpFilePatternsModel) getUpdateObjectSecurityDlpFile
 		result["tag"] = data.Tag.ValueString()
 	}
 
-	if len(data.Entries) > 0 || !isSameStruct(data.Entries, state.Entries) {
+	if data.Entries != nil {
 		result["entries"] = data.expandSecurityDlpFilePatternsEntriesList(ctx, data.Entries, diags)
 	}
 

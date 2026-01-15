@@ -25,7 +25,8 @@ func newResourceSecurityOnetimeSchedules() resource.Resource {
 }
 
 type resourceSecurityOnetimeSchedules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityOnetimeSchedulesModel describes the resource data model.
@@ -95,9 +96,13 @@ func (r *resourceSecurityOnetimeSchedules) Configure(ctx context.Context, req re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_onetime_schedules"
 }
 
 func (r *resourceSecurityOnetimeSchedules) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityOnetimeSchedulesModel
 	diags := &resp.Diagnostics
 
@@ -118,8 +123,8 @@ func (r *resourceSecurityOnetimeSchedules) Create(ctx context.Context, req resou
 	output, err := c.CreateSecurityOnetimeSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -133,8 +138,8 @@ func (r *resourceSecurityOnetimeSchedules) Create(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityOnetimeSchedules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -148,6 +153,9 @@ func (r *resourceSecurityOnetimeSchedules) Create(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityOnetimeSchedules) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -176,11 +184,11 @@ func (r *resourceSecurityOnetimeSchedules) Update(ctx context.Context, req resou
 		return
 	}
 
-	_, err := c.UpdateSecurityOnetimeSchedules(&input_model)
+	output, err := c.UpdateSecurityOnetimeSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -191,8 +199,8 @@ func (r *resourceSecurityOnetimeSchedules) Update(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityOnetimeSchedules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -206,6 +214,9 @@ func (r *resourceSecurityOnetimeSchedules) Update(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityOnetimeSchedules) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityOnetimeSchedulesModel
 
@@ -223,11 +234,11 @@ func (r *resourceSecurityOnetimeSchedules) Delete(ctx context.Context, req resou
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "delete", diags))
 
-	err := c.DeleteSecurityOnetimeSchedules(&input_model)
+	output, err := c.DeleteSecurityOnetimeSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -254,8 +265,8 @@ func (r *resourceSecurityOnetimeSchedules) Read(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityOnetimeSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -276,10 +287,6 @@ func (m *resourceSecurityOnetimeSchedulesModel) refreshSecurityOnetimeSchedules(
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["expirationDays"]; ok {
@@ -324,7 +331,7 @@ func (data *resourceSecurityOnetimeSchedulesModel) getUpdateObjectSecurityOnetim
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ExpirationDays.IsNull() && !data.ExpirationDays.Equal(state.ExpirationDays) {
+	if !data.ExpirationDays.IsNull() {
 		result["expirationDays"] = data.ExpirationDays.ValueFloat64()
 	}
 

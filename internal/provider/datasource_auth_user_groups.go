@@ -21,7 +21,8 @@ func newDatasourceAuthUserGroups() datasource.DataSource {
 }
 
 type datasourceAuthUserGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceAuthUserGroupsModel describes the datasource data model.
@@ -124,6 +125,7 @@ func (r *datasourceAuthUserGroups) Configure(ctx context.Context, req datasource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_user_groups"
 }
 
 func (r *datasourceAuthUserGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -147,8 +149,8 @@ func (r *datasourceAuthUserGroups) Read(ctx context.Context, req datasource.Read
 	read_output, err := c.ReadAuthUserGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -165,10 +167,6 @@ func (m *datasourceAuthUserGroupsModel) refreshAuthUserGroups(ctx context.Contex
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["groupType"]; ok {
@@ -261,8 +259,6 @@ func (m *datasourceAuthUserGroupsRemoteUserGroupsModel) flattenAuthUserGroupsRem
 		m = &datasourceAuthUserGroupsRemoteUserGroupsModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Matches = types.SetNull(types.StringType)
-
 	if v, ok := o["server"]; ok {
 		m.Server = m.Server.flattenAuthUserGroupsRemoteUserGroupsServer(ctx, v, diags)
 	}

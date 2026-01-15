@@ -23,7 +23,8 @@ func newResourceEndpointsAccessProxyDisconnect() resource.Resource {
 }
 
 type resourceEndpointsAccessProxyDisconnect2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointsAccessProxyDisconnect2EdlModel describes the resource data model.
@@ -77,6 +78,7 @@ func (r *resourceEndpointsAccessProxyDisconnect2Edl) Configure(ctx context.Conte
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_access_proxy_disconnect"
 }
 
 func (r *resourceEndpointsAccessProxyDisconnect2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -96,11 +98,11 @@ func (r *resourceEndpointsAccessProxyDisconnect2Edl) Create(ctx context.Context,
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateEndpointsAccessProxyDisconnect(&input_model)
+	output, err := c.CreateEndpointsAccessProxyDisconnect(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -139,11 +141,11 @@ func (r *resourceEndpointsAccessProxyDisconnect2Edl) Update(ctx context.Context,
 		return
 	}
 
-	_, err := c.CreateEndpointsAccessProxyDisconnect(&input_model)
+	output, err := c.CreateEndpointsAccessProxyDisconnect(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}

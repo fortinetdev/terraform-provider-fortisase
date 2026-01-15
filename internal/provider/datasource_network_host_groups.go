@@ -21,7 +21,8 @@ func newDatasourceNetworkHostGroups() datasource.DataSource {
 }
 
 type datasourceNetworkHostGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceNetworkHostGroupsModel describes the datasource data model.
@@ -85,6 +86,7 @@ func (r *datasourceNetworkHostGroups) Configure(ctx context.Context, req datasou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_host_groups"
 }
 
 func (r *datasourceNetworkHostGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -108,8 +110,8 @@ func (r *datasourceNetworkHostGroups) Read(ctx context.Context, req datasource.R
 	read_output, err := c.ReadNetworkHostGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -126,10 +128,6 @@ func (m *datasourceNetworkHostGroupsModel) refreshNetworkHostGroups(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["members"]; ok {

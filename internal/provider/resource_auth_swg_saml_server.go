@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,14 +25,14 @@ func newResourceAuthSwgSamlServer() resource.Resource {
 }
 
 type resourceAuthSwgSamlServer struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthSwgSamlServerModel describes the resource data model.
 type resourceAuthSwgSamlServerModel struct {
 	ID             types.String                                  `tfsdk:"id"`
 	PrimaryKey     types.String                                  `tfsdk:"primary_key"`
-	Enabled        types.Bool                                    `tfsdk:"enabled"`
 	IdpEntityId    types.String                                  `tfsdk:"idp_entity_id"`
 	IdpSignOnUrl   types.String                                  `tfsdk:"idp_sign_on_url"`
 	IdpLogOutUrl   types.String                                  `tfsdk:"idp_log_out_url"`
@@ -63,9 +64,7 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.OneOf("$sase-global"),
 				},
-				Required: true,
-			},
-			"enabled": schema.BoolAttribute{
+				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
 				Optional: true,
 			},
@@ -200,6 +199,7 @@ func (r *resourceAuthSwgSamlServer) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_swg_saml_server"
 }
 
 func (r *resourceAuthSwgSamlServer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -216,6 +216,7 @@ func (r *resourceAuthSwgSamlServer) Create(ctx context.Context, req resource.Cre
 	var input_model forticlient.InputModel
 	input_model.Mkey = data.PrimaryKey.ValueString()
 	input_model.BodyParams = *(data.getCreateObjectAuthSwgSamlServer(ctx, diags))
+	input_model.BodyParams["enabled"] = true
 
 	if diags.HasError() {
 		return
@@ -223,8 +224,8 @@ func (r *resourceAuthSwgSamlServer) Create(ctx context.Context, req resource.Cre
 	output, err := c.UpdateAuthSwgSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -237,8 +238,8 @@ func (r *resourceAuthSwgSamlServer) Create(ctx context.Context, req resource.Cre
 	read_output, err := c.ReadAuthSwgSamlServer(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -252,6 +253,9 @@ func (r *resourceAuthSwgSamlServer) Create(ctx context.Context, req resource.Cre
 }
 
 func (r *resourceAuthSwgSamlServer) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthSwgSamlServer")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -274,16 +278,17 @@ func (r *resourceAuthSwgSamlServer) Update(ctx context.Context, req resource.Upd
 	var input_model forticlient.InputModel
 	input_model.Mkey = mkey
 	input_model.BodyParams = *(data.getUpdateObjectAuthSwgSamlServer(ctx, state, diags))
+	input_model.BodyParams["enabled"] = true
 
 	if diags.HasError() {
 		return
 	}
 
-	_, err := c.UpdateAuthSwgSamlServer(&input_model)
+	output, err := c.UpdateAuthSwgSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -293,8 +298,8 @@ func (r *resourceAuthSwgSamlServer) Update(ctx context.Context, req resource.Upd
 	read_output, err := c.ReadAuthSwgSamlServer(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -308,6 +313,9 @@ func (r *resourceAuthSwgSamlServer) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *resourceAuthSwgSamlServer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthSwgSamlServer")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthSwgSamlServerModel
 
@@ -315,10 +323,6 @@ func (r *resourceAuthSwgSamlServer) Delete(ctx context.Context, req resource.Del
 	diags.Append(req.State.Get(ctx, &data)...)
 
 	if diags.HasError() {
-		return
-	}
-
-	if !data.Enabled.ValueBool() {
 		return
 	}
 
@@ -332,11 +336,11 @@ func (r *resourceAuthSwgSamlServer) Delete(ctx context.Context, req resource.Del
 	result_model["enabled"] = false
 	input_model.BodyParams = result_model
 
-	_, err := c.UpdateAuthSwgSamlServer(&input_model)
+	output, err := c.UpdateAuthSwgSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -362,8 +366,8 @@ func (r *resourceAuthSwgSamlServer) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadAuthSwgSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -388,10 +392,6 @@ func (m *resourceAuthSwgSamlServerModel) refreshAuthSwgSamlServer(ctx context.Co
 
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["enabled"]; ok {
-		m.Enabled = parseBoolValue(v)
 	}
 
 	if v, ok := o["idpEntityId"]; ok {
@@ -447,10 +447,6 @@ func (data *resourceAuthSwgSamlServerModel) getCreateObjectAuthSwgSamlServer(ctx
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
 	if !data.IdpEntityId.IsNull() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
@@ -500,55 +496,51 @@ func (data *resourceAuthSwgSamlServerModel) getCreateObjectAuthSwgSamlServer(ctx
 
 func (data *resourceAuthSwgSamlServerModel) getUpdateObjectAuthSwgSamlServer(ctx context.Context, state resourceAuthSwgSamlServerModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.IdpEntityId.IsNull() && !data.IdpEntityId.Equal(state.IdpEntityId) {
+	if !data.IdpEntityId.IsNull() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
 
-	if !data.IdpSignOnUrl.IsNull() && !data.IdpSignOnUrl.Equal(state.IdpSignOnUrl) {
+	if !data.IdpSignOnUrl.IsNull() {
 		result["idpSignOnUrl"] = data.IdpSignOnUrl.ValueString()
 	}
 
-	if !data.IdpLogOutUrl.IsNull() && !data.IdpLogOutUrl.Equal(state.IdpLogOutUrl) {
+	if !data.IdpLogOutUrl.IsNull() {
 		result["idpLogOutUrl"] = data.IdpLogOutUrl.ValueString()
 	}
 
-	if !data.Username.IsNull() && !data.Username.Equal(state.Username) {
+	if !data.Username.IsNull() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.GroupName.IsNull() && !data.GroupName.Equal(state.GroupName) {
+	if !data.GroupName.IsNull() {
 		result["groupName"] = data.GroupName.ValueString()
 	}
 
-	if !data.GroupMatch.IsNull() && !data.GroupMatch.Equal(state.GroupMatch) {
+	if !data.GroupMatch.IsNull() {
 		result["groupMatch"] = data.GroupMatch.ValueString()
 	}
 
-	if data.SpCert != nil && !isSameStruct(data.SpCert, state.SpCert) {
+	if data.SpCert != nil {
 		result["spCert"] = data.SpCert.expandAuthSwgSamlServerSpCert(ctx, diags)
 	}
 
-	if data.IdpCertificate != nil && !isSameStruct(data.IdpCertificate, state.IdpCertificate) {
+	if data.IdpCertificate != nil {
 		result["idpCertificate"] = data.IdpCertificate.expandAuthSwgSamlServerIdpCertificate(ctx, diags)
 	}
 
-	if !data.DigestMethod.IsNull() && !data.DigestMethod.Equal(state.DigestMethod) {
+	if !data.DigestMethod.IsNull() {
 		result["digestMethod"] = data.DigestMethod.ValueString()
 	}
 
-	if !data.ScimEnabled.IsNull() && !data.ScimEnabled.Equal(state.ScimEnabled) {
+	if !data.ScimEnabled.IsNull() {
 		result["scimEnabled"] = data.ScimEnabled.ValueBool()
 	}
 
-	if data.Scim != nil && !isSameStruct(data.Scim, state.Scim) {
+	if data.Scim != nil {
 		result["scim"] = data.Scim.expandAuthSwgSamlServerScim(ctx, diags)
 	}
 

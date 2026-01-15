@@ -1,3 +1,4 @@
+# GUI: Security > Policies > Secure private access > To hubs
 resource "fortisase_security_internal_policies" "example" {
   primary_key = "Secure Private Access: Finance App"
   enabled     = true

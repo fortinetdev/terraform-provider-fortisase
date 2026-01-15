@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/auth"
@@ -24,8 +25,35 @@ type Config struct {
 // Now FortiClient contains two kinds of clients:
 // Client is for FortiGate
 type FortiClient struct {
-	//to sdk client
+	// to sdk client
 	Client *forticlient.FortiSDKClient
+	// to lock the resource
+	ResourceLocks map[string]*sync.Mutex
+	// mutex to protect ResourceLocks map from concurrent access
+	resourceLocksMutex sync.RWMutex
+}
+
+func (f *FortiClient) GetResourceLock(name string) *sync.Mutex {
+	// First, try to read with read lock (fast path)
+	f.resourceLocksMutex.RLock()
+	if lock, ok := f.ResourceLocks[name]; ok {
+		f.resourceLocksMutex.RUnlock()
+		return lock
+	}
+	f.resourceLocksMutex.RUnlock()
+
+	// Lock for writing (slow path)
+	f.resourceLocksMutex.Lock()
+	defer f.resourceLocksMutex.Unlock()
+
+	// Double-check after acquiring write lock (another goroutine might have created it)
+	if lock, ok := f.ResourceLocks[name]; ok {
+		return lock
+	}
+
+	// Create new mutex if it doesn't exist
+	f.ResourceLocks[name] = &sync.Mutex{}
+	return f.ResourceLocks[name]
 }
 
 type RateLimitedTransport struct {
@@ -113,6 +141,7 @@ func createFortiSASEClient(fClient *FortiClient, c *Config) error {
 	}
 
 	fClient.Client = fc
-
+	// initialize the resource locks
+	fClient.ResourceLocks = make(map[string]*sync.Mutex)
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,7 +25,8 @@ func newResourceSecurityVideoFilterYoutubeKey() resource.Resource {
 }
 
 type resourceSecurityVideoFilterYoutubeKey struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityVideoFilterYoutubeKeyModel describes the resource data model.
@@ -52,7 +54,9 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Schema(ctx context.Context, req 
 				Validators: []validator.String{
 					stringvalidator.OneOf("$sase-global"),
 				},
-				Required: true,
+				Default:  stringdefault.StaticString("$sase-global"),
+				Computed: true,
+				Optional: true,
 			},
 			"api_key": schema.StringAttribute{
 				Validators: []validator.String{
@@ -84,9 +88,13 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_video_filter_youtube_key"
 }
 
 func (r *resourceSecurityVideoFilterYoutubeKey) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityVideoFilterYoutubeKey")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityVideoFilterYoutubeKeyModel
 	diags := &resp.Diagnostics
 
@@ -107,8 +115,8 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Create(ctx context.Context, req 
 	output, err := c.UpdateSecurityVideoFilterYoutubeKey(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -121,8 +129,8 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Create(ctx context.Context, req 
 	read_output, err := c.ReadSecurityVideoFilterYoutubeKey(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -136,6 +144,9 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Create(ctx context.Context, req 
 }
 
 func (r *resourceSecurityVideoFilterYoutubeKey) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityVideoFilterYoutubeKey")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -163,11 +174,11 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Update(ctx context.Context, req 
 		return
 	}
 
-	_, err := c.UpdateSecurityVideoFilterYoutubeKey(&input_model)
+	output, err := c.UpdateSecurityVideoFilterYoutubeKey(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -177,8 +188,8 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Update(ctx context.Context, req 
 	read_output, err := c.ReadSecurityVideoFilterYoutubeKey(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -215,8 +226,8 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Read(ctx context.Context, req re
 	read_output, err := c.ReadSecurityVideoFilterYoutubeKey(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -265,7 +276,7 @@ func (data *resourceSecurityVideoFilterYoutubeKeyModel) getCreateObjectSecurityV
 
 func (data *resourceSecurityVideoFilterYoutubeKeyModel) getUpdateObjectSecurityVideoFilterYoutubeKey(ctx context.Context, state resourceSecurityVideoFilterYoutubeKeyModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

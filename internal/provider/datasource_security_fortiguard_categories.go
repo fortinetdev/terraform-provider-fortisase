@@ -22,7 +22,8 @@ func newDatasourceSecurityFortiguardCategories() datasource.DataSource {
 }
 
 type datasourceSecurityFortiguardCategories struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityFortiguardCategoriesModel describes the datasource data model.
@@ -92,6 +93,7 @@ func (r *datasourceSecurityFortiguardCategories) Configure(ctx context.Context, 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_fortiguard_categories"
 }
 
 func (r *datasourceSecurityFortiguardCategories) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -115,8 +117,8 @@ func (r *datasourceSecurityFortiguardCategories) Read(ctx context.Context, req d
 	read_output, err := c.ReadSecurityFortiguardCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -133,10 +135,6 @@ func (m *datasourceSecurityFortiguardCategoriesModel) refreshSecurityFortiguardC
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["id"]; ok {

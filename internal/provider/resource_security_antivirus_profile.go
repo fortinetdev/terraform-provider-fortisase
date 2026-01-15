@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,20 +25,22 @@ func newResourceSecurityAntivirusProfile() resource.Resource {
 }
 
 type resourceSecurityAntivirusProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityAntivirusProfileModel describes the resource data model.
 type resourceSecurityAntivirusProfileModel struct {
-	ID         types.String `tfsdk:"id"`
-	PrimaryKey types.String `tfsdk:"primary_key"`
-	Http       types.String `tfsdk:"http"`
-	Smtp       types.String `tfsdk:"smtp"`
-	Pop3       types.String `tfsdk:"pop3"`
-	Imap       types.String `tfsdk:"imap"`
-	Ftp        types.String `tfsdk:"ftp"`
-	Cifs       types.String `tfsdk:"cifs"`
-	Direction  types.String `tfsdk:"direction"`
+	ID         types.String                              `tfsdk:"id"`
+	PrimaryKey types.String                              `tfsdk:"primary_key"`
+	Http       types.String                              `tfsdk:"http"`
+	Smtp       types.String                              `tfsdk:"smtp"`
+	Pop3       types.String                              `tfsdk:"pop3"`
+	Imap       types.String                              `tfsdk:"imap"`
+	Ftp        types.String                              `tfsdk:"ftp"`
+	Cifs       types.String                              `tfsdk:"cifs"`
+	Cdr        *resourceSecurityAntivirusProfileCdrModel `tfsdk:"cdr"`
+	Direction  types.String                              `tfsdk:"direction"`
 }
 
 func (r *resourceSecurityAntivirusProfile) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -101,9 +103,33 @@ func (r *resourceSecurityAntivirusProfile) Schema(ctx context.Context, req resou
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+				},
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
+			},
+			"cdr": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"enable": schema.BoolAttribute{
+						Computed: true,
+						Optional: true,
+					},
+					"file_types": schema.SetAttribute{
+						Validators: []validator.Set{
+							setvalidator.ValueStringsAre(
+								stringvalidator.OneOf("pdf", "office"),
+							),
+						},
+						Computed:    true,
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+					"allow_error_transmission": schema.BoolAttribute{
+						Computed: true,
+						Optional: true,
+					},
 				},
 				Computed: true,
 				Optional: true,
@@ -131,9 +157,13 @@ func (r *resourceSecurityAntivirusProfile) Configure(ctx context.Context, req re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_antivirus_profile"
 }
 
 func (r *resourceSecurityAntivirusProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityAntivirusProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityAntivirusProfileModel
 	diags := &resp.Diagnostics
 
@@ -155,8 +185,8 @@ func (r *resourceSecurityAntivirusProfile) Create(ctx context.Context, req resou
 	output, err := c.UpdateSecurityAntivirusProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -170,8 +200,8 @@ func (r *resourceSecurityAntivirusProfile) Create(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityAntivirusProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -185,6 +215,9 @@ func (r *resourceSecurityAntivirusProfile) Create(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityAntivirusProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityAntivirusProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -213,11 +246,11 @@ func (r *resourceSecurityAntivirusProfile) Update(ctx context.Context, req resou
 		return
 	}
 
-	_, err := c.UpdateSecurityAntivirusProfile(&input_model)
+	output, err := c.UpdateSecurityAntivirusProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -228,8 +261,8 @@ func (r *resourceSecurityAntivirusProfile) Update(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityAntivirusProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -267,8 +300,8 @@ func (r *resourceSecurityAntivirusProfile) Read(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityAntivirusProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -282,27 +315,13 @@ func (r *resourceSecurityAntivirusProfile) Read(ctx context.Context, req resourc
 }
 
 func (r *resourceSecurityAntivirusProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["http"]; ok {
@@ -327,6 +346,10 @@ func (m *resourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfile(
 
 	if v, ok := o["cifs"]; ok {
 		m.Cifs = parseStringValue(v)
+	}
+
+	if v, ok := o["cdr"]; ok {
+		m.Cdr = m.Cdr.flattenSecurityAntivirusProfileCdr(ctx, v, &diags)
 	}
 
 	return diags
@@ -362,12 +385,16 @@ func (data *resourceSecurityAntivirusProfileModel) getCreateObjectSecurityAntivi
 		result["cifs"] = data.Cifs.ValueString()
 	}
 
+	if data.Cdr != nil && !isZeroStruct(*data.Cdr) {
+		result["cdr"] = data.Cdr.expandSecurityAntivirusProfileCdr(ctx, diags)
+	}
+
 	return &result
 }
 
 func (data *resourceSecurityAntivirusProfileModel) getUpdateObjectSecurityAntivirusProfile(ctx context.Context, state resourceSecurityAntivirusProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -395,12 +422,19 @@ func (data *resourceSecurityAntivirusProfileModel) getUpdateObjectSecurityAntivi
 		result["cifs"] = data.Cifs.ValueString()
 	}
 
+	if data.Cdr != nil {
+		result["cdr"] = data.Cdr.expandSecurityAntivirusProfileCdr(ctx, diags)
+	}
+
 	return &result
 }
 
 func (data *resourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivirusProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -409,4 +443,50 @@ func (data *resourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivirus
 	}
 
 	return &result
+}
+
+type resourceSecurityAntivirusProfileCdrModel struct {
+	Enable                 types.Bool `tfsdk:"enable"`
+	FileTypes              types.Set  `tfsdk:"file_types"`
+	AllowErrorTransmission types.Bool `tfsdk:"allow_error_transmission"`
+}
+
+func (m *resourceSecurityAntivirusProfileCdrModel) flattenSecurityAntivirusProfileCdr(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityAntivirusProfileCdrModel {
+	if input == nil {
+		return &resourceSecurityAntivirusProfileCdrModel{}
+	}
+	if m == nil {
+		m = &resourceSecurityAntivirusProfileCdrModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["enable"]; ok {
+		m.Enable = parseBoolValue(v)
+	}
+
+	if v, ok := o["fileTypes"]; ok {
+		m.FileTypes = parseSetValue(ctx, v, types.StringType)
+	}
+
+	if v, ok := o["allowErrorTransmission"]; ok {
+		m.AllowErrorTransmission = parseBoolValue(v)
+	}
+
+	return m
+}
+
+func (data *resourceSecurityAntivirusProfileCdrModel) expandSecurityAntivirusProfileCdr(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.Enable.IsNull() {
+		result["enable"] = data.Enable.ValueBool()
+	}
+
+	if !data.FileTypes.IsNull() {
+		result["fileTypes"] = expandSetToStringList(data.FileTypes)
+	}
+
+	if !data.AllowErrorTransmission.IsNull() {
+		result["allowErrorTransmission"] = data.AllowErrorTransmission.ValueBool()
+	}
+
+	return result
 }

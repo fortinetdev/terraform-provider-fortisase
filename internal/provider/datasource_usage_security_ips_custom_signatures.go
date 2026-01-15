@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityIpsCustomSignatures() datasource.DataSource {
 }
 
 type datasourceUsageSecurityIpsCustomSignatures struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityIpsCustomSignaturesModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityIpsCustomSignatures) Schema(ctx context.Context,
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityIpsCustomSignatures) Configure(ctx context.Conte
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_ips_custom_signatures"
 }
 
 func (r *datasourceUsageSecurityIpsCustomSignatures) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityIpsCustomSignatures) Read(ctx context.Context, r
 	read_output, err := c.ReadUsageSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

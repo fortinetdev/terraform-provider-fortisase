@@ -22,13 +22,14 @@ func newDatasourceEndpointSandboxProfiles() datasource.DataSource {
 }
 
 type datasourceEndpointSandboxProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointSandboxProfilesModel describes the datasource data model.
 type datasourceEndpointSandboxProfilesModel struct {
 	SandboxMode                   types.String                                                 `tfsdk:"sandbox_mode"`
-	NotificationType              types.String                                                 `tfsdk:"notification_type"`
+	NotificationType              types.Float64                                                `tfsdk:"notification_type"`
 	TimeoutAwaitingSandboxResults types.Float64                                                `tfsdk:"timeout_awaiting_sandbox_results"`
 	FileSubmissionOptions         *datasourceEndpointSandboxProfilesFileSubmissionOptionsModel `tfsdk:"file_submission_options"`
 	DetectionVerdictLevel         types.String                                                 `tfsdk:"detection_verdict_level"`
@@ -55,13 +56,10 @@ func (r *datasourceEndpointSandboxProfiles) Schema(ctx context.Context, req data
 				Computed: true,
 				Optional: true,
 			},
-			"notification_type": schema.StringAttribute{
-				Description: "Integer representing how notifications should be handled on FortiSandbox file submission. 0 - display notification balloon when malware is detected in a submission. 1 - display a popup for all file submissions.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("0", "1"),
-				},
-				Computed: true,
-				Optional: true,
+			"notification_type": schema.Float64Attribute{
+				MarkdownDescription: "Integer representing how notifications should be handled on FortiSandbox file submission. 0 - display notification balloon when malware is detected in a submission. 1 - display a popup for all file submissions.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"timeout_awaiting_sandbox_results": schema.Float64Attribute{
 				Validators: []validator.Float64{
@@ -110,8 +108,8 @@ func (r *datasourceEndpointSandboxProfiles) Schema(ctx context.Context, req data
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 			"file_submission_options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -193,6 +191,7 @@ func (r *datasourceEndpointSandboxProfiles) Configure(ctx context.Context, req d
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_sandbox_profiles"
 }
 
 func (r *datasourceEndpointSandboxProfiles) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -216,8 +215,8 @@ func (r *datasourceEndpointSandboxProfiles) Read(ctx context.Context, req dataso
 	read_output, err := c.ReadEndpointSandboxProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -241,7 +240,7 @@ func (m *datasourceEndpointSandboxProfilesModel) refreshEndpointSandboxProfiles(
 	}
 
 	if v, ok := o["notificationType"]; ok {
-		m.NotificationType = parseStringValue(v)
+		m.NotificationType = parseFloat64Value(v)
 	}
 
 	if v, ok := o["timeoutAwaitingSandboxResults"]; ok {
@@ -340,9 +339,6 @@ func (m *datasourceEndpointSandboxProfilesExceptionsModel) flattenEndpointSandbo
 		m = &datasourceEndpointSandboxProfilesExceptionsModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Files = types.SetNull(types.StringType)
-	m.Folders = types.SetNull(types.StringType)
-
 	if v, ok := o["excludeFilesFromTrustedSources"]; ok {
 		m.ExcludeFilesFromTrustedSources = parseStringValue(v)
 	}

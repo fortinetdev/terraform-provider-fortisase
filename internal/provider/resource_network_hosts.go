@@ -24,7 +24,8 @@ func newResourceNetworkHosts() resource.Resource {
 }
 
 type resourceNetworkHosts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceNetworkHostsModel describes the resource data model.
@@ -123,9 +124,13 @@ func (r *resourceNetworkHosts) Configure(ctx context.Context, req resource.Confi
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_hosts"
 }
 
 func (r *resourceNetworkHosts) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHosts")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceNetworkHostsModel
 	diags := &resp.Diagnostics
 
@@ -146,8 +151,8 @@ func (r *resourceNetworkHosts) Create(ctx context.Context, req resource.CreateRe
 	output, err := c.CreateNetworkHosts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -161,8 +166,8 @@ func (r *resourceNetworkHosts) Create(ctx context.Context, req resource.CreateRe
 	read_output, err := c.ReadNetworkHosts(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -176,6 +181,9 @@ func (r *resourceNetworkHosts) Create(ctx context.Context, req resource.CreateRe
 }
 
 func (r *resourceNetworkHosts) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHosts")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -204,11 +212,11 @@ func (r *resourceNetworkHosts) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	_, err := c.UpdateNetworkHosts(&input_model)
+	output, err := c.UpdateNetworkHosts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -219,8 +227,8 @@ func (r *resourceNetworkHosts) Update(ctx context.Context, req resource.UpdateRe
 	read_output, err := c.ReadNetworkHosts(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -234,6 +242,9 @@ func (r *resourceNetworkHosts) Update(ctx context.Context, req resource.UpdateRe
 }
 
 func (r *resourceNetworkHosts) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("NetworkHosts")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceNetworkHostsModel
 
@@ -251,11 +262,11 @@ func (r *resourceNetworkHosts) Delete(ctx context.Context, req resource.DeleteRe
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectNetworkHosts(ctx, "delete", diags))
 
-	err := c.DeleteNetworkHosts(&input_model)
+	output, err := c.DeleteNetworkHosts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -282,8 +293,8 @@ func (r *resourceNetworkHosts) Read(ctx context.Context, req resource.ReadReques
 	read_output, err := c.ReadNetworkHosts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -304,10 +315,6 @@ func (m *resourceNetworkHostsModel) refreshNetworkHosts(ctx context.Context, o m
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["type"]; ok {
@@ -380,7 +387,7 @@ func (data *resourceNetworkHostsModel) getCreateObjectNetworkHosts(ctx context.C
 
 func (data *resourceNetworkHostsModel) getUpdateObjectNetworkHosts(ctx context.Context, state resourceNetworkHostsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -392,23 +399,23 @@ func (data *resourceNetworkHostsModel) getUpdateObjectNetworkHosts(ctx context.C
 		result["location"] = data.Location.ValueString()
 	}
 
-	if !data.Subnet.IsNull() && !data.Subnet.Equal(state.Subnet) {
+	if !data.Subnet.IsNull() {
 		result["subnet"] = data.Subnet.ValueString()
 	}
 
-	if !data.StartIp.IsNull() && !data.StartIp.Equal(state.StartIp) {
+	if !data.StartIp.IsNull() {
 		result["startIp"] = data.StartIp.ValueString()
 	}
 
-	if !data.EndIp.IsNull() && !data.EndIp.Equal(state.EndIp) {
+	if !data.EndIp.IsNull() {
 		result["endIp"] = data.EndIp.ValueString()
 	}
 
-	if !data.Fqdn.IsNull() && !data.Fqdn.Equal(state.Fqdn) {
+	if !data.Fqdn.IsNull() {
 		result["fqdn"] = data.Fqdn.ValueString()
 	}
 
-	if !data.CountryId.IsNull() && !data.CountryId.Equal(state.CountryId) {
+	if !data.CountryId.IsNull() {
 		result["countryId"] = data.CountryId.ValueString()
 	}
 

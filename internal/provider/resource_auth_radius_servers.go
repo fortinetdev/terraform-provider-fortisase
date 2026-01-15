@@ -24,7 +24,8 @@ func newResourceAuthRadiusServers() resource.Resource {
 }
 
 type resourceAuthRadiusServers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthRadiusServersModel describes the resource data model.
@@ -123,9 +124,13 @@ func (r *resourceAuthRadiusServers) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_radius_servers"
 }
 
 func (r *resourceAuthRadiusServers) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthRadiusServers")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceAuthRadiusServersModel
 	diags := &resp.Diagnostics
 
@@ -146,8 +151,8 @@ func (r *resourceAuthRadiusServers) Create(ctx context.Context, req resource.Cre
 	output, err := c.CreateAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -161,8 +166,8 @@ func (r *resourceAuthRadiusServers) Create(ctx context.Context, req resource.Cre
 	read_output, err := c.ReadAuthRadiusServers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -176,6 +181,9 @@ func (r *resourceAuthRadiusServers) Create(ctx context.Context, req resource.Cre
 }
 
 func (r *resourceAuthRadiusServers) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthRadiusServers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -204,11 +212,11 @@ func (r *resourceAuthRadiusServers) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	_, err := c.UpdateAuthRadiusServers(&input_model)
+	output, err := c.UpdateAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -219,8 +227,8 @@ func (r *resourceAuthRadiusServers) Update(ctx context.Context, req resource.Upd
 	read_output, err := c.ReadAuthRadiusServers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -234,6 +242,9 @@ func (r *resourceAuthRadiusServers) Update(ctx context.Context, req resource.Upd
 }
 
 func (r *resourceAuthRadiusServers) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthRadiusServers")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthRadiusServersModel
 
@@ -251,11 +262,11 @@ func (r *resourceAuthRadiusServers) Delete(ctx context.Context, req resource.Del
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectAuthRadiusServers(ctx, "delete", diags))
 
-	err := c.DeleteAuthRadiusServers(&input_model)
+	output, err := c.DeleteAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -282,8 +293,8 @@ func (r *resourceAuthRadiusServers) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -304,10 +315,6 @@ func (m *resourceAuthRadiusServersModel) refreshAuthRadiusServers(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["authType"]; ok {
@@ -364,7 +371,7 @@ func (data *resourceAuthRadiusServersModel) getCreateObjectAuthRadiusServers(ctx
 
 func (data *resourceAuthRadiusServersModel) getUpdateObjectAuthRadiusServers(ctx context.Context, state resourceAuthRadiusServersModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -384,11 +391,11 @@ func (data *resourceAuthRadiusServersModel) getUpdateObjectAuthRadiusServers(ctx
 		result["includedInDefaultUserGroup"] = data.IncludedInDefaultUserGroup.ValueBool()
 	}
 
-	if !data.SecondaryServer.IsNull() && !data.SecondaryServer.Equal(state.SecondaryServer) {
+	if !data.SecondaryServer.IsNull() {
 		result["secondaryServer"] = data.SecondaryServer.ValueString()
 	}
 
-	if !data.SecondarySecret.IsNull() && !data.SecondarySecret.Equal(state.SecondarySecret) {
+	if !data.SecondarySecret.IsNull() {
 		result["secondarySecret"] = data.SecondarySecret.ValueString()
 	}
 

@@ -23,7 +23,8 @@ func newResourceSecurityProfileGroupClone() resource.Resource {
 }
 
 type resourceSecurityProfileGroupClone2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityProfileGroupClone2EdlModel describes the resource data model.
@@ -49,21 +50,24 @@ func (r *resourceSecurityProfileGroupClone2Edl) Schema(ctx context.Context, req 
 				},
 			},
 			"primary_key": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidator.LengthBetween(1, 79),
 				},
 				Computed: true,
 				Optional: true,
 			},
+			"direction": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+				},
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
+			},
 			"based_on": schema.StringAttribute{
-				Description: "The profile group you what to clone.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "The profile group you what to clone.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -88,6 +92,7 @@ func (r *resourceSecurityProfileGroupClone2Edl) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_profile_group_clone"
 }
 
 func (r *resourceSecurityProfileGroupClone2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -108,11 +113,11 @@ func (r *resourceSecurityProfileGroupClone2Edl) Create(ctx context.Context, req 
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateSecurityProfileGroupClone(&input_model)
+	output, err := c.CreateSecurityProfileGroupClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -152,11 +157,11 @@ func (r *resourceSecurityProfileGroupClone2Edl) Update(ctx context.Context, req 
 		return
 	}
 
-	_, err := c.CreateSecurityProfileGroupClone(&input_model)
+	output, err := c.CreateSecurityProfileGroupClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -183,7 +188,7 @@ func (data *resourceSecurityProfileGroupClone2EdlModel) getCreateObjectSecurityP
 
 func (data *resourceSecurityProfileGroupClone2EdlModel) getUpdateObjectSecurityProfileGroupClone(ctx context.Context, state resourceSecurityProfileGroupClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -193,6 +198,9 @@ func (data *resourceSecurityProfileGroupClone2EdlModel) getUpdateObjectSecurityP
 func (data *resourceSecurityProfileGroupClone2EdlModel) getURLObjectSecurityProfileGroupClone(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

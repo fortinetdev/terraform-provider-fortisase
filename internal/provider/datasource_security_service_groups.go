@@ -21,7 +21,8 @@ func newDatasourceSecurityServiceGroups() datasource.DataSource {
 }
 
 type datasourceSecurityServiceGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityServiceGroupsModel describes the datasource data model.
@@ -90,6 +91,7 @@ func (r *datasourceSecurityServiceGroups) Configure(ctx context.Context, req dat
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_service_groups"
 }
 
 func (r *datasourceSecurityServiceGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -113,8 +115,8 @@ func (r *datasourceSecurityServiceGroups) Read(ctx context.Context, req datasour
 	read_output, err := c.ReadSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -131,10 +133,6 @@ func (m *datasourceSecurityServiceGroupsModel) refreshSecurityServiceGroups(ctx 
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["proxy"]; ok {

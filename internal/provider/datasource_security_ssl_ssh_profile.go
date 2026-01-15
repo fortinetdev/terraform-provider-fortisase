@@ -22,7 +22,8 @@ func newDatasourceSecuritySslSshProfile() datasource.DataSource {
 }
 
 type datasourceSecuritySslSshProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecuritySslSshProfileModel describes the datasource data model.
@@ -102,12 +103,12 @@ func (r *datasourceSecuritySslSshProfile) Schema(ctx context.Context, req dataso
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"profile_protocol_options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -169,7 +170,7 @@ func (r *datasourceSecuritySslSshProfile) Schema(ctx context.Context, req dataso
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/host-groups"),
+								stringvalidator.OneOf("network/hosts", "network/host-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -221,6 +222,7 @@ func (r *datasourceSecuritySslSshProfile) Configure(ctx context.Context, req dat
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ssl_ssh_profile"
 }
 
 func (r *datasourceSecuritySslSshProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -244,8 +246,8 @@ func (r *datasourceSecuritySslSshProfile) Read(ctx context.Context, req datasour
 	read_output, err := c.ReadSecuritySslSshProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -262,10 +264,6 @@ func (m *datasourceSecuritySslSshProfileModel) refreshSecuritySslSshProfile(ctx 
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["inspectionMode"]; ok {
@@ -318,6 +316,9 @@ func (m *datasourceSecuritySslSshProfileModel) refreshSecuritySslSshProfile(ctx 
 func (data *datasourceSecuritySslSshProfileModel) getURLObjectSecuritySslSshProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

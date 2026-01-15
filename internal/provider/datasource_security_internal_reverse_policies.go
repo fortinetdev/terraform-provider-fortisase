@@ -21,7 +21,8 @@ func newDatasourceSecurityInternalReversePolicies() datasource.DataSource {
 }
 
 type datasourceSecurityInternalReversePolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityInternalReversePoliciesModel describes the datasource data model.
@@ -208,6 +209,7 @@ func (r *datasourceSecurityInternalReversePolicies) Configure(ctx context.Contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_internal_reverse_policies"
 }
 
 func (r *datasourceSecurityInternalReversePolicies) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -231,8 +233,8 @@ func (r *datasourceSecurityInternalReversePolicies) Read(ctx context.Context, re
 	read_output, err := c.ReadSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -249,10 +251,6 @@ func (m *datasourceSecurityInternalReversePoliciesModel) refreshSecurityInternal
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["enabled"]; ok {

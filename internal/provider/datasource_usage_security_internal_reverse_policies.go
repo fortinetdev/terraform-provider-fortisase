@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityInternalReversePolicies() datasource.DataSource {
 }
 
 type datasourceUsageSecurityInternalReversePolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityInternalReversePoliciesModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityInternalReversePolicies) Schema(ctx context.Cont
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityInternalReversePolicies) Configure(ctx context.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_internal_reverse_policies"
 }
 
 func (r *datasourceUsageSecurityInternalReversePolicies) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityInternalReversePolicies) Read(ctx context.Contex
 	read_output, err := c.ReadUsageSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

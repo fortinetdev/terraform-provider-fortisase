@@ -25,7 +25,8 @@ func newResourceEndpointConnectionProfiles() resource.Resource {
 }
 
 type resourceEndpointConnectionProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointConnectionProfilesModel describes the resource data model.
@@ -127,8 +128,11 @@ func (r *resourceEndpointConnectionProfiles) Schema(ctx context.Context, req res
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"lockdown": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -205,18 +209,15 @@ func (r *resourceEndpointConnectionProfiles) Schema(ctx context.Context, req res
 			"on_fabric_rule_set": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
-						Computed: true,
-						Optional: true,
+						Required: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidator.OneOf("endpoint/on-net-rules"),
 						},
-						Computed: true,
-						Optional: true,
+						Required: true,
 					},
 				},
-				Computed: true,
 				Optional: true,
 			},
 			"off_net_split_tunnel": schema.SingleNestedAttribute{
@@ -346,6 +347,13 @@ func (r *resourceEndpointConnectionProfiles) Schema(ctx context.Context, req res
 						Computed: true,
 						Optional: true,
 					},
+					"allow_fido_auth": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidator.OneOf("enable", "disable"),
+						},
+						Computed: true,
+						Optional: true,
+					},
 					"enable_local_lan": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidator.OneOf("enable", "disable"),
@@ -456,9 +464,37 @@ func (r *resourceEndpointConnectionProfiles) Schema(ctx context.Context, req res
 							Computed: true,
 							Optional: true,
 						},
+						"allow_fido_auth": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"enable_local_lan": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidator.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"encapsulation_mode": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("Auto", "TCP", "UDP"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"udp_port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validator.Between(500, 65535),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"tcp_port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validator.Between(1, 65535),
 							},
 							Computed: true,
 							Optional: true,
@@ -615,9 +651,13 @@ func (r *resourceEndpointConnectionProfiles) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_connection_profiles"
 }
 
 func (r *resourceEndpointConnectionProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointConnectionProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointConnectionProfilesModel
 	diags := &resp.Diagnostics
 
@@ -627,48 +667,61 @@ func (r *resourceEndpointConnectionProfiles) Create(ctx context.Context, req res
 		return
 	}
 
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = data.PrimaryKey.ValueString()
-	input_model.BodyParams = *(data.getCreateObjectEndpointConnectionProfiles(ctx, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointConnectionProfiles(ctx, "create", diags))
+	for i := 0; i < 3; i++ {
+		c := r.fortiClient.Client
+		var input_model forticlient.InputModel
+		input_model.Mkey = data.PrimaryKey.ValueString()
+		input_model.BodyParams = *(data.getCreateObjectEndpointConnectionProfiles(ctx, diags))
+		input_model.URLParams = *(data.getURLObjectEndpointConnectionProfiles(ctx, "create", diags))
 
-	if diags.HasError() {
-		return
+		if diags.HasError() {
+			return
+		}
+		output, err := c.UpdateEndpointConnectionProfiles(&input_model)
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+				getErrorDetail(&input_model, output),
+			)
+			return
+		}
+
+		mkey := fmt.Sprintf("%v", output["primaryKey"])
+		data.ID = types.StringValue(mkey)
+		var read_input_model forticlient.InputModel
+		read_input_model.Mkey = mkey
+		read_input_model.URLParams = *(data.getURLObjectEndpointConnectionProfiles(ctx, "read", diags))
+
+		read_output, err := c.ReadEndpointConnectionProfiles(&read_input_model)
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
+			)
+			return
+		}
+
+		if read_output["connectToFortiSASE"] != data.ConnectToFortiSase.ValueString() {
+			// diags.AddWarning(
+			// 	"Detected that the data was not accepted by the server. Resending the request...",
+			// 	"This issue is handled automatically by Terraform. No user action is required.",
+			// )
+			continue
+		}
+
+		diags.Append(data.refreshEndpointConnectionProfiles(ctx, read_output)...)
+		if diags.HasError() {
+			return
+		}
+		break
 	}
-	output, err := c.UpdateEndpointConnectionProfiles(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
-		)
-		return
-	}
-
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
-	data.ID = types.StringValue(mkey)
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectEndpointConnectionProfiles(ctx, "read", diags))
-
-	read_output, err := c.ReadEndpointConnectionProfiles(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
-		)
-		return
-	}
-
-	diags.Append(data.refreshEndpointConnectionProfiles(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
 	diags.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *resourceEndpointConnectionProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointConnectionProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -697,11 +750,11 @@ func (r *resourceEndpointConnectionProfiles) Update(ctx context.Context, req res
 		return
 	}
 
-	_, err := c.UpdateEndpointConnectionProfiles(&input_model)
+	output, err := c.UpdateEndpointConnectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -712,8 +765,8 @@ func (r *resourceEndpointConnectionProfiles) Update(ctx context.Context, req res
 	read_output, err := c.ReadEndpointConnectionProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -727,7 +780,47 @@ func (r *resourceEndpointConnectionProfiles) Update(ctx context.Context, req res
 }
 
 func (r *resourceEndpointConnectionProfiles) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// No delete operation for this resource
+	lock := r.fortiClient.GetResourceLock("EndpointConnectionProfiles")
+	lock.Lock()
+	defer lock.Unlock()
+	diags := &resp.Diagnostics
+
+	// Read Terraform plan data into the model
+	var state resourceEndpointConnectionProfilesModel
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
+		return
+	}
+	result_model := make(map[string]interface{})
+	result_model["onFabricRuleSet"] = nil
+	secureInternetAccess := make(map[string]interface{})
+	postureTag := make(map[string]interface{})
+	postureTag["tag"] = ""
+	postureTag["action"] = "allow"
+	postureTag["checkFailedMessage"] = ""
+	secureInternetAccess["postureCheck"] = postureTag
+	result_model["secureInternetAccess"] = secureInternetAccess
+
+	mkey := state.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.BodyParams = result_model
+	input_model.URLParams = *(state.getURLObjectEndpointConnectionProfiles(ctx, "delete", diags))
+
+	if diags.HasError() {
+		return
+	}
+
+	output, err := c.UpdateEndpointConnectionProfiles(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
 }
 
 func (r *resourceEndpointConnectionProfiles) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -751,8 +844,8 @@ func (r *resourceEndpointConnectionProfiles) Read(ctx context.Context, req resou
 	read_output, err := c.ReadEndpointConnectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -781,10 +874,6 @@ func (m *resourceEndpointConnectionProfilesModel) refreshEndpointConnectionProfi
 
 	if v, ok := o["lockdown"]; ok {
 		m.Lockdown = m.Lockdown.flattenEndpointConnectionProfilesLockdown(ctx, v, &diags)
-	}
-
-	if v, ok := o["onFabricRuleSet"]; ok {
-		m.OnFabricRuleSet = m.OnFabricRuleSet.flattenEndpointConnectionProfilesOnFabricRuleSet(ctx, v, &diags)
 	}
 
 	if v, ok := o["offNetSplitTunnel"]; ok {
@@ -856,6 +945,7 @@ func (data *resourceEndpointConnectionProfilesModel) getCreateObjectEndpointConn
 		result["lockdown"] = data.Lockdown.expandEndpointConnectionProfilesLockdown(ctx, diags)
 	}
 
+	result["onFabricRuleSet"] = nil
 	if data.OnFabricRuleSet != nil && !isZeroStruct(*data.OnFabricRuleSet) {
 		result["onFabricRuleSet"] = data.OnFabricRuleSet.expandEndpointConnectionProfilesOnFabricRuleSet(ctx, diags)
 	}
@@ -900,7 +990,7 @@ func (data *resourceEndpointConnectionProfilesModel) getCreateObjectEndpointConn
 		result["mtuSize"] = data.MtuSize.ValueFloat64()
 	}
 
-	if len(data.AvailableVpNs) > 0 {
+	if data.AvailableVpNs != nil {
 		result["availableVPNs"] = data.expandEndpointConnectionProfilesAvailableVpNsList(ctx, data.AvailableVpNs, diags)
 	}
 
@@ -925,19 +1015,20 @@ func (data *resourceEndpointConnectionProfilesModel) getUpdateObjectEndpointConn
 		result["connectToFortiSASE"] = data.ConnectToFortiSase.ValueString()
 	}
 
-	if data.Lockdown != nil && !isSameStruct(data.Lockdown, state.Lockdown) {
+	if data.Lockdown != nil {
 		result["lockdown"] = data.Lockdown.expandEndpointConnectionProfilesLockdown(ctx, diags)
 	}
 
-	if data.OnFabricRuleSet != nil && !isSameStruct(data.OnFabricRuleSet, state.OnFabricRuleSet) {
+	result["onFabricRuleSet"] = nil
+	if data.OnFabricRuleSet != nil {
 		result["onFabricRuleSet"] = data.OnFabricRuleSet.expandEndpointConnectionProfilesOnFabricRuleSet(ctx, diags)
 	}
 
-	if data.OffNetSplitTunnel != nil && !isSameStruct(data.OffNetSplitTunnel, state.OffNetSplitTunnel) {
+	if data.OffNetSplitTunnel != nil {
 		result["offNetSplitTunnel"] = data.OffNetSplitTunnel.expandEndpointConnectionProfilesOffNetSplitTunnel(ctx, diags)
 	}
 
-	if data.SplitTunnel != nil && !isSameStruct(data.SplitTunnel, state.SplitTunnel) {
+	if data.SplitTunnel != nil {
 		result["splitTunnel"] = data.SplitTunnel.expandEndpointConnectionProfilesSplitTunnel(ctx, diags)
 	}
 
@@ -953,15 +1044,15 @@ func (data *resourceEndpointConnectionProfilesModel) getUpdateObjectEndpointConn
 		result["authBeforeUserLogon"] = data.AuthBeforeUserLogon.ValueBool()
 	}
 
-	if data.SecureInternetAccess != nil && !isSameStruct(data.SecureInternetAccess, state.SecureInternetAccess) {
+	if data.SecureInternetAccess != nil {
 		result["secureInternetAccess"] = data.SecureInternetAccess.expandEndpointConnectionProfilesSecureInternetAccess(ctx, diags)
 	}
 
-	if !data.PreferredDtlsTunnel.IsNull() && !data.PreferredDtlsTunnel.Equal(state.PreferredDtlsTunnel) {
+	if !data.PreferredDtlsTunnel.IsNull() {
 		result["preferredDTLSTunnel"] = data.PreferredDtlsTunnel.ValueString()
 	}
 
-	if !data.UseGuiSamlAuth.IsNull() && !data.UseGuiSamlAuth.Equal(state.UseGuiSamlAuth) {
+	if !data.UseGuiSamlAuth.IsNull() {
 		result["useGuiSamlAuth"] = data.UseGuiSamlAuth.ValueString()
 	}
 
@@ -969,23 +1060,23 @@ func (data *resourceEndpointConnectionProfilesModel) getUpdateObjectEndpointConn
 		result["allowPersonalVpns"] = data.AllowPersonalVpns.ValueBool()
 	}
 
-	if !data.MtuSize.IsNull() && !data.MtuSize.Equal(state.MtuSize) {
+	if !data.MtuSize.IsNull() {
 		result["mtuSize"] = data.MtuSize.ValueFloat64()
 	}
 
-	if len(data.AvailableVpNs) > 0 || !isSameStruct(data.AvailableVpNs, state.AvailableVpNs) {
+	if data.AvailableVpNs != nil {
 		result["availableVPNs"] = data.expandEndpointConnectionProfilesAvailableVpNsList(ctx, data.AvailableVpNs, diags)
 	}
 
-	if !data.ShowDisconnectBtn.IsNull() && !data.ShowDisconnectBtn.Equal(state.ShowDisconnectBtn) {
+	if !data.ShowDisconnectBtn.IsNull() {
 		result["showDisconnectBtn"] = data.ShowDisconnectBtn.ValueString()
 	}
 
-	if !data.EnableInvalidServerCertWarning.IsNull() && !data.EnableInvalidServerCertWarning.Equal(state.EnableInvalidServerCertWarning) {
+	if !data.EnableInvalidServerCertWarning.IsNull() {
 		result["enableInvalidServerCertWarning"] = data.EnableInvalidServerCertWarning.ValueString()
 	}
 
-	if data.PreLogon != nil && !isSameStruct(data.PreLogon, state.PreLogon) {
+	if data.PreLogon != nil {
 		result["preLogon"] = data.PreLogon.expandEndpointConnectionProfilesPreLogon(ctx, diags)
 	}
 
@@ -1067,6 +1158,7 @@ type resourceEndpointConnectionProfilesSplitTunnelSubnetsModel struct {
 
 type resourceEndpointConnectionProfilesSecureInternetAccessModel struct {
 	AuthenticateWithSso      types.String                                                             `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth            types.String                                                             `tfsdk:"allow_fido_auth"`
 	EnableLocalLan           types.String                                                             `tfsdk:"enable_local_lan"`
 	FailoverSequence         types.Set                                                                `tfsdk:"failover_sequence"`
 	PostureCheck             *resourceEndpointConnectionProfilesSecureInternetAccessPostureCheckModel `tfsdk:"posture_check"`
@@ -1089,7 +1181,11 @@ type resourceEndpointConnectionProfilesAvailableVpNsModel struct {
 	ShowAutoConnect          types.String                                                      `tfsdk:"show_auto_connect"`
 	ShowRememberPassword     types.String                                                      `tfsdk:"show_remember_password"`
 	AuthenticateWithSso      types.String                                                      `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth            types.String                                                      `tfsdk:"allow_fido_auth"`
 	EnableLocalLan           types.String                                                      `tfsdk:"enable_local_lan"`
+	EncapsulationMode        types.String                                                      `tfsdk:"encapsulation_mode"`
+	UdpPort                  types.Float64                                                     `tfsdk:"udp_port"`
+	TcpPort                  types.Float64                                                     `tfsdk:"tcp_port"`
 	ExternalBrowserSamlLogin types.String                                                      `tfsdk:"external_browser_saml_login"`
 	Port                     types.Float64                                                     `tfsdk:"port"`
 	RequireCertificate       types.String                                                      `tfsdk:"require_certificate"`
@@ -1266,14 +1362,6 @@ func (m *resourceEndpointConnectionProfilesOnFabricRuleSetModel) flattenEndpoint
 	if m == nil {
 		m = &resourceEndpointConnectionProfilesOnFabricRuleSetModel{}
 	}
-	o := input.(map[string]interface{})
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["datasource"]; ok {
-		m.Datasource = parseStringValue(v)
-	}
 
 	return m
 }
@@ -1286,10 +1374,6 @@ func (m *resourceEndpointConnectionProfilesOffNetSplitTunnelModel) flattenEndpoi
 		m = &resourceEndpointConnectionProfilesOffNetSplitTunnelModel{}
 	}
 	o := input.(map[string]interface{})
-	m.LocalApps = types.SetNull(types.StringType)
-	m.Fqdns = types.SetNull(types.StringType)
-	m.SubnetsIpsec = types.SetNull(types.StringType)
-
 	if v, ok := o["localApps"]; ok {
 		m.LocalApps = parseSetValue(ctx, v, types.StringType)
 	}
@@ -1407,10 +1491,6 @@ func (m *resourceEndpointConnectionProfilesSplitTunnelModel) flattenEndpointConn
 		m = &resourceEndpointConnectionProfilesSplitTunnelModel{}
 	}
 	o := input.(map[string]interface{})
-	m.LocalApps = types.SetNull(types.StringType)
-	m.Fqdns = types.SetNull(types.StringType)
-	m.SubnetsIpsec = types.SetNull(types.StringType)
-
 	if v, ok := o["localApps"]; ok {
 		m.LocalApps = parseSetValue(ctx, v, types.StringType)
 	}
@@ -1528,10 +1608,12 @@ func (m *resourceEndpointConnectionProfilesSecureInternetAccessModel) flattenEnd
 		m = &resourceEndpointConnectionProfilesSecureInternetAccessModel{}
 	}
 	o := input.(map[string]interface{})
-	m.FailoverSequence = types.SetNull(types.StringType)
-
 	if v, ok := o["authenticateWithSSO"]; ok {
 		m.AuthenticateWithSso = parseStringValue(v)
+	}
+
+	if v, ok := o["allowFidoAuth"]; ok {
+		m.AllowFidoAuth = parseStringValue(v)
 	}
 
 	if v, ok := o["enableLocalLan"]; ok {
@@ -1539,7 +1621,9 @@ func (m *resourceEndpointConnectionProfilesSecureInternetAccessModel) flattenEnd
 	}
 
 	if v, ok := o["failoverSequence"]; ok {
-		m.FailoverSequence = parseSetValue(ctx, v, types.StringType)
+		if m.FailoverSequence.IsNull() || !isSetSuperset(v, m.FailoverSequence.Elements()) {
+			m.FailoverSequence = parseSetValue(ctx, v, types.StringType)
+		}
 	}
 
 	if v, ok := o["postureCheck"]; ok {
@@ -1620,8 +1704,24 @@ func (m *resourceEndpointConnectionProfilesAvailableVpNsModel) flattenEndpointCo
 		m.AuthenticateWithSso = parseStringValue(v)
 	}
 
+	if v, ok := o["allowFidoAuth"]; ok {
+		m.AllowFidoAuth = parseStringValue(v)
+	}
+
 	if v, ok := o["enableLocalLan"]; ok {
 		m.EnableLocalLan = parseStringValue(v)
+	}
+
+	if v, ok := o["encapsulationMode"]; ok {
+		m.EncapsulationMode = parseStringValue(v)
+	}
+
+	if v, ok := o["udpPort"]; ok {
+		m.UdpPort = parseFloat64Value(v)
+	}
+
+	if v, ok := o["tcpPort"]; ok {
+		m.TcpPort = parseFloat64Value(v)
 	}
 
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
@@ -1785,11 +1885,11 @@ func (data *resourceEndpointConnectionProfilesLockdownModel) expandEndpointConne
 		result["maxAttempts"] = data.MaxAttempts.ValueFloat64()
 	}
 
-	if len(data.Ips) > 0 {
+	if data.Ips != nil {
 		result["ips"] = data.expandEndpointConnectionProfilesLockdownIpsList(ctx, data.Ips, diags)
 	}
 
-	if len(data.Domains) > 0 {
+	if data.Domains != nil {
 		result["domains"] = data.expandEndpointConnectionProfilesLockdownDomainsList(ctx, data.Domains, diags)
 	}
 
@@ -1876,7 +1976,7 @@ func (data *resourceEndpointConnectionProfilesOffNetSplitTunnelModel) expandEndp
 		result["fqdns"] = expandSetToStringList(data.Fqdns)
 	}
 
-	if len(data.Subnets) > 0 {
+	if data.Subnets != nil {
 		result["subnets"] = data.expandEndpointConnectionProfilesOffNetSplitTunnelSubnetsList(ctx, data.Subnets, diags)
 	}
 
@@ -1941,7 +2041,7 @@ func (data *resourceEndpointConnectionProfilesSplitTunnelModel) expandEndpointCo
 		result["fqdns"] = expandSetToStringList(data.Fqdns)
 	}
 
-	if len(data.Subnets) > 0 {
+	if data.Subnets != nil {
 		result["subnets"] = data.expandEndpointConnectionProfilesSplitTunnelSubnetsList(ctx, data.Subnets, diags)
 	}
 
@@ -1998,6 +2098,10 @@ func (data *resourceEndpointConnectionProfilesSecureInternetAccessModel) expandE
 	result := make(map[string]interface{})
 	if !data.AuthenticateWithSso.IsNull() {
 		result["authenticateWithSSO"] = data.AuthenticateWithSso.ValueString()
+	}
+
+	if !data.AllowFidoAuth.IsNull() {
+		result["allowFidoAuth"] = data.AllowFidoAuth.ValueString()
 	}
 
 	if !data.EnableLocalLan.IsNull() {
@@ -2074,8 +2178,24 @@ func (data *resourceEndpointConnectionProfilesAvailableVpNsModel) expandEndpoint
 		result["authenticateWithSSO"] = data.AuthenticateWithSso.ValueString()
 	}
 
+	if !data.AllowFidoAuth.IsNull() {
+		result["allowFidoAuth"] = data.AllowFidoAuth.ValueString()
+	}
+
 	if !data.EnableLocalLan.IsNull() {
 		result["enableLocalLan"] = data.EnableLocalLan.ValueString()
+	}
+
+	if !data.EncapsulationMode.IsNull() {
+		result["encapsulationMode"] = data.EncapsulationMode.ValueString()
+	}
+
+	if !data.UdpPort.IsNull() {
+		result["udpPort"] = data.UdpPort.ValueFloat64()
+	}
+
+	if !data.TcpPort.IsNull() {
+		result["tcpPort"] = data.TcpPort.ValueFloat64()
 	}
 
 	if !data.ExternalBrowserSamlLogin.IsNull() {

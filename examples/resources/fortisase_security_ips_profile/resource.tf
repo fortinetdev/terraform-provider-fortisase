@@ -1,11 +1,14 @@
 resource "fortisase_security_profile_group" "example" {
-  direction   = "outbound-profiles"    # "internal-profiles" or "outbound-profiles"
   primary_key = "example_profile_name" # The name of the new profile group
+
+  # Intrusion Prevention
+  intrusion_prevention_profile = {
+    status = "enable"
+  }
 }
 
 
 resource "fortisase_security_ips_profile" "ips_profile" {
-  direction                 = fortisase_security_profile_group.example.direction   # "internal-profiles" or "outbound-profiles"
   primary_key               = fortisase_security_profile_group.example.primary_key # The name of the existing profile group
   profile_type              = "recommended"
   custom_rule_groups        = []

@@ -22,7 +22,8 @@ func newResourceSecurityPkiUsers() resource.Resource {
 }
 
 type resourceSecurityPkiUsers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityPkiUsersModel describes the resource data model.
@@ -51,8 +52,8 @@ func (r *resourceSecurityPkiUsers) Schema(ctx context.Context, req resource.Sche
 				},
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "Primary Key of PKI User.",
-				Required:    true,
+				MarkdownDescription: "Primary Key of PKI User.",
+				Required:            true,
 			},
 			"subject": schema.StringAttribute{
 				Computed: true,
@@ -70,9 +71,9 @@ func (r *resourceSecurityPkiUsers) Schema(ctx context.Context, req resource.Sche
 			"ca": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						Description: "CA Cert Name",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "CA Cert Name",
+						Computed:            true,
+						Optional:            true,
 					},
 				},
 				Computed: true,
@@ -101,6 +102,7 @@ func (r *resourceSecurityPkiUsers) Configure(ctx context.Context, req resource.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_pki_users"
 }
 
 func (r *resourceSecurityPkiUsers) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -124,8 +126,8 @@ func (r *resourceSecurityPkiUsers) Create(ctx context.Context, req resource.Crea
 	output, err := c.CreateSecurityPkiUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -139,8 +141,8 @@ func (r *resourceSecurityPkiUsers) Create(ctx context.Context, req resource.Crea
 	read_output, err := c.ReadSecurityPkiUsers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -182,11 +184,11 @@ func (r *resourceSecurityPkiUsers) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err := c.UpdateSecurityPkiUsers(&input_model)
+	output, err := c.UpdateSecurityPkiUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -197,8 +199,8 @@ func (r *resourceSecurityPkiUsers) Update(ctx context.Context, req resource.Upda
 	read_output, err := c.ReadSecurityPkiUsers(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -229,11 +231,11 @@ func (r *resourceSecurityPkiUsers) Delete(ctx context.Context, req resource.Dele
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityPkiUsers(ctx, "delete", diags))
 
-	err := c.DeleteSecurityPkiUsers(&input_model)
+	output, err := c.DeleteSecurityPkiUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -260,8 +262,8 @@ func (r *resourceSecurityPkiUsers) Read(ctx context.Context, req resource.ReadRe
 	read_output, err := c.ReadSecurityPkiUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -282,10 +284,6 @@ func (m *resourceSecurityPkiUsersModel) refreshSecurityPkiUsers(ctx context.Cont
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["subject"]; ok {
@@ -334,11 +332,11 @@ func (data *resourceSecurityPkiUsersModel) getUpdateObjectSecurityPkiUsers(ctx c
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Subject.IsNull() && !data.Subject.Equal(state.Subject) {
+	if !data.Subject.IsNull() {
 		result["subject"] = data.Subject.ValueString()
 	}
 
-	if data.Ca != nil && !isSameStruct(data.Ca, state.Ca) {
+	if data.Ca != nil {
 		result["ca"] = data.Ca.expandSecurityPkiUsersCa(ctx, diags)
 	}
 

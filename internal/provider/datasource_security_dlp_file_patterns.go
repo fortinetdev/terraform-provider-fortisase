@@ -21,7 +21,8 @@ func newDatasourceSecurityDlpFilePatterns() datasource.DataSource {
 }
 
 type datasourceSecurityDlpFilePatterns struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityDlpFilePatternsModel describes the datasource data model.
@@ -52,6 +53,9 @@ func (r *datasourceSecurityDlpFilePatterns) Schema(ctx context.Context, req data
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"pattern": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+							},
 							Computed: true,
 							Optional: true,
 						},
@@ -97,6 +101,7 @@ func (r *datasourceSecurityDlpFilePatterns) Configure(ctx context.Context, req d
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_file_patterns"
 }
 
 func (r *datasourceSecurityDlpFilePatterns) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -120,8 +125,8 @@ func (r *datasourceSecurityDlpFilePatterns) Read(ctx context.Context, req dataso
 	read_output, err := c.ReadSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -138,10 +143,6 @@ func (m *datasourceSecurityDlpFilePatternsModel) refreshSecurityDlpFilePatterns(
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["tag"]; ok {

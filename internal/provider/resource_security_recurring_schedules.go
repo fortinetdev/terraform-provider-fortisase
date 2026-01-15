@@ -25,7 +25,8 @@ func newResourceSecurityRecurringSchedules() resource.Resource {
 }
 
 type resourceSecurityRecurringSchedules struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityRecurringSchedulesModel describes the resource data model.
@@ -96,9 +97,13 @@ func (r *resourceSecurityRecurringSchedules) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_recurring_schedules"
 }
 
 func (r *resourceSecurityRecurringSchedules) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityRecurringSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityRecurringSchedulesModel
 	diags := &resp.Diagnostics
 
@@ -119,8 +124,8 @@ func (r *resourceSecurityRecurringSchedules) Create(ctx context.Context, req res
 	output, err := c.CreateSecurityRecurringSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -134,8 +139,8 @@ func (r *resourceSecurityRecurringSchedules) Create(ctx context.Context, req res
 	read_output, err := c.ReadSecurityRecurringSchedules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -149,6 +154,9 @@ func (r *resourceSecurityRecurringSchedules) Create(ctx context.Context, req res
 }
 
 func (r *resourceSecurityRecurringSchedules) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityRecurringSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -177,11 +185,11 @@ func (r *resourceSecurityRecurringSchedules) Update(ctx context.Context, req res
 		return
 	}
 
-	_, err := c.UpdateSecurityRecurringSchedules(&input_model)
+	output, err := c.UpdateSecurityRecurringSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -192,8 +200,8 @@ func (r *resourceSecurityRecurringSchedules) Update(ctx context.Context, req res
 	read_output, err := c.ReadSecurityRecurringSchedules(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -207,6 +215,9 @@ func (r *resourceSecurityRecurringSchedules) Update(ctx context.Context, req res
 }
 
 func (r *resourceSecurityRecurringSchedules) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityRecurringSchedules")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityRecurringSchedulesModel
 
@@ -224,11 +235,11 @@ func (r *resourceSecurityRecurringSchedules) Delete(ctx context.Context, req res
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityRecurringSchedules(ctx, "delete", diags))
 
-	err := c.DeleteSecurityRecurringSchedules(&input_model)
+	output, err := c.DeleteSecurityRecurringSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -255,8 +266,8 @@ func (r *resourceSecurityRecurringSchedules) Read(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityRecurringSchedules(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -277,10 +288,6 @@ func (m *resourceSecurityRecurringSchedulesModel) refreshSecurityRecurringSchedu
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["days"]; ok {

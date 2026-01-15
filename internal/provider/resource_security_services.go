@@ -25,7 +25,8 @@ func newResourceSecurityServices() resource.Resource {
 }
 
 type resourceSecurityServices struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityServicesModel describes the resource data model.
@@ -264,9 +265,13 @@ func (r *resourceSecurityServices) Configure(ctx context.Context, req resource.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_services"
 }
 
 func (r *resourceSecurityServices) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServices")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityServicesModel
 	diags := &resp.Diagnostics
 
@@ -287,8 +292,8 @@ func (r *resourceSecurityServices) Create(ctx context.Context, req resource.Crea
 	output, err := c.CreateSecurityServices(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -302,8 +307,8 @@ func (r *resourceSecurityServices) Create(ctx context.Context, req resource.Crea
 	read_output, err := c.ReadSecurityServices(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -317,6 +322,9 @@ func (r *resourceSecurityServices) Create(ctx context.Context, req resource.Crea
 }
 
 func (r *resourceSecurityServices) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServices")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -345,11 +353,11 @@ func (r *resourceSecurityServices) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	_, err := c.UpdateSecurityServices(&input_model)
+	output, err := c.UpdateSecurityServices(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -360,8 +368,8 @@ func (r *resourceSecurityServices) Update(ctx context.Context, req resource.Upda
 	read_output, err := c.ReadSecurityServices(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -375,6 +383,9 @@ func (r *resourceSecurityServices) Update(ctx context.Context, req resource.Upda
 }
 
 func (r *resourceSecurityServices) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityServices")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityServicesModel
 
@@ -392,11 +403,11 @@ func (r *resourceSecurityServices) Delete(ctx context.Context, req resource.Dele
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityServices(ctx, "delete", diags))
 
-	err := c.DeleteSecurityServices(&input_model)
+	output, err := c.DeleteSecurityServices(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -423,8 +434,8 @@ func (r *resourceSecurityServices) Read(ctx context.Context, req resource.ReadRe
 	read_output, err := c.ReadSecurityServices(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -445,10 +456,6 @@ func (m *resourceSecurityServicesModel) refreshSecurityServices(ctx context.Cont
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["proxy"]; ok {
@@ -512,15 +519,15 @@ func (data *resourceSecurityServicesModel) getCreateObjectSecurityServices(ctx c
 		result["icmpType"] = data.IcmpType.ValueFloat64()
 	}
 
-	if len(data.UdpPortrange) > 0 {
+	if data.UdpPortrange != nil {
 		result["udpPortrange"] = data.expandSecurityServicesUdpPortrangeList(ctx, data.UdpPortrange, diags)
 	}
 
-	if len(data.SctpPortrange) > 0 {
+	if data.SctpPortrange != nil {
 		result["sctpPortrange"] = data.expandSecurityServicesSctpPortrangeList(ctx, data.SctpPortrange, diags)
 	}
 
-	if len(data.TcpPortrange) > 0 {
+	if data.TcpPortrange != nil {
 		result["tcpPortrange"] = data.expandSecurityServicesTcpPortrangeList(ctx, data.TcpPortrange, diags)
 	}
 
@@ -529,7 +536,7 @@ func (data *resourceSecurityServicesModel) getCreateObjectSecurityServices(ctx c
 
 func (data *resourceSecurityServicesModel) getUpdateObjectSecurityServices(ctx context.Context, state resourceSecurityServicesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -545,23 +552,23 @@ func (data *resourceSecurityServicesModel) getUpdateObjectSecurityServices(ctx c
 		result["protocol"] = data.Protocol.ValueString()
 	}
 
-	if !data.ProtocolNumber.IsNull() && !data.ProtocolNumber.Equal(state.ProtocolNumber) {
+	if !data.ProtocolNumber.IsNull() {
 		result["protocolNumber"] = data.ProtocolNumber.ValueFloat64()
 	}
 
-	if !data.IcmpType.IsNull() && !data.IcmpType.Equal(state.IcmpType) {
+	if !data.IcmpType.IsNull() {
 		result["icmpType"] = data.IcmpType.ValueFloat64()
 	}
 
-	if len(data.UdpPortrange) > 0 || !isSameStruct(data.UdpPortrange, state.UdpPortrange) {
+	if data.UdpPortrange != nil {
 		result["udpPortrange"] = data.expandSecurityServicesUdpPortrangeList(ctx, data.UdpPortrange, diags)
 	}
 
-	if len(data.SctpPortrange) > 0 || !isSameStruct(data.SctpPortrange, state.SctpPortrange) {
+	if data.SctpPortrange != nil {
 		result["sctpPortrange"] = data.expandSecurityServicesSctpPortrangeList(ctx, data.SctpPortrange, diags)
 	}
 
-	if len(data.TcpPortrange) > 0 || !isSameStruct(data.TcpPortrange, state.TcpPortrange) {
+	if data.TcpPortrange != nil {
 		result["tcpPortrange"] = data.expandSecurityServicesTcpPortrangeList(ctx, data.TcpPortrange, diags)
 	}
 

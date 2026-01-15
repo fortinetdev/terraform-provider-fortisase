@@ -21,7 +21,8 @@ func newDatasourceNetworkHosts() datasource.DataSource {
 }
 
 type datasourceNetworkHosts struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceNetworkHostsModel describes the datasource data model.
@@ -112,6 +113,7 @@ func (r *datasourceNetworkHosts) Configure(ctx context.Context, req datasource.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_network_hosts"
 }
 
 func (r *datasourceNetworkHosts) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -135,8 +137,8 @@ func (r *datasourceNetworkHosts) Read(ctx context.Context, req datasource.ReadRe
 	read_output, err := c.ReadNetworkHosts(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -153,10 +155,6 @@ func (m *datasourceNetworkHostsModel) refreshNetworkHosts(ctx context.Context, o
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["type"]; ok {

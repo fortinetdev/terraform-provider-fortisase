@@ -22,7 +22,8 @@ func newDatasourceDemSpaApplications() datasource.DataSource {
 }
 
 type datasourceDemSpaApplications struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceDemSpaApplicationsModel describes the datasource data model.
@@ -122,6 +123,7 @@ func (r *datasourceDemSpaApplications) Configure(ctx context.Context, req dataso
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_dem_spa_applications"
 }
 
 func (r *datasourceDemSpaApplications) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -145,8 +147,8 @@ func (r *datasourceDemSpaApplications) Read(ctx context.Context, req datasource.
 	read_output, err := c.ReadDemSpaApplications(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -163,10 +165,6 @@ func (m *datasourceDemSpaApplicationsModel) refreshDemSpaApplications(ctx contex
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["server"]; ok {

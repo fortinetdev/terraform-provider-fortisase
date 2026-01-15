@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,14 +26,14 @@ func newResourceAuthVpnSamlServer() resource.Resource {
 }
 
 type resourceAuthVpnSamlServer struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthVpnSamlServerModel describes the resource data model.
 type resourceAuthVpnSamlServerModel struct {
 	ID             types.String                                  `tfsdk:"id"`
 	PrimaryKey     types.String                                  `tfsdk:"primary_key"`
-	Enabled        types.Bool                                    `tfsdk:"enabled"`
 	IdpEntityId    types.String                                  `tfsdk:"idp_entity_id"`
 	IdpSignOnUrl   types.String                                  `tfsdk:"idp_sign_on_url"`
 	IdpLogOutUrl   types.String                                  `tfsdk:"idp_log_out_url"`
@@ -66,9 +67,7 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidator.OneOf("$sase-global"),
 				},
-				Required: true,
-			},
-			"enabled": schema.BoolAttribute{
+				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
 				Optional: true,
 			},
@@ -197,6 +196,7 @@ func (r *resourceAuthVpnSamlServer) Configure(ctx context.Context, req resource.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_vpn_saml_server"
 }
 
 func (r *resourceAuthVpnSamlServer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -213,36 +213,68 @@ func (r *resourceAuthVpnSamlServer) Create(ctx context.Context, req resource.Cre
 	var input_model forticlient.InputModel
 	input_model.Mkey = data.PrimaryKey.ValueString()
 	input_model.BodyParams = *(data.getCreateObjectAuthVpnSamlServer(ctx, diags))
+	input_model.BodyParams["enabled"] = true
 
 	if diags.HasError() {
 		return
 	}
 	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
-		)
-		return
+		shouldReportError := true
+		if errorVal, hasError := output["error"]; hasError {
+			if errorMap, ok := errorVal.(map[string]interface{}); ok {
+				if codeVal, hasCode := errorMap["code"]; hasCode {
+					var code int
+					switch v := codeVal.(type) {
+					case int:
+						code = v
+					default:
+						// should report error
+					}
+					if code == 51901 {
+						shouldReportError = false
+					}
+				}
+			}
+		}
+		if shouldReportError {
+			diags.AddError(
+				fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+				getErrorDetail(&input_model, output),
+			)
+			return
+		}
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := "$sase-global"
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
 
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadAuthVpnSamlServer(&read_input_model)
 		if err != nil {
 			diags.AddError(
-				fmt.Sprintf("Error to read resource: %v", err),
-				"",
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
 			)
 			return
 		}
 		if v, ok := read_output["$meta"].(map[string]interface{})["state"]; ok {
+			if v == "failed" {
+				// resend the request
+				output, err := c.UpdateAuthVpnSamlServer(&input_model)
+				if err != nil {
+					diags.AddError(
+						fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+						getErrorDetail(&input_model, output),
+					)
+					return
+				}
+				continue
+			}
 			if v != "done" {
 				continue
 			}
@@ -281,34 +313,66 @@ func (r *resourceAuthVpnSamlServer) Update(ctx context.Context, req resource.Upd
 	var input_model forticlient.InputModel
 	input_model.Mkey = mkey
 	input_model.BodyParams = *(data.getUpdateObjectAuthVpnSamlServer(ctx, state, diags))
+	input_model.BodyParams["enabled"] = true
 
 	if diags.HasError() {
 		return
 	}
 
-	_, err := c.UpdateAuthVpnSamlServer(&input_model)
+	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
-		)
-		return
+		shouldReportError := true
+		if errorVal, hasError := output["error"]; hasError {
+			if errorMap, ok := errorVal.(map[string]interface{}); ok {
+				if codeVal, hasCode := errorMap["code"]; hasCode {
+					var code int
+					switch v := codeVal.(type) {
+					case int:
+						code = v
+					default:
+						// should report error
+					}
+					if code == 51901 {
+						shouldReportError = false
+					}
+				}
+			}
+		}
+		if shouldReportError {
+			diags.AddError(
+				fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+				getErrorDetail(&input_model, output),
+			)
+			return
+		}
 	}
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
 
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadAuthVpnSamlServer(&read_input_model)
 		if err != nil {
 			diags.AddError(
-				fmt.Sprintf("Error to read resource: %v", err),
-				"",
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
 			)
 			return
 		}
 		if v, ok := read_output["$meta"].(map[string]interface{})["state"]; ok {
+			if v == "failed" {
+				// resend the request
+				output, err := c.UpdateAuthVpnSamlServer(&input_model)
+				if err != nil {
+					diags.AddError(
+						fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+						getErrorDetail(&input_model, output),
+					)
+					return
+				}
+				continue
+			}
 			if v != "done" {
 				continue
 			}
@@ -335,10 +399,6 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	if !data.Enabled.ValueBool() {
-		return
-	}
-
 	mkey := data.ID.ValueString()
 
 	c := r.fortiClient.Client
@@ -349,24 +409,43 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 	result_model["enabled"] = false
 	input_model.BodyParams = result_model
 
-	_, err := c.UpdateAuthVpnSamlServer(&input_model)
+	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
-		)
-		return
+		shouldReportError := true
+		if errorVal, hasError := output["error"]; hasError {
+			if errorMap, ok := errorVal.(map[string]interface{}); ok {
+				if codeVal, hasCode := errorMap["code"]; hasCode {
+					var code int
+					switch v := codeVal.(type) {
+					case int:
+						code = v
+					default:
+						// should report error
+					}
+					if code == 51901 {
+						shouldReportError = false
+					}
+				}
+			}
+		}
+		if shouldReportError {
+			diags.AddError(
+				fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+				getErrorDetail(&input_model, output),
+			)
+			return
+		}
 	}
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 50; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadAuthVpnSamlServer(&read_input_model)
 		if err != nil {
 			diags.AddError(
-				fmt.Sprintf("Error to read resource: %v", err),
-				"",
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
 			)
 			return
 		}
@@ -375,10 +454,25 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 			if _, ok := v.(map[string]interface{})["state"]; !ok {
 				return
 			}
+			// if "state" is "failed", resend the request
+			if v, ok := v.(map[string]interface{})["state"]; ok {
+				if v == "failed" {
+					// resend the request
+					output, err := c.UpdateAuthVpnSamlServer(&input_model)
+					if err != nil {
+						diags.AddError(
+							fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+							getErrorDetail(&input_model, output),
+						)
+						return
+					}
+					continue
+				}
+			}
 		}
 	}
 	diags.AddError(
-		fmt.Sprintf("Error to delete resource: %v", err),
+		fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
 		fmt.Sprintf("The resource still exists: %v", read_output),
 	)
 }
@@ -403,8 +497,8 @@ func (r *resourceAuthVpnSamlServer) Read(ctx context.Context, req resource.ReadR
 	read_output, err := c.ReadAuthVpnSamlServer(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -429,10 +523,6 @@ func (m *resourceAuthVpnSamlServerModel) refreshAuthVpnSamlServer(ctx context.Co
 
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["enabled"]; ok {
-		m.Enabled = parseBoolValue(v)
 	}
 
 	if v, ok := o["idpEntityId"]; ok {
@@ -496,10 +586,6 @@ func (data *resourceAuthVpnSamlServerModel) getCreateObjectAuthVpnSamlServer(ctx
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
 	if !data.IdpEntityId.IsNull() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
@@ -557,63 +643,59 @@ func (data *resourceAuthVpnSamlServerModel) getCreateObjectAuthVpnSamlServer(ctx
 
 func (data *resourceAuthVpnSamlServerModel) getUpdateObjectAuthVpnSamlServer(ctx context.Context, state resourceAuthVpnSamlServerModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.IdpEntityId.IsNull() && !data.IdpEntityId.Equal(state.IdpEntityId) {
+	if !data.IdpEntityId.IsNull() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
 
-	if !data.IdpSignOnUrl.IsNull() && !data.IdpSignOnUrl.Equal(state.IdpSignOnUrl) {
+	if !data.IdpSignOnUrl.IsNull() {
 		result["idpSignOnUrl"] = data.IdpSignOnUrl.ValueString()
 	}
 
-	if !data.IdpLogOutUrl.IsNull() && !data.IdpLogOutUrl.Equal(state.IdpLogOutUrl) {
+	if !data.IdpLogOutUrl.IsNull() {
 		result["idpLogOutUrl"] = data.IdpLogOutUrl.ValueString()
 	}
 
-	if !data.Username.IsNull() && !data.Username.Equal(state.Username) {
+	if !data.Username.IsNull() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.GroupName.IsNull() && !data.GroupName.Equal(state.GroupName) {
+	if !data.GroupName.IsNull() {
 		result["groupName"] = data.GroupName.ValueString()
 	}
 
-	if !data.GroupId.IsNull() && !data.GroupId.Equal(state.GroupId) {
+	if !data.GroupId.IsNull() {
 		result["groupId"] = data.GroupId.ValueString()
 	}
 
-	if data.SpCert != nil && !isSameStruct(data.SpCert, state.SpCert) {
+	if data.SpCert != nil {
 		result["spCert"] = data.SpCert.expandAuthVpnSamlServerSpCert(ctx, diags)
 	}
 
-	if data.IdpCertificate != nil && !isSameStruct(data.IdpCertificate, state.IdpCertificate) {
+	if data.IdpCertificate != nil {
 		result["idpCertificate"] = data.IdpCertificate.expandAuthVpnSamlServerIdpCertificate(ctx, diags)
 	}
 
-	if !data.DigestMethod.IsNull() && !data.DigestMethod.Equal(state.DigestMethod) {
+	if !data.DigestMethod.IsNull() {
 		result["digestMethod"] = data.DigestMethod.ValueString()
 	}
 
-	if !data.EntraIdEnabled.IsNull() && !data.EntraIdEnabled.Equal(state.EntraIdEnabled) {
+	if !data.EntraIdEnabled.IsNull() {
 		result["entraIdEnabled"] = data.EntraIdEnabled.ValueBool()
 	}
 
-	if !data.ScimEnabled.IsNull() && !data.ScimEnabled.Equal(state.ScimEnabled) {
+	if !data.ScimEnabled.IsNull() {
 		result["scimEnabled"] = data.ScimEnabled.ValueBool()
 	}
 
-	if !data.DomainName.IsNull() && !data.DomainName.Equal(state.DomainName) {
+	if !data.DomainName.IsNull() {
 		result["domainName"] = data.DomainName.ValueString()
 	}
 
-	if !data.ApplicationId.IsNull() && !data.ApplicationId.Equal(state.ApplicationId) {
+	if !data.ApplicationId.IsNull() {
 		result["applicationId"] = data.ApplicationId.ValueString()
 	}
 

@@ -19,7 +19,8 @@ func newDatasourceUsageAuthRadiusServers() datasource.DataSource {
 }
 
 type datasourceUsageAuthRadiusServers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageAuthRadiusServersModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageAuthRadiusServers) Schema(ctx context.Context, req datas
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageAuthRadiusServers) Configure(ctx context.Context, req da
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_auth_radius_servers"
 }
 
 func (r *datasourceUsageAuthRadiusServers) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageAuthRadiusServers) Read(ctx context.Context, req datasou
 	read_output, err := c.ReadUsageAuthRadiusServers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

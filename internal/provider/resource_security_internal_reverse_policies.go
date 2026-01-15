@@ -24,7 +24,8 @@ func newResourceSecurityInternalReversePolicies() resource.Resource {
 }
 
 type resourceSecurityInternalReversePolicies struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityInternalReversePoliciesModel describes the resource data model.
@@ -219,9 +220,13 @@ func (r *resourceSecurityInternalReversePolicies) Configure(ctx context.Context,
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_internal_reverse_policies"
 }
 
 func (r *resourceSecurityInternalReversePolicies) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityInternalReversePoliciesModel
 	diags := &resp.Diagnostics
 
@@ -242,8 +247,8 @@ func (r *resourceSecurityInternalReversePolicies) Create(ctx context.Context, re
 	output, err := c.CreateSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -257,8 +262,8 @@ func (r *resourceSecurityInternalReversePolicies) Create(ctx context.Context, re
 	read_output, err := c.ReadSecurityInternalReversePolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -272,6 +277,9 @@ func (r *resourceSecurityInternalReversePolicies) Create(ctx context.Context, re
 }
 
 func (r *resourceSecurityInternalReversePolicies) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -300,11 +308,11 @@ func (r *resourceSecurityInternalReversePolicies) Update(ctx context.Context, re
 		return
 	}
 
-	_, err := c.UpdateSecurityInternalReversePolicies(&input_model)
+	output, err := c.UpdateSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -315,8 +323,8 @@ func (r *resourceSecurityInternalReversePolicies) Update(ctx context.Context, re
 	read_output, err := c.ReadSecurityInternalReversePolicies(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -330,6 +338,9 @@ func (r *resourceSecurityInternalReversePolicies) Update(ctx context.Context, re
 }
 
 func (r *resourceSecurityInternalReversePolicies) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("profile-group")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityInternalReversePoliciesModel
 
@@ -347,11 +358,11 @@ func (r *resourceSecurityInternalReversePolicies) Delete(ctx context.Context, re
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityInternalReversePolicies(ctx, "delete", diags))
 
-	err := c.DeleteSecurityInternalReversePolicies(&input_model)
+	output, err := c.DeleteSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -378,8 +389,8 @@ func (r *resourceSecurityInternalReversePolicies) Read(ctx context.Context, req 
 	read_output, err := c.ReadSecurityInternalReversePolicies(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -400,10 +411,6 @@ func (m *resourceSecurityInternalReversePoliciesModel) refreshSecurityInternalRe
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["enabled"]; ok {
@@ -487,7 +494,7 @@ func (data *resourceSecurityInternalReversePoliciesModel) getCreateObjectSecurit
 		result["logTraffic"] = data.LogTraffic.ValueString()
 	}
 
-	if len(data.Destinations) > 0 {
+	if data.Destinations != nil {
 		result["destinations"] = data.expandSecurityInternalReversePoliciesDestinationsList(ctx, data.Destinations, diags)
 	}
 
@@ -508,11 +515,11 @@ func (data *resourceSecurityInternalReversePoliciesModel) getUpdateObjectSecurit
 		result["scope"] = data.Scope.ValueString()
 	}
 
-	if len(data.Sources) > 0 || !isSameStruct(data.Sources, state.Sources) {
+	if data.Sources != nil {
 		result["sources"] = data.expandSecurityInternalReversePoliciesSourcesList(ctx, data.Sources, diags)
 	}
 
-	if len(data.Services) > 0 || !isSameStruct(data.Services, state.Services) {
+	if data.Services != nil {
 		result["services"] = data.expandSecurityInternalReversePoliciesServicesList(ctx, data.Services, diags)
 	}
 
@@ -520,23 +527,23 @@ func (data *resourceSecurityInternalReversePoliciesModel) getUpdateObjectSecurit
 		result["action"] = data.Action.ValueString()
 	}
 
-	if data.Schedule != nil && !isSameStruct(data.Schedule, state.Schedule) {
+	if data.Schedule != nil {
 		result["schedule"] = data.Schedule.expandSecurityInternalReversePoliciesSchedule(ctx, diags)
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.Equal(state.Comments) {
+	if !data.Comments.IsNull() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
-	if data.ProfileGroup != nil && !isSameStruct(data.ProfileGroup, state.ProfileGroup) {
+	if data.ProfileGroup != nil {
 		result["profileGroup"] = data.ProfileGroup.expandSecurityInternalReversePoliciesProfileGroup(ctx, diags)
 	}
 
-	if !data.LogTraffic.IsNull() && !data.LogTraffic.Equal(state.LogTraffic) {
+	if !data.LogTraffic.IsNull() {
 		result["logTraffic"] = data.LogTraffic.ValueString()
 	}
 
-	if len(data.Destinations) > 0 || !isSameStruct(data.Destinations, state.Destinations) {
+	if data.Destinations != nil {
 		result["destinations"] = data.expandSecurityInternalReversePoliciesDestinationsList(ctx, data.Destinations, diags)
 	}
 

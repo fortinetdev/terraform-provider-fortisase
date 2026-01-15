@@ -24,7 +24,8 @@ func newResourceAuthUserGroups() resource.Resource {
 }
 
 type resourceAuthUserGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceAuthUserGroupsModel describes the resource data model.
@@ -135,9 +136,13 @@ func (r *resourceAuthUserGroups) Configure(ctx context.Context, req resource.Con
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_user_groups"
 }
 
 func (r *resourceAuthUserGroups) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUserGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceAuthUserGroupsModel
 	diags := &resp.Diagnostics
 
@@ -158,8 +163,8 @@ func (r *resourceAuthUserGroups) Create(ctx context.Context, req resource.Create
 	output, err := c.CreateAuthUserGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -173,8 +178,8 @@ func (r *resourceAuthUserGroups) Create(ctx context.Context, req resource.Create
 	read_output, err := c.ReadAuthUserGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -188,6 +193,9 @@ func (r *resourceAuthUserGroups) Create(ctx context.Context, req resource.Create
 }
 
 func (r *resourceAuthUserGroups) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUserGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -216,11 +224,11 @@ func (r *resourceAuthUserGroups) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	_, err := c.UpdateAuthUserGroups(&input_model)
+	output, err := c.UpdateAuthUserGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -231,8 +239,8 @@ func (r *resourceAuthUserGroups) Update(ctx context.Context, req resource.Update
 	read_output, err := c.ReadAuthUserGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -246,6 +254,9 @@ func (r *resourceAuthUserGroups) Update(ctx context.Context, req resource.Update
 }
 
 func (r *resourceAuthUserGroups) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("AuthUserGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceAuthUserGroupsModel
 
@@ -263,11 +274,11 @@ func (r *resourceAuthUserGroups) Delete(ctx context.Context, req resource.Delete
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectAuthUserGroups(ctx, "delete", diags))
 
-	err := c.DeleteAuthUserGroups(&input_model)
+	output, err := c.DeleteAuthUserGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -294,8 +305,8 @@ func (r *resourceAuthUserGroups) Read(ctx context.Context, req resource.ReadRequ
 	read_output, err := c.ReadAuthUserGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -316,10 +327,6 @@ func (m *resourceAuthUserGroupsModel) refreshAuthUserGroups(ctx context.Context,
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["groupType"]; ok {
@@ -360,15 +367,15 @@ func (data *resourceAuthUserGroupsModel) getUpdateObjectAuthUserGroups(ctx conte
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.GroupType.IsNull() && !data.GroupType.Equal(state.GroupType) {
+	if !data.GroupType.IsNull() {
 		result["groupType"] = data.GroupType.ValueString()
 	}
 
-	if len(data.LocalUsers) > 0 || !isSameStruct(data.LocalUsers, state.LocalUsers) {
+	if data.LocalUsers != nil {
 		result["localUsers"] = data.expandAuthUserGroupsLocalUsersList(ctx, data.LocalUsers, diags)
 	}
 
-	if len(data.RemoteUserGroups) > 0 || !isSameStruct(data.RemoteUserGroups, state.RemoteUserGroups) {
+	if data.RemoteUserGroups != nil {
 		result["remoteUserGroups"] = data.expandAuthUserGroupsRemoteUserGroupsList(ctx, data.RemoteUserGroups, diags)
 	}
 
@@ -450,8 +457,6 @@ func (m *resourceAuthUserGroupsRemoteUserGroupsModel) flattenAuthUserGroupsRemot
 		m = &resourceAuthUserGroupsRemoteUserGroupsModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Matches = types.SetNull(types.StringType)
-
 	if v, ok := o["server"]; ok {
 		m.Server = m.Server.flattenAuthUserGroupsRemoteUserGroupsServer(ctx, v, diags)
 	}

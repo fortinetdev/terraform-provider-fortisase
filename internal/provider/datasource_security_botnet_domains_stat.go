@@ -19,7 +19,8 @@ func newDatasourceSecurityBotnetDomainsStat() datasource.DataSource {
 }
 
 type datasourceSecurityBotnetDomainsStat2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityBotnetDomainsStat2EdlModel describes the datasource data model.
@@ -61,6 +62,7 @@ func (r *datasourceSecurityBotnetDomainsStat2Edl) Configure(ctx context.Context,
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_botnet_domains_stat"
 }
 
 func (r *datasourceSecurityBotnetDomainsStat2Edl) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -83,8 +85,8 @@ func (r *datasourceSecurityBotnetDomainsStat2Edl) Read(ctx context.Context, req 
 	read_output, err := c.ReadSecurityBotnetDomainsStat(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

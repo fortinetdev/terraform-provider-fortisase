@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityScheduleGroups() datasource.DataSource {
 }
 
 type datasourceUsageSecurityScheduleGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityScheduleGroupsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityScheduleGroups) Schema(ctx context.Context, req 
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityScheduleGroups) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_schedule_groups"
 }
 
 func (r *datasourceUsageSecurityScheduleGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityScheduleGroups) Read(ctx context.Context, req da
 	read_output, err := c.ReadUsageSecurityScheduleGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

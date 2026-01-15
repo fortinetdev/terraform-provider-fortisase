@@ -23,7 +23,8 @@ func newResourceEndpointsEnableManagement() resource.Resource {
 }
 
 type resourceEndpointsEnableManagement struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointsEnableManagementModel describes the resource data model.
@@ -77,6 +78,7 @@ func (r *resourceEndpointsEnableManagement) Configure(ctx context.Context, req r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_enable_management"
 }
 
 func (r *resourceEndpointsEnableManagement) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -96,11 +98,11 @@ func (r *resourceEndpointsEnableManagement) Create(ctx context.Context, req reso
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateEndpointsEnableManagement(&input_model)
+	output, err := c.CreateEndpointsEnableManagement(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -139,11 +141,11 @@ func (r *resourceEndpointsEnableManagement) Update(ctx context.Context, req reso
 		return
 	}
 
-	_, err := c.CreateEndpointsEnableManagement(&input_model)
+	output, err := c.CreateEndpointsEnableManagement(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}

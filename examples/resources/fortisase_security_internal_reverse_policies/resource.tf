@@ -1,3 +1,4 @@
+# GUI: Security > Policies > Secure private access > From hubs
 resource "fortisase_security_internal_reverse_policies" "example" {
   primary_key = "IT Admins: Remote Access by TF"
   enabled     = true

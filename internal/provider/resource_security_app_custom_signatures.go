@@ -24,7 +24,8 @@ func newResourceSecurityAppCustomSignatures() resource.Resource {
 }
 
 type resourceSecurityAppCustomSignatures struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityAppCustomSignaturesModel describes the resource data model.
@@ -140,9 +141,13 @@ func (r *resourceSecurityAppCustomSignatures) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_app_custom_signatures"
 }
 
 func (r *resourceSecurityAppCustomSignatures) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityAppCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityAppCustomSignaturesModel
 	diags := &resp.Diagnostics
 
@@ -163,8 +168,8 @@ func (r *resourceSecurityAppCustomSignatures) Create(ctx context.Context, req re
 	output, err := c.CreateSecurityAppCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -178,8 +183,8 @@ func (r *resourceSecurityAppCustomSignatures) Create(ctx context.Context, req re
 	read_output, err := c.ReadSecurityAppCustomSignatures(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -193,6 +198,9 @@ func (r *resourceSecurityAppCustomSignatures) Create(ctx context.Context, req re
 }
 
 func (r *resourceSecurityAppCustomSignatures) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityAppCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -221,11 +229,11 @@ func (r *resourceSecurityAppCustomSignatures) Update(ctx context.Context, req re
 		return
 	}
 
-	_, err := c.UpdateSecurityAppCustomSignatures(&input_model)
+	output, err := c.UpdateSecurityAppCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -236,8 +244,8 @@ func (r *resourceSecurityAppCustomSignatures) Update(ctx context.Context, req re
 	read_output, err := c.ReadSecurityAppCustomSignatures(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -251,6 +259,9 @@ func (r *resourceSecurityAppCustomSignatures) Update(ctx context.Context, req re
 }
 
 func (r *resourceSecurityAppCustomSignatures) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityAppCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityAppCustomSignaturesModel
 
@@ -268,11 +279,11 @@ func (r *resourceSecurityAppCustomSignatures) Delete(ctx context.Context, req re
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityAppCustomSignatures(ctx, "delete", diags))
 
-	err := c.DeleteSecurityAppCustomSignatures(&input_model)
+	output, err := c.DeleteSecurityAppCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -299,8 +310,8 @@ func (r *resourceSecurityAppCustomSignatures) Read(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityAppCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -321,10 +332,6 @@ func (m *resourceSecurityAppCustomSignaturesModel) refreshSecurityAppCustomSigna
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["comment"]; ok {
@@ -425,7 +432,7 @@ func (data *resourceSecurityAppCustomSignaturesModel) getCreateObjectSecurityApp
 
 func (data *resourceSecurityAppCustomSignaturesModel) getUpdateObjectSecurityAppCustomSignatures(ctx context.Context, state resourceSecurityAppCustomSignaturesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -433,11 +440,11 @@ func (data *resourceSecurityAppCustomSignaturesModel) getUpdateObjectSecurityApp
 		result["signature"] = data.Signature.ValueString()
 	}
 
-	if !data.Comment.IsNull() && !data.Comment.Equal(state.Comment) {
+	if !data.Comment.IsNull() {
 		result["comment"] = data.Comment.ValueString()
 	}
 
-	if !data.Ftntid.IsNull() && !data.Ftntid.Equal(state.Ftntid) {
+	if !data.Ftntid.IsNull() {
 		result["id"] = data.Ftntid.ValueFloat64()
 	}
 
@@ -445,31 +452,31 @@ func (data *resourceSecurityAppCustomSignaturesModel) getUpdateObjectSecurityApp
 		result["tag"] = data.Tag.ValueString()
 	}
 
-	if !data.Name.IsNull() && !data.Name.Equal(state.Name) {
+	if !data.Name.IsNull() {
 		result["name"] = data.Name.ValueString()
 	}
 
-	if !data.Category.IsNull() && !data.Category.Equal(state.Category) {
+	if !data.Category.IsNull() {
 		result["category"] = data.Category.ValueFloat64()
 	}
 
-	if !data.Protocol.IsNull() && !data.Protocol.Equal(state.Protocol) {
+	if !data.Protocol.IsNull() {
 		result["protocol"] = data.Protocol.ValueString()
 	}
 
-	if !data.Technology.IsNull() && !data.Technology.Equal(state.Technology) {
+	if !data.Technology.IsNull() {
 		result["technology"] = data.Technology.ValueString()
 	}
 
-	if !data.Behavior.IsNull() && !data.Behavior.Equal(state.Behavior) {
+	if !data.Behavior.IsNull() {
 		result["behavior"] = data.Behavior.ValueString()
 	}
 
-	if !data.Vendor.IsNull() && !data.Vendor.Equal(state.Vendor) {
+	if !data.Vendor.IsNull() {
 		result["vendor"] = data.Vendor.ValueString()
 	}
 
-	if !data.IconClass.IsNull() && !data.IconClass.Equal(state.IconClass) {
+	if !data.IconClass.IsNull() {
 		result["iconClass"] = data.IconClass.ValueString()
 	}
 

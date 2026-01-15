@@ -22,7 +22,8 @@ func newResourceEndpointGroupAdUserProfiles() resource.Resource {
 }
 
 type resourceEndpointGroupAdUserProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointGroupAdUserProfilesModel describes the resource data model.
@@ -58,8 +59,11 @@ func (r *resourceEndpointGroupAdUserProfiles) Schema(ctx context.Context, req re
 				ElementType: types.Int64Type,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}
@@ -84,9 +88,13 @@ func (r *resourceEndpointGroupAdUserProfiles) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_group_ad_user_profiles"
 }
 
 func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointGroupAdUserProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointGroupAdUserProfilesModel
 	diags := &resp.Diagnostics
 
@@ -108,8 +116,8 @@ func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req re
 	output, err := c.UpdateEndpointGroupAdUserProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -123,8 +131,8 @@ func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req re
 	read_output, err := c.ReadEndpointGroupAdUserProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -138,6 +146,9 @@ func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req re
 }
 
 func (r *resourceEndpointGroupAdUserProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointGroupAdUserProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -166,11 +177,11 @@ func (r *resourceEndpointGroupAdUserProfiles) Update(ctx context.Context, req re
 		return
 	}
 
-	_, err := c.UpdateEndpointGroupAdUserProfiles(&input_model)
+	output, err := c.UpdateEndpointGroupAdUserProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -181,8 +192,8 @@ func (r *resourceEndpointGroupAdUserProfiles) Update(ctx context.Context, req re
 	read_output, err := c.ReadEndpointGroupAdUserProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -220,8 +231,8 @@ func (r *resourceEndpointGroupAdUserProfiles) Read(ctx context.Context, req reso
 	read_output, err := c.ReadEndpointGroupAdUserProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

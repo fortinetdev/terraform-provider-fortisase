@@ -24,7 +24,8 @@ func newResourceSecurityDlpDictionaries() resource.Resource {
 }
 
 type resourceSecurityDlpDictionaries struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDlpDictionariesModel describes the resource data model.
@@ -145,9 +146,13 @@ func (r *resourceSecurityDlpDictionaries) Configure(ctx context.Context, req res
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_dictionaries"
 }
 
 func (r *resourceSecurityDlpDictionaries) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpDictionaries")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDlpDictionariesModel
 	diags := &resp.Diagnostics
 
@@ -168,8 +173,8 @@ func (r *resourceSecurityDlpDictionaries) Create(ctx context.Context, req resour
 	output, err := c.CreateSecurityDlpDictionaries(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -183,8 +188,8 @@ func (r *resourceSecurityDlpDictionaries) Create(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityDlpDictionaries(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -198,6 +203,9 @@ func (r *resourceSecurityDlpDictionaries) Create(ctx context.Context, req resour
 }
 
 func (r *resourceSecurityDlpDictionaries) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpDictionaries")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -226,11 +234,11 @@ func (r *resourceSecurityDlpDictionaries) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err := c.UpdateSecurityDlpDictionaries(&input_model)
+	output, err := c.UpdateSecurityDlpDictionaries(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -241,8 +249,8 @@ func (r *resourceSecurityDlpDictionaries) Update(ctx context.Context, req resour
 	read_output, err := c.ReadSecurityDlpDictionaries(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -256,6 +264,9 @@ func (r *resourceSecurityDlpDictionaries) Update(ctx context.Context, req resour
 }
 
 func (r *resourceSecurityDlpDictionaries) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDlpDictionaries")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityDlpDictionariesModel
 
@@ -273,11 +284,11 @@ func (r *resourceSecurityDlpDictionaries) Delete(ctx context.Context, req resour
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityDlpDictionaries(ctx, "delete", diags))
 
-	err := c.DeleteSecurityDlpDictionaries(&input_model)
+	output, err := c.DeleteSecurityDlpDictionaries(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -304,8 +315,8 @@ func (r *resourceSecurityDlpDictionaries) Read(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityDlpDictionaries(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -326,10 +337,6 @@ func (m *resourceSecurityDlpDictionariesModel) refreshSecurityDlpDictionaries(ct
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["dictionaryType"]; ok {
@@ -369,7 +376,7 @@ func (data *resourceSecurityDlpDictionariesModel) getCreateObjectSecurityDlpDict
 		result["entriesToEvaluate"] = data.EntriesToEvaluate.ValueString()
 	}
 
-	if len(data.Entries) > 0 {
+	if data.Entries != nil {
 		result["entries"] = data.expandSecurityDlpDictionariesEntriesList(ctx, data.Entries, diags)
 	}
 
@@ -378,7 +385,7 @@ func (data *resourceSecurityDlpDictionariesModel) getCreateObjectSecurityDlpDict
 
 func (data *resourceSecurityDlpDictionariesModel) getUpdateObjectSecurityDlpDictionaries(ctx context.Context, state resourceSecurityDlpDictionariesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -386,15 +393,15 @@ func (data *resourceSecurityDlpDictionariesModel) getUpdateObjectSecurityDlpDict
 		result["dictionaryType"] = data.DictionaryType.ValueString()
 	}
 
-	if !data.SensitivityLabelGuid.IsNull() && !data.SensitivityLabelGuid.Equal(state.SensitivityLabelGuid) {
+	if !data.SensitivityLabelGuid.IsNull() {
 		result["sensitivityLabelGuid"] = data.SensitivityLabelGuid.ValueString()
 	}
 
-	if !data.EntriesToEvaluate.IsNull() && !data.EntriesToEvaluate.Equal(state.EntriesToEvaluate) {
+	if !data.EntriesToEvaluate.IsNull() {
 		result["entriesToEvaluate"] = data.EntriesToEvaluate.ValueString()
 	}
 
-	if len(data.Entries) > 0 || !isSameStruct(data.Entries, state.Entries) {
+	if data.Entries != nil {
 		result["entries"] = data.expandSecurityDlpDictionariesEntriesList(ctx, data.Entries, diags)
 	}
 

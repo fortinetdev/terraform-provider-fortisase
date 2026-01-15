@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +24,8 @@ func newResourceSecurityVideoFilterProfile() resource.Resource {
 }
 
 type resourceSecurityVideoFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityVideoFilterProfileModel describes the resource data model.
@@ -60,12 +60,12 @@ func (r *resourceSecurityVideoFilterProfile) Schema(ctx context.Context, req res
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -151,9 +151,13 @@ func (r *resourceSecurityVideoFilterProfile) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_video_filter_profile"
 }
 
 func (r *resourceSecurityVideoFilterProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityVideoFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityVideoFilterProfileModel
 	diags := &resp.Diagnostics
 
@@ -175,8 +179,8 @@ func (r *resourceSecurityVideoFilterProfile) Create(ctx context.Context, req res
 	output, err := c.UpdateSecurityVideoFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -190,8 +194,8 @@ func (r *resourceSecurityVideoFilterProfile) Create(ctx context.Context, req res
 	read_output, err := c.ReadSecurityVideoFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -205,6 +209,9 @@ func (r *resourceSecurityVideoFilterProfile) Create(ctx context.Context, req res
 }
 
 func (r *resourceSecurityVideoFilterProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityVideoFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -233,11 +240,11 @@ func (r *resourceSecurityVideoFilterProfile) Update(ctx context.Context, req res
 		return
 	}
 
-	_, err := c.UpdateSecurityVideoFilterProfile(&input_model)
+	output, err := c.UpdateSecurityVideoFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -248,8 +255,8 @@ func (r *resourceSecurityVideoFilterProfile) Update(ctx context.Context, req res
 	read_output, err := c.ReadSecurityVideoFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -287,8 +294,8 @@ func (r *resourceSecurityVideoFilterProfile) Read(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityVideoFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -302,17 +309,7 @@ func (r *resourceSecurityVideoFilterProfile) Read(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityVideoFilterProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
@@ -321,12 +318,12 @@ func (m *resourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterProf
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["fortiguardFilters"]; ok {
-		m.FortiguardFilters = m.flattenSecurityVideoFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityVideoFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		if m.FortiguardFilters == nil || !isSetSuperset(convert_v, m.FortiguardFilters) {
+			m.FortiguardFilters = convert_v
+		}
+
 	}
 
 	if v, ok := o["defaultAction"]; ok {
@@ -359,11 +356,11 @@ func (data *resourceSecurityVideoFilterProfileModel) getCreateObjectSecurityVide
 
 func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVideoFilterProfile(ctx context.Context, state resourceSecurityVideoFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.FortiguardFilters) > 0 || !isSameStruct(data.FortiguardFilters, state.FortiguardFilters) {
+	if data.FortiguardFilters != nil {
 		result["fortiguardFilters"] = data.expandSecurityVideoFilterProfileFortiguardFiltersList(ctx, data.FortiguardFilters, diags)
 	}
 
@@ -371,7 +368,7 @@ func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVide
 		result["defaultAction"] = data.DefaultAction.ValueString()
 	}
 
-	if len(data.Channels) > 0 || !isSameStruct(data.Channels, state.Channels) {
+	if data.Channels != nil {
 		result["channels"] = data.expandSecurityVideoFilterProfileChannelsList(ctx, data.Channels, diags)
 	}
 
@@ -381,6 +378,9 @@ func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVide
 func (data *resourceSecurityVideoFilterProfileModel) getURLObjectSecurityVideoFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

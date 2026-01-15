@@ -25,7 +25,8 @@ func newResourceDemSpaApplications() resource.Resource {
 }
 
 type resourceDemSpaApplications struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceDemSpaApplicationsModel describes the resource data model.
@@ -133,9 +134,13 @@ func (r *resourceDemSpaApplications) Configure(ctx context.Context, req resource
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_dem_spa_applications"
 }
 
 func (r *resourceDemSpaApplications) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("DemSpaApplications")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceDemSpaApplicationsModel
 	diags := &resp.Diagnostics
 
@@ -156,8 +161,8 @@ func (r *resourceDemSpaApplications) Create(ctx context.Context, req resource.Cr
 	output, err := c.CreateDemSpaApplications(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -171,8 +176,8 @@ func (r *resourceDemSpaApplications) Create(ctx context.Context, req resource.Cr
 	read_output, err := c.ReadDemSpaApplications(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -186,6 +191,9 @@ func (r *resourceDemSpaApplications) Create(ctx context.Context, req resource.Cr
 }
 
 func (r *resourceDemSpaApplications) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("DemSpaApplications")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -214,11 +222,11 @@ func (r *resourceDemSpaApplications) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	_, err := c.UpdateDemSpaApplications(&input_model)
+	output, err := c.UpdateDemSpaApplications(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -229,8 +237,8 @@ func (r *resourceDemSpaApplications) Update(ctx context.Context, req resource.Up
 	read_output, err := c.ReadDemSpaApplications(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -244,6 +252,9 @@ func (r *resourceDemSpaApplications) Update(ctx context.Context, req resource.Up
 }
 
 func (r *resourceDemSpaApplications) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("DemSpaApplications")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceDemSpaApplicationsModel
 
@@ -261,11 +272,11 @@ func (r *resourceDemSpaApplications) Delete(ctx context.Context, req resource.De
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectDemSpaApplications(ctx, "delete", diags))
 
-	err := c.DeleteDemSpaApplications(&input_model)
+	output, err := c.DeleteDemSpaApplications(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -292,8 +303,8 @@ func (r *resourceDemSpaApplications) Read(ctx context.Context, req resource.Read
 	read_output, err := c.ReadDemSpaApplications(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -314,10 +325,6 @@ func (m *resourceDemSpaApplicationsModel) refreshDemSpaApplications(ctx context.
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["server"]; ok {
@@ -398,27 +405,27 @@ func (data *resourceDemSpaApplicationsModel) getUpdateObjectDemSpaApplications(c
 		result["server"] = data.Server.ValueString()
 	}
 
-	if !data.LatencyThreshold.IsNull() && !data.LatencyThreshold.Equal(state.LatencyThreshold) {
+	if !data.LatencyThreshold.IsNull() {
 		result["latencyThreshold"] = data.LatencyThreshold.ValueFloat64()
 	}
 
-	if !data.JitterThreshold.IsNull() && !data.JitterThreshold.Equal(state.JitterThreshold) {
+	if !data.JitterThreshold.IsNull() {
 		result["jitterThreshold"] = data.JitterThreshold.ValueFloat64()
 	}
 
-	if !data.PacketlossThreshold.IsNull() && !data.PacketlossThreshold.Equal(state.PacketlossThreshold) {
+	if !data.PacketlossThreshold.IsNull() {
 		result["packetlossThreshold"] = data.PacketlossThreshold.ValueFloat64()
 	}
 
-	if !data.Interval.IsNull() && !data.Interval.Equal(state.Interval) {
+	if !data.Interval.IsNull() {
 		result["interval"] = data.Interval.ValueFloat64()
 	}
 
-	if !data.FailTime.IsNull() && !data.FailTime.Equal(state.FailTime) {
+	if !data.FailTime.IsNull() {
 		result["failTime"] = data.FailTime.ValueFloat64()
 	}
 
-	if !data.RecoveryTime.IsNull() && !data.RecoveryTime.Equal(state.RecoveryTime) {
+	if !data.RecoveryTime.IsNull() {
 		result["recoveryTime"] = data.RecoveryTime.ValueFloat64()
 	}
 

@@ -21,7 +21,8 @@ func newDatasourceUsageSecurityProfileGroup() datasource.DataSource {
 }
 
 type datasourceUsageSecurityProfileGroup struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityProfileGroupModel describes the datasource data model.
@@ -48,16 +49,16 @@ func (r *datasourceUsageSecurityProfileGroup) Schema(ctx context.Context, req da
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -82,6 +83,7 @@ func (r *datasourceUsageSecurityProfileGroup) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_profile_group"
 }
 
 func (r *datasourceUsageSecurityProfileGroup) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -105,8 +107,8 @@ func (r *datasourceUsageSecurityProfileGroup) Read(ctx context.Context, req data
 	read_output, err := c.ReadUsageSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -139,6 +141,9 @@ func (m *datasourceUsageSecurityProfileGroupModel) refreshUsageSecurityProfileGr
 func (data *datasourceUsageSecurityProfileGroupModel) getURLObjectUsageSecurityProfileGroup(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

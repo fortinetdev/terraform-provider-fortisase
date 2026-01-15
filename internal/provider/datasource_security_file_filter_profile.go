@@ -21,7 +21,8 @@ func newDatasourceSecurityFileFilterProfile() datasource.DataSource {
 }
 
 type datasourceSecurityFileFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityFileFilterProfileModel describes the datasource data model.
@@ -48,12 +49,12 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"block": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -81,6 +82,10 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 							Validators: []validator.String{
 								stringvalidator.OneOf("security/antivirus-filetypes"),
 							},
+							Computed: true,
+							Optional: true,
+						},
+						"primary_key": schema.StringAttribute{
 							Computed: true,
 							Optional: true,
 						},
@@ -112,6 +117,7 @@ func (r *datasourceSecurityFileFilterProfile) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_file_filter_profile"
 }
 
 func (r *datasourceSecurityFileFilterProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -135,8 +141,8 @@ func (r *datasourceSecurityFileFilterProfile) Read(ctx context.Context, req data
 	read_output, err := c.ReadSecurityFileFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -153,10 +159,6 @@ func (m *datasourceSecurityFileFilterProfileModel) refreshSecurityFileFilterProf
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["block"]; ok {
@@ -177,6 +179,9 @@ func (m *datasourceSecurityFileFilterProfileModel) refreshSecurityFileFilterProf
 func (data *datasourceSecurityFileFilterProfileModel) getURLObjectSecurityFileFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
@@ -194,6 +199,7 @@ type datasourceSecurityFileFilterProfileBlockModel struct {
 
 type datasourceSecurityFileFilterProfileMonitorModel struct {
 	Datasource types.String `tfsdk:"datasource"`
+	PrimaryKey types.String `tfsdk:"primary_key"`
 }
 
 func (m *datasourceSecurityFileFilterProfileBlockModel) flattenSecurityFileFilterProfileBlock(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceSecurityFileFilterProfileBlockModel {
@@ -249,6 +255,10 @@ func (m *datasourceSecurityFileFilterProfileMonitorModel) flattenSecurityFileFil
 	o := input.(map[string]interface{})
 	if v, ok := o["datasource"]; ok {
 		m.Datasource = parseStringValue(v)
+	}
+
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
 	}
 
 	return m

@@ -23,7 +23,8 @@ func newResourcePrivateAccessServiceConnectionsAuth() resource.Resource {
 }
 
 type resourcePrivateAccessServiceConnectionsAuth2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourcePrivateAccessServiceConnectionsAuth2EdlModel describes the resource data model.
@@ -51,32 +52,32 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Schema(ctx context.Con
 				},
 			},
 			"auth": schema.StringAttribute{
-				Description: "IPSEC authentication method",
 				Validators: []validator.String{
 					stringvalidator.OneOf("pki", "psk"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"ipsec_pre_shared_key": schema.StringAttribute{
-				Description: "IPSEC auth by pre shared key.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "IPSEC auth by pre shared key.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"ipsec_peer_name": schema.StringAttribute{
-				Description: "Peer PKI user name that created on SASE for IPSEC authentication",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Peer PKI user name that created on SASE for IPSEC authentication",
+				Computed:            true,
+				Optional:            true,
 			},
 			"ipsec_cert_name": schema.StringAttribute{
-				Description: "the name of IPSEC authentication certificate that uploaded to SASE",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "the name of IPSEC authentication certificate that uploaded to SASE",
+				Computed:            true,
+				Optional:            true,
 			},
 			"service_connection_id": schema.StringAttribute{
-				Description: "the unique uuid for service connection",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "the unique uuid for service connection",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -101,6 +102,7 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Configure(ctx context.
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_private_access_service_connections_auth"
 }
 
 func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -121,11 +123,11 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Create(ctx context.Con
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreatePrivateAccessServiceConnectionsAuth(&input_model)
+	output, err := c.CreatePrivateAccessServiceConnectionsAuth(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -165,11 +167,11 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Update(ctx context.Con
 		return
 	}
 
-	_, err := c.CreatePrivateAccessServiceConnectionsAuth(&input_model)
+	output, err := c.CreatePrivateAccessServiceConnectionsAuth(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -208,19 +210,19 @@ func (data *resourcePrivateAccessServiceConnectionsAuth2EdlModel) getCreateObjec
 
 func (data *resourcePrivateAccessServiceConnectionsAuth2EdlModel) getUpdateObjectPrivateAccessServiceConnectionsAuth(ctx context.Context, state resourcePrivateAccessServiceConnectionsAuth2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Auth.IsNull() && !data.Auth.Equal(state.Auth) {
+	if !data.Auth.IsNull() {
 		result["auth"] = data.Auth.ValueString()
 	}
 
-	if !data.IpsecPreSharedKey.IsNull() && !data.IpsecPreSharedKey.Equal(state.IpsecPreSharedKey) {
+	if !data.IpsecPreSharedKey.IsNull() {
 		result["ipsec_pre_shared_key"] = data.IpsecPreSharedKey.ValueString()
 	}
 
-	if !data.IpsecPeerName.IsNull() && !data.IpsecPeerName.Equal(state.IpsecPeerName) {
+	if !data.IpsecPeerName.IsNull() {
 		result["ipsec_peer_name"] = data.IpsecPeerName.ValueString()
 	}
 
-	if !data.IpsecCertName.IsNull() && !data.IpsecCertName.Equal(state.IpsecCertName) {
+	if !data.IpsecCertName.IsNull() {
 		result["ipsec_cert_name"] = data.IpsecCertName.ValueString()
 	}
 

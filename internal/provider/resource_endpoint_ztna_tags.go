@@ -24,7 +24,8 @@ func newResourceEndpointZtnaTags() resource.Resource {
 }
 
 type resourceEndpointZtnaTags struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointZtnaTagsModel describes the resource data model.
@@ -90,9 +91,13 @@ func (r *resourceEndpointZtnaTags) Configure(ctx context.Context, req resource.C
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_ztna_tags"
 }
 
 func (r *resourceEndpointZtnaTags) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaTags")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointZtnaTagsModel
 	diags := &resp.Diagnostics
 
@@ -113,8 +118,8 @@ func (r *resourceEndpointZtnaTags) Create(ctx context.Context, req resource.Crea
 	output, err := c.CreateEndpointZtnaTags(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -128,8 +133,8 @@ func (r *resourceEndpointZtnaTags) Create(ctx context.Context, req resource.Crea
 	read_output, err := c.ReadEndpointZtnaTags(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -151,6 +156,9 @@ func (r *resourceEndpointZtnaTags) Update(ctx context.Context, req resource.Upda
 }
 
 func (r *resourceEndpointZtnaTags) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointZtnaTags")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceEndpointZtnaTagsModel
 
@@ -168,11 +176,11 @@ func (r *resourceEndpointZtnaTags) Delete(ctx context.Context, req resource.Dele
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectEndpointZtnaTags(ctx, "delete", diags))
 
-	err := c.DeleteEndpointZtnaTags(&input_model)
+	output, err := c.DeleteEndpointZtnaTags(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -199,8 +207,8 @@ func (r *resourceEndpointZtnaTags) Read(ctx context.Context, req resource.ReadRe
 	read_output, err := c.ReadEndpointZtnaTags(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -221,10 +229,6 @@ func (m *resourceEndpointZtnaTagsModel) refreshEndpointZtnaTags(ctx context.Cont
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["name"]; ok {
@@ -249,11 +253,11 @@ func (data *resourceEndpointZtnaTagsModel) getCreateObjectEndpointZtnaTags(ctx c
 
 func (data *resourceEndpointZtnaTagsModel) getUpdateObjectEndpointZtnaTags(ctx context.Context, state resourceEndpointZtnaTagsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Name.IsNull() && !data.Name.Equal(state.Name) {
+	if !data.Name.IsNull() {
 		result["name"] = data.Name.ValueString()
 	}
 

@@ -21,7 +21,8 @@ func newResourceEndpointsDisableManagement() resource.Resource {
 }
 
 type resourceEndpointsDisableManagement struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointsDisableManagementModel describes the resource data model.
@@ -83,6 +84,7 @@ func (r *resourceEndpointsDisableManagement) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_disable_management"
 }
 
 func (r *resourceEndpointsDisableManagement) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -102,11 +104,11 @@ func (r *resourceEndpointsDisableManagement) Create(ctx context.Context, req res
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateEndpointsDisableManagement(&input_model)
+	output, err := c.CreateEndpointsDisableManagement(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -145,11 +147,11 @@ func (r *resourceEndpointsDisableManagement) Update(ctx context.Context, req res
 		return
 	}
 
-	_, err := c.CreateEndpointsDisableManagement(&input_model)
+	output, err := c.CreateEndpointsDisableManagement(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -175,7 +177,7 @@ func (data *resourceEndpointsDisableManagementModel) getCreateObjectEndpointsDis
 
 func (data *resourceEndpointsDisableManagementModel) getUpdateObjectEndpointsDisableManagement(ctx context.Context, state resourceEndpointsDisableManagementModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if len(data.Endpoints) > 0 || !isSameStruct(data.Endpoints, state.Endpoints) {
+	if data.Endpoints != nil {
 		result["endpoints"] = data.expandEndpointsDisableManagementEndpointsList(ctx, data.Endpoints, diags)
 	}
 

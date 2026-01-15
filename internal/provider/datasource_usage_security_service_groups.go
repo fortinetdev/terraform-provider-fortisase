@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityServiceGroups() datasource.DataSource {
 }
 
 type datasourceUsageSecurityServiceGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityServiceGroupsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityServiceGroups) Schema(ctx context.Context, req d
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityServiceGroups) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_service_groups"
 }
 
 func (r *datasourceUsageSecurityServiceGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityServiceGroups) Read(ctx context.Context, req dat
 	read_output, err := c.ReadUsageSecurityServiceGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

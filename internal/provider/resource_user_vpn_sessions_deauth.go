@@ -21,7 +21,8 @@ func newResourceUserVpnSessionsDeauth() resource.Resource {
 }
 
 type resourceUserVpnSessionsDeauth2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceUserVpnSessionsDeauth2EdlModel describes the resource data model.
@@ -78,6 +79,7 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Configure(ctx context.Context, req r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_user_vpn_sessions_deauth"
 }
 
 func (r *resourceUserVpnSessionsDeauth2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -97,11 +99,11 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Create(ctx context.Context, req reso
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateUserVpnSessionsDeauth(&input_model)
+	output, err := c.CreateUserVpnSessionsDeauth(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -140,11 +142,11 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Update(ctx context.Context, req reso
 		return
 	}
 
-	_, err := c.CreateUserVpnSessionsDeauth(&input_model)
+	output, err := c.CreateUserVpnSessionsDeauth(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -175,11 +177,11 @@ func (data *resourceUserVpnSessionsDeauth2EdlModel) getCreateObjectUserVpnSessio
 
 func (data *resourceUserVpnSessionsDeauth2EdlModel) getUpdateObjectUserVpnSessionsDeauth(ctx context.Context, state resourceUserVpnSessionsDeauth2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Usernames.IsNull() && !data.Usernames.Equal(state.Usernames) {
+	if !data.Usernames.IsNull() {
 		result["usernames"] = expandSetToStringList(data.Usernames)
 	}
 
-	if !data.SessionIds.IsNull() && !data.SessionIds.Equal(state.SessionIds) {
+	if !data.SessionIds.IsNull() {
 		result["sessionIds"] = expandSetToStringList(data.SessionIds)
 	}
 

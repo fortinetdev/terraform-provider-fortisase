@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -26,7 +25,8 @@ func newResourceSecuritySslSshProfile() resource.Resource {
 }
 
 type resourceSecuritySslSshProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecuritySslSshProfileModel describes the resource data model.
@@ -114,12 +114,12 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"profile_protocol_options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -181,7 +181,7 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/host-groups"),
+								stringvalidator.OneOf("network/hosts", "network/host-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -233,9 +233,13 @@ func (r *resourceSecuritySslSshProfile) Configure(ctx context.Context, req resou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ssl_ssh_profile"
 }
 
 func (r *resourceSecuritySslSshProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecuritySslSshProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecuritySslSshProfileModel
 	diags := &resp.Diagnostics
 
@@ -257,8 +261,8 @@ func (r *resourceSecuritySslSshProfile) Create(ctx context.Context, req resource
 	output, err := c.UpdateSecuritySslSshProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -272,8 +276,8 @@ func (r *resourceSecuritySslSshProfile) Create(ctx context.Context, req resource
 	read_output, err := c.ReadSecuritySslSshProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -287,6 +291,9 @@ func (r *resourceSecuritySslSshProfile) Create(ctx context.Context, req resource
 }
 
 func (r *resourceSecuritySslSshProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecuritySslSshProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -315,11 +322,11 @@ func (r *resourceSecuritySslSshProfile) Update(ctx context.Context, req resource
 		return
 	}
 
-	_, err := c.UpdateSecuritySslSshProfile(&input_model)
+	output, err := c.UpdateSecuritySslSshProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -330,8 +337,8 @@ func (r *resourceSecuritySslSshProfile) Update(ctx context.Context, req resource
 	read_output, err := c.ReadSecuritySslSshProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -369,8 +376,8 @@ func (r *resourceSecuritySslSshProfile) Read(ctx context.Context, req resource.R
 	read_output, err := c.ReadSecuritySslSshProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -384,27 +391,13 @@ func (r *resourceSecuritySslSshProfile) Read(ctx context.Context, req resource.R
 }
 
 func (r *resourceSecuritySslSshProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecuritySslSshProfileModel) refreshSecuritySslSshProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["inspectionMode"]; ok {
@@ -496,11 +489,11 @@ func (data *resourceSecuritySslSshProfileModel) getCreateObjectSecuritySslSshPro
 		result["quic"] = data.Quic.ValueString()
 	}
 
-	if len(data.HostExemptions) > 0 {
+	if data.HostExemptions != nil {
 		result["hostExemptions"] = data.expandSecuritySslSshProfileHostExemptionsList(ctx, data.HostExemptions, diags)
 	}
 
-	if len(data.UrlCategoryExemptions) > 0 {
+	if data.UrlCategoryExemptions != nil {
 		result["urlCategoryExemptions"] = data.expandSecuritySslSshProfileUrlCategoryExemptionsList(ctx, data.UrlCategoryExemptions, diags)
 	}
 
@@ -509,7 +502,7 @@ func (data *resourceSecuritySslSshProfileModel) getCreateObjectSecuritySslSshPro
 
 func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshProfile(ctx context.Context, state resourceSecuritySslSshProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -517,43 +510,43 @@ func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshPro
 		result["inspectionMode"] = data.InspectionMode.ValueString()
 	}
 
-	if data.ProfileProtocolOptions != nil && !isSameStruct(data.ProfileProtocolOptions, state.ProfileProtocolOptions) {
+	if data.ProfileProtocolOptions != nil {
 		result["profileProtocolOptions"] = data.ProfileProtocolOptions.expandSecuritySslSshProfileProfileProtocolOptions(ctx, diags)
 	}
 
-	if data.CaCertificate != nil && !isSameStruct(data.CaCertificate, state.CaCertificate) {
+	if data.CaCertificate != nil {
 		result["caCertificate"] = data.CaCertificate.expandSecuritySslSshProfileCaCertificate(ctx, diags)
 	}
 
-	if !data.ExpiredCertificateAction.IsNull() && !data.ExpiredCertificateAction.Equal(state.ExpiredCertificateAction) {
+	if !data.ExpiredCertificateAction.IsNull() {
 		result["expiredCertificateAction"] = data.ExpiredCertificateAction.ValueString()
 	}
 
-	if !data.RevokedCertificateAction.IsNull() && !data.RevokedCertificateAction.Equal(state.RevokedCertificateAction) {
+	if !data.RevokedCertificateAction.IsNull() {
 		result["revokedCertificateAction"] = data.RevokedCertificateAction.ValueString()
 	}
 
-	if !data.TimedOutValidationCertificateAction.IsNull() && !data.TimedOutValidationCertificateAction.Equal(state.TimedOutValidationCertificateAction) {
+	if !data.TimedOutValidationCertificateAction.IsNull() {
 		result["timedOutValidationCertificateAction"] = data.TimedOutValidationCertificateAction.ValueString()
 	}
 
-	if !data.ValidationFailedCertificateAction.IsNull() && !data.ValidationFailedCertificateAction.Equal(state.ValidationFailedCertificateAction) {
+	if !data.ValidationFailedCertificateAction.IsNull() {
 		result["validationFailedCertificateAction"] = data.ValidationFailedCertificateAction.ValueString()
 	}
 
-	if !data.CertProbeFailure.IsNull() && !data.CertProbeFailure.Equal(state.CertProbeFailure) {
+	if !data.CertProbeFailure.IsNull() {
 		result["certProbeFailure"] = data.CertProbeFailure.ValueString()
 	}
 
-	if !data.Quic.IsNull() && !data.Quic.Equal(state.Quic) {
+	if !data.Quic.IsNull() {
 		result["quic"] = data.Quic.ValueString()
 	}
 
-	if len(data.HostExemptions) > 0 || !isSameStruct(data.HostExemptions, state.HostExemptions) {
+	if data.HostExemptions != nil {
 		result["hostExemptions"] = data.expandSecuritySslSshProfileHostExemptionsList(ctx, data.HostExemptions, diags)
 	}
 
-	if len(data.UrlCategoryExemptions) > 0 || !isSameStruct(data.UrlCategoryExemptions, state.UrlCategoryExemptions) {
+	if data.UrlCategoryExemptions != nil {
 		result["urlCategoryExemptions"] = data.expandSecuritySslSshProfileUrlCategoryExemptionsList(ctx, data.UrlCategoryExemptions, diags)
 	}
 
@@ -563,6 +556,9 @@ func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshPro
 func (data *resourceSecuritySslSshProfileModel) getURLObjectSecuritySslSshProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

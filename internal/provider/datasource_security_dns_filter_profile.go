@@ -21,7 +21,8 @@ func newDatasourceSecurityDnsFilterProfile() datasource.DataSource {
 }
 
 type datasourceSecurityDnsFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityDnsFilterProfileModel describes the datasource data model.
@@ -90,12 +91,12 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"dns_translation_entries": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -241,6 +242,7 @@ func (r *datasourceSecurityDnsFilterProfile) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dns_filter_profile"
 }
 
 func (r *datasourceSecurityDnsFilterProfile) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -264,8 +266,8 @@ func (r *datasourceSecurityDnsFilterProfile) Read(ctx context.Context, req datas
 	read_output, err := c.ReadSecurityDnsFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -282,10 +284,6 @@ func (m *datasourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfil
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["useForEdgeDevices"]; ok {
@@ -334,6 +332,9 @@ func (m *datasourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfil
 func (data *datasourceSecurityDnsFilterProfileModel) getURLObjectSecurityDnsFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

@@ -21,7 +21,8 @@ func newDatasourcePrivateAccessNetworkConfiguration() datasource.DataSource {
 }
 
 type datasourcePrivateAccessNetworkConfiguration struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourcePrivateAccessNetworkConfigurationModel describes the datasource data model.
@@ -43,44 +44,44 @@ func (r *datasourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"bgp_router_ids_subnet": schema.StringAttribute{
-				Description: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"as_number": schema.StringAttribute{
-				Description: "Autonomous System Number (ASN).",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Autonomous System Number (ASN).",
+				Computed:            true,
+				Optional:            true,
 			},
 			"recursive_next_hop": schema.BoolAttribute{
-				Description: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"sdwan_rule_enable": schema.BoolAttribute{
-				Description: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
+				Computed:            true,
+				Optional:            true,
 			},
 			"sdwan_health_check_vm": schema.StringAttribute{
-				Description: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"config_state": schema.StringAttribute{
-				Description: "Configuration state of network configuration.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
-				Computed: true,
+				MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
+				Computed:            true,
 			},
 			"bgp_design": schema.StringAttribute{
-				Description: "BGP Routing Design.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("overlay", "loopback"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -105,6 +106,7 @@ func (r *datasourcePrivateAccessNetworkConfiguration) Configure(ctx context.Cont
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_private_access_network_configuration"
 }
 
 func (r *datasourcePrivateAccessNetworkConfiguration) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -127,8 +129,8 @@ func (r *datasourcePrivateAccessNetworkConfiguration) Read(ctx context.Context, 
 	read_output, err := c.ReadPrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

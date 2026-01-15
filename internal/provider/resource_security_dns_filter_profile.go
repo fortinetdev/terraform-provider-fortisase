@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,7 +24,8 @@ func newResourceSecurityDnsFilterProfile() resource.Resource {
 }
 
 type resourceSecurityDnsFilterProfile struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityDnsFilterProfileModel describes the resource data model.
@@ -102,12 +102,12 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
-				Description: "The direction of the target resource.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"dns_translation_entries": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -253,9 +253,13 @@ func (r *resourceSecurityDnsFilterProfile) Configure(ctx context.Context, req re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dns_filter_profile"
 }
 
 func (r *resourceSecurityDnsFilterProfile) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDnsFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityDnsFilterProfileModel
 	diags := &resp.Diagnostics
 
@@ -277,8 +281,8 @@ func (r *resourceSecurityDnsFilterProfile) Create(ctx context.Context, req resou
 	output, err := c.UpdateSecurityDnsFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -292,8 +296,8 @@ func (r *resourceSecurityDnsFilterProfile) Create(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityDnsFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -307,6 +311,9 @@ func (r *resourceSecurityDnsFilterProfile) Create(ctx context.Context, req resou
 }
 
 func (r *resourceSecurityDnsFilterProfile) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityDnsFilterProfile")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -335,11 +342,11 @@ func (r *resourceSecurityDnsFilterProfile) Update(ctx context.Context, req resou
 		return
 	}
 
-	_, err := c.UpdateSecurityDnsFilterProfile(&input_model)
+	output, err := c.UpdateSecurityDnsFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -350,8 +357,8 @@ func (r *resourceSecurityDnsFilterProfile) Update(ctx context.Context, req resou
 	read_output, err := c.ReadSecurityDnsFilterProfile(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -389,8 +396,8 @@ func (r *resourceSecurityDnsFilterProfile) Read(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityDnsFilterProfile(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -404,27 +411,13 @@ func (r *resourceSecurityDnsFilterProfile) Read(ctx context.Context, req resourc
 }
 
 func (r *resourceSecurityDnsFilterProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "/")
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError(
-			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected format: direction/primary_key, got: %q", req.ID),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("direction"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), parts[1])...)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (m *resourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["useForEdgeDevices"]; ok {
@@ -460,11 +453,19 @@ func (m *resourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfile(
 	}
 
 	if v, ok := o["fortiguardFilters"]; ok {
-		m.FortiguardFilters = m.flattenSecurityDnsFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityDnsFilterProfileFortiguardFiltersList(ctx, v, &diags)
+		if m.FortiguardFilters == nil || !isSetSuperset(convert_v, m.FortiguardFilters) {
+			m.FortiguardFilters = convert_v
+		}
+
 	}
 
 	if v, ok := o["domainThreatFeedFilters"]; ok {
-		m.DomainThreatFeedFilters = m.flattenSecurityDnsFilterProfileDomainThreatFeedFiltersList(ctx, v, &diags)
+		convert_v := m.flattenSecurityDnsFilterProfileDomainThreatFeedFiltersList(ctx, v, &diags)
+		if m.DomainThreatFeedFilters == nil || !isSetSuperset(convert_v, m.DomainThreatFeedFilters) {
+			m.DomainThreatFeedFilters = convert_v
+		}
+
 	}
 
 	return diags
@@ -513,11 +514,11 @@ func (data *resourceSecurityDnsFilterProfileModel) getCreateObjectSecurityDnsFil
 
 func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFilterProfile(ctx context.Context, state resourceSecurityDnsFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.UseForEdgeDevices.IsNull() && !data.UseForEdgeDevices.Equal(state.UseForEdgeDevices) {
+	if !data.UseForEdgeDevices.IsNull() {
 		result["useForEdgeDevices"] = data.UseForEdgeDevices.ValueBool()
 	}
 
@@ -541,19 +542,19 @@ func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFil
 		result["allowDnsRequestsOnRatingError"] = data.AllowDnsRequestsOnRatingError.ValueString()
 	}
 
-	if len(data.DnsTranslationEntries) > 0 || !isSameStruct(data.DnsTranslationEntries, state.DnsTranslationEntries) {
+	if data.DnsTranslationEntries != nil {
 		result["dnsTranslationEntries"] = data.expandSecurityDnsFilterProfileDnsTranslationEntriesList(ctx, data.DnsTranslationEntries, diags)
 	}
 
-	if len(data.DomainFilters) > 0 || !isSameStruct(data.DomainFilters, state.DomainFilters) {
+	if data.DomainFilters != nil {
 		result["domainFilters"] = data.expandSecurityDnsFilterProfileDomainFiltersList(ctx, data.DomainFilters, diags)
 	}
 
-	if len(data.FortiguardFilters) > 0 || !isSameStruct(data.FortiguardFilters, state.FortiguardFilters) {
+	if data.FortiguardFilters != nil {
 		result["fortiguardFilters"] = data.expandSecurityDnsFilterProfileFortiguardFiltersList(ctx, data.FortiguardFilters, diags)
 	}
 
-	if len(data.DomainThreatFeedFilters) > 0 || !isSameStruct(data.DomainThreatFeedFilters, state.DomainThreatFeedFilters) {
+	if data.DomainThreatFeedFilters != nil {
 		result["domainThreatFeedFilters"] = data.expandSecurityDnsFilterProfileDomainThreatFeedFiltersList(ctx, data.DomainThreatFeedFilters, diags)
 	}
 
@@ -563,6 +564,9 @@ func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFil
 func (data *resourceSecurityDnsFilterProfileModel) getURLObjectSecurityDnsFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
 	if !data.Direction.IsNull() {
+		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
+		)
 		result["direction"] = data.Direction.ValueString()
 	}
 

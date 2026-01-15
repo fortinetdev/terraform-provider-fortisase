@@ -25,7 +25,8 @@ func newResourceSecurityIpThreatFeeds() resource.Resource {
 }
 
 type resourceSecurityIpThreatFeeds struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityIpThreatFeedsModel describes the resource data model.
@@ -134,9 +135,13 @@ func (r *resourceSecurityIpThreatFeeds) Configure(ctx context.Context, req resou
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ip_threat_feeds"
 }
 
 func (r *resourceSecurityIpThreatFeeds) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpThreatFeeds")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityIpThreatFeedsModel
 	diags := &resp.Diagnostics
 
@@ -157,8 +162,8 @@ func (r *resourceSecurityIpThreatFeeds) Create(ctx context.Context, req resource
 	output, err := c.CreateSecurityIpThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -172,8 +177,8 @@ func (r *resourceSecurityIpThreatFeeds) Create(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityIpThreatFeeds(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -187,6 +192,9 @@ func (r *resourceSecurityIpThreatFeeds) Create(ctx context.Context, req resource
 }
 
 func (r *resourceSecurityIpThreatFeeds) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpThreatFeeds")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -215,11 +223,11 @@ func (r *resourceSecurityIpThreatFeeds) Update(ctx context.Context, req resource
 		return
 	}
 
-	_, err := c.UpdateSecurityIpThreatFeeds(&input_model)
+	output, err := c.UpdateSecurityIpThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -230,8 +238,8 @@ func (r *resourceSecurityIpThreatFeeds) Update(ctx context.Context, req resource
 	read_output, err := c.ReadSecurityIpThreatFeeds(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -245,6 +253,9 @@ func (r *resourceSecurityIpThreatFeeds) Update(ctx context.Context, req resource
 }
 
 func (r *resourceSecurityIpThreatFeeds) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpThreatFeeds")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityIpThreatFeedsModel
 
@@ -262,11 +273,11 @@ func (r *resourceSecurityIpThreatFeeds) Delete(ctx context.Context, req resource
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityIpThreatFeeds(ctx, "delete", diags))
 
-	err := c.DeleteSecurityIpThreatFeeds(&input_model)
+	output, err := c.DeleteSecurityIpThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -293,8 +304,8 @@ func (r *resourceSecurityIpThreatFeeds) Read(ctx context.Context, req resource.R
 	read_output, err := c.ReadSecurityIpThreatFeeds(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -315,10 +326,6 @@ func (m *resourceSecurityIpThreatFeedsModel) refreshSecurityIpThreatFeeds(ctx co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["comments"]; ok {
@@ -387,11 +394,11 @@ func (data *resourceSecurityIpThreatFeedsModel) getCreateObjectSecurityIpThreatF
 
 func (data *resourceSecurityIpThreatFeedsModel) getUpdateObjectSecurityIpThreatFeeds(ctx context.Context, state resourceSecurityIpThreatFeedsModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Comments.IsNull() && !data.Comments.Equal(state.Comments) {
+	if !data.Comments.IsNull() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
@@ -411,11 +418,11 @@ func (data *resourceSecurityIpThreatFeedsModel) getUpdateObjectSecurityIpThreatF
 		result["basicAuthentication"] = data.BasicAuthentication.ValueString()
 	}
 
-	if !data.Username.IsNull() && !data.Username.Equal(state.Username) {
+	if !data.Username.IsNull() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.Password.IsNull() && !data.Password.Equal(state.Password) {
+	if !data.Password.IsNull() {
 		result["password"] = data.Password.ValueString()
 	}
 

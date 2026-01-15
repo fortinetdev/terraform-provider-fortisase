@@ -23,7 +23,8 @@ func newResourceSecurityEndpointToEndpointPoliciesClone() resource.Resource {
 }
 
 type resourceSecurityEndpointToEndpointPoliciesClone2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityEndpointToEndpointPoliciesClone2EdlModel describes the resource data model.
@@ -55,9 +56,9 @@ func (r *resourceSecurityEndpointToEndpointPoliciesClone2Edl) Schema(ctx context
 				Optional: true,
 			},
 			"based_on": schema.StringAttribute{
-				Description: "The policy you what to clone.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "The policy you what to clone.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -82,6 +83,7 @@ func (r *resourceSecurityEndpointToEndpointPoliciesClone2Edl) Configure(ctx cont
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_endpoint_to_endpoint_policies_clone"
 }
 
 func (r *resourceSecurityEndpointToEndpointPoliciesClone2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -102,11 +104,11 @@ func (r *resourceSecurityEndpointToEndpointPoliciesClone2Edl) Create(ctx context
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateSecurityEndpointToEndpointPoliciesClone(&input_model)
+	output, err := c.CreateSecurityEndpointToEndpointPoliciesClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -146,11 +148,11 @@ func (r *resourceSecurityEndpointToEndpointPoliciesClone2Edl) Update(ctx context
 		return
 	}
 
-	_, err := c.CreateSecurityEndpointToEndpointPoliciesClone(&input_model)
+	output, err := c.CreateSecurityEndpointToEndpointPoliciesClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -177,7 +179,7 @@ func (data *resourceSecurityEndpointToEndpointPoliciesClone2EdlModel) getCreateO
 
 func (data *resourceSecurityEndpointToEndpointPoliciesClone2EdlModel) getUpdateObjectSecurityEndpointToEndpointPoliciesClone(ctx context.Context, state resourceSecurityEndpointToEndpointPoliciesClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

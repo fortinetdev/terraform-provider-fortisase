@@ -25,25 +25,28 @@ func newResourceEndpointProtectionProfiles() resource.Resource {
 }
 
 type resourceEndpointProtectionProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointProtectionProfilesModel describes the resource data model.
 type resourceEndpointProtectionProfilesModel struct {
-	ID                                types.String                                          `tfsdk:"id"`
-	Antivirus                         types.String                                          `tfsdk:"antivirus"`
-	Antiransomware                    types.String                                          `tfsdk:"antiransomware"`
-	EventBasedScanning                types.String                                          `tfsdk:"event_based_scanning"`
-	VulnerabilityScan                 types.String                                          `tfsdk:"vulnerability_scan"`
-	AutomaticallyPatchVulnerabilities types.String                                          `tfsdk:"automatically_patch_vulnerabilities"`
-	AutomaticVulnerabilityPatchLevel  types.String                                          `tfsdk:"automatic_vulnerability_patch_level"`
-	NotifyEndpointOfBlocks            types.String                                          `tfsdk:"notify_endpoint_of_blocks"`
-	DefaultAction                     types.String                                          `tfsdk:"default_action"`
-	Rules                             []resourceEndpointProtectionProfilesRulesModel        `tfsdk:"rules"`
-	Exclusions                        *resourceEndpointProtectionProfilesExclusionsModel    `tfsdk:"exclusions"`
-	ProtectedFoldersPath              types.Set                                             `tfsdk:"protected_folders_path"`
-	ScheduledScan                     *resourceEndpointProtectionProfilesScheduledScanModel `tfsdk:"scheduled_scan"`
-	PrimaryKey                        types.String                                          `tfsdk:"primary_key"`
+	ID                                types.String                                                   `tfsdk:"id"`
+	Antivirus                         types.String                                                   `tfsdk:"antivirus"`
+	Antiransomware                    types.String                                                   `tfsdk:"antiransomware"`
+	EventBasedScanning                types.String                                                   `tfsdk:"event_based_scanning"`
+	VulnerabilityScan                 types.String                                                   `tfsdk:"vulnerability_scan"`
+	AntivirusScan                     types.String                                                   `tfsdk:"antivirus_scan"`
+	AutomaticallyPatchVulnerabilities types.String                                                   `tfsdk:"automatically_patch_vulnerabilities"`
+	AutomaticVulnerabilityPatchLevel  types.String                                                   `tfsdk:"automatic_vulnerability_patch_level"`
+	NotifyEndpointOfBlocks            types.String                                                   `tfsdk:"notify_endpoint_of_blocks"`
+	DefaultAction                     types.String                                                   `tfsdk:"default_action"`
+	Rules                             []resourceEndpointProtectionProfilesRulesModel                 `tfsdk:"rules"`
+	Exclusions                        *resourceEndpointProtectionProfilesExclusionsModel             `tfsdk:"exclusions"`
+	ProtectedFoldersPath              types.Set                                                      `tfsdk:"protected_folders_path"`
+	ScheduledScan                     *resourceEndpointProtectionProfilesScheduledScanModel          `tfsdk:"scheduled_scan"`
+	ScheduledAntivirusScan            *resourceEndpointProtectionProfilesScheduledAntivirusScanModel `tfsdk:"scheduled_antivirus_scan"`
+	PrimaryKey                        types.String                                                   `tfsdk:"primary_key"`
 }
 
 func (r *resourceEndpointProtectionProfiles) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -88,6 +91,13 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 				Computed: true,
 				Optional: true,
 			},
+			"antivirus_scan": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
 			"automatically_patch_vulnerabilities": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidator.OneOf("enable", "disable"),
@@ -122,8 +132,11 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 				ElementType: types.StringType,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -214,6 +227,37 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 				Computed: true,
 				Optional: true,
 			},
+			"scheduled_antivirus_scan": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"scan_type": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidator.OneOf("full", "quick"),
+						},
+						Computed: true,
+						Optional: true,
+					},
+					"time": schema.StringAttribute{
+						Computed: true,
+						Optional: true,
+					},
+					"repeat": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidator.OneOf("daily", "weekly", "monthly"),
+						},
+						Computed: true,
+						Optional: true,
+					},
+					"day": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validator.Between(1, 31),
+						},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				Computed: true,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -237,9 +281,13 @@ func (r *resourceEndpointProtectionProfiles) Configure(ctx context.Context, req 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_protection_profiles"
 }
 
 func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointProtectionProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointProtectionProfilesModel
 	diags := &resp.Diagnostics
 
@@ -261,8 +309,8 @@ func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req res
 	output, err := c.UpdateEndpointProtectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -276,8 +324,8 @@ func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req res
 	read_output, err := c.ReadEndpointProtectionProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -291,6 +339,9 @@ func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req res
 }
 
 func (r *resourceEndpointProtectionProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointProtectionProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -319,11 +370,11 @@ func (r *resourceEndpointProtectionProfiles) Update(ctx context.Context, req res
 		return
 	}
 
-	_, err := c.UpdateEndpointProtectionProfiles(&input_model)
+	output, err := c.UpdateEndpointProtectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -334,8 +385,8 @@ func (r *resourceEndpointProtectionProfiles) Update(ctx context.Context, req res
 	read_output, err := c.ReadEndpointProtectionProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -373,8 +424,8 @@ func (r *resourceEndpointProtectionProfiles) Read(ctx context.Context, req resou
 	read_output, err := c.ReadEndpointProtectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -413,6 +464,10 @@ func (m *resourceEndpointProtectionProfilesModel) refreshEndpointProtectionProfi
 		m.VulnerabilityScan = parseStringValue(v)
 	}
 
+	if v, ok := o["antivirusScan"]; ok {
+		m.AntivirusScan = parseStringValue(v)
+	}
+
 	if v, ok := o["automaticallyPatchVulnerabilities"]; ok {
 		m.AutomaticallyPatchVulnerabilities = parseStringValue(v)
 	}
@@ -445,6 +500,10 @@ func (m *resourceEndpointProtectionProfilesModel) refreshEndpointProtectionProfi
 		m.ScheduledScan = m.ScheduledScan.flattenEndpointProtectionProfilesScheduledScan(ctx, v, &diags)
 	}
 
+	if v, ok := o["scheduledAntivirusScan"]; ok {
+		m.ScheduledAntivirusScan = m.ScheduledAntivirusScan.flattenEndpointProtectionProfilesScheduledAntivirusScan(ctx, v, &diags)
+	}
+
 	return diags
 }
 
@@ -464,6 +523,10 @@ func (data *resourceEndpointProtectionProfilesModel) getCreateObjectEndpointProt
 
 	if !data.VulnerabilityScan.IsNull() {
 		result["vulnerabilityScan"] = data.VulnerabilityScan.ValueString()
+	}
+
+	if !data.AntivirusScan.IsNull() {
+		result["antivirusScan"] = data.AntivirusScan.ValueString()
 	}
 
 	if !data.AutomaticallyPatchVulnerabilities.IsNull() {
@@ -496,6 +559,10 @@ func (data *resourceEndpointProtectionProfilesModel) getCreateObjectEndpointProt
 		result["scheduledScan"] = data.ScheduledScan.expandEndpointProtectionProfilesScheduledScan(ctx, diags)
 	}
 
+	if data.ScheduledAntivirusScan != nil && !isZeroStruct(*data.ScheduledAntivirusScan) {
+		result["scheduledAntivirusScan"] = data.ScheduledAntivirusScan.expandEndpointProtectionProfilesScheduledAntivirusScan(ctx, diags)
+	}
+
 	return &result
 }
 
@@ -517,11 +584,15 @@ func (data *resourceEndpointProtectionProfilesModel) getUpdateObjectEndpointProt
 		result["vulnerabilityScan"] = data.VulnerabilityScan.ValueString()
 	}
 
-	if !data.AutomaticallyPatchVulnerabilities.IsNull() && !data.AutomaticallyPatchVulnerabilities.Equal(state.AutomaticallyPatchVulnerabilities) {
+	if !data.AntivirusScan.IsNull() {
+		result["antivirusScan"] = data.AntivirusScan.ValueString()
+	}
+
+	if !data.AutomaticallyPatchVulnerabilities.IsNull() {
 		result["automaticallyPatchVulnerabilities"] = data.AutomaticallyPatchVulnerabilities.ValueString()
 	}
 
-	if !data.AutomaticVulnerabilityPatchLevel.IsNull() && !data.AutomaticVulnerabilityPatchLevel.Equal(state.AutomaticVulnerabilityPatchLevel) {
+	if !data.AutomaticVulnerabilityPatchLevel.IsNull() {
 		result["automaticVulnerabilityPatchLevel"] = data.AutomaticVulnerabilityPatchLevel.ValueString()
 	}
 
@@ -533,20 +604,24 @@ func (data *resourceEndpointProtectionProfilesModel) getUpdateObjectEndpointProt
 		result["defaultAction"] = data.DefaultAction.ValueString()
 	}
 
-	if len(data.Rules) > 0 || !isSameStruct(data.Rules, state.Rules) {
+	if data.Rules != nil {
 		result["rules"] = data.expandEndpointProtectionProfilesRulesList(ctx, data.Rules, diags)
 	}
 
-	if data.Exclusions != nil && !isSameStruct(data.Exclusions, state.Exclusions) {
+	if data.Exclusions != nil {
 		result["exclusions"] = data.Exclusions.expandEndpointProtectionProfilesExclusions(ctx, diags)
 	}
 
-	if !data.ProtectedFoldersPath.IsNull() && !data.ProtectedFoldersPath.Equal(state.ProtectedFoldersPath) {
+	if !data.ProtectedFoldersPath.IsNull() {
 		result["protectedFoldersPath"] = expandSetToStringList(data.ProtectedFoldersPath)
 	}
 
-	if data.ScheduledScan != nil && !isSameStruct(data.ScheduledScan, state.ScheduledScan) {
+	if data.ScheduledScan != nil {
 		result["scheduledScan"] = data.ScheduledScan.expandEndpointProtectionProfilesScheduledScan(ctx, diags)
+	}
+
+	if data.ScheduledAntivirusScan != nil {
+		result["scheduledAntivirusScan"] = data.ScheduledAntivirusScan.expandEndpointProtectionProfilesScheduledAntivirusScan(ctx, diags)
 	}
 
 	return &result
@@ -581,6 +656,13 @@ type resourceEndpointProtectionProfilesScheduledScanModel struct {
 	Time   types.String  `tfsdk:"time"`
 	Repeat types.String  `tfsdk:"repeat"`
 	Day    types.Float64 `tfsdk:"day"`
+}
+
+type resourceEndpointProtectionProfilesScheduledAntivirusScanModel struct {
+	ScanType types.String  `tfsdk:"scan_type"`
+	Time     types.String  `tfsdk:"time"`
+	Repeat   types.String  `tfsdk:"repeat"`
+	Day      types.Float64 `tfsdk:"day"`
 }
 
 func (m *resourceEndpointProtectionProfilesRulesModel) flattenEndpointProtectionProfilesRules(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointProtectionProfilesRulesModel {
@@ -658,9 +740,6 @@ func (m *resourceEndpointProtectionProfilesExclusionsModel) flattenEndpointProte
 		m = &resourceEndpointProtectionProfilesExclusionsModel{}
 	}
 	o := input.(map[string]interface{})
-	m.Files = types.SetNull(types.StringType)
-	m.Folders = types.SetNull(types.StringType)
-
 	if v, ok := o["files"]; ok {
 		m.Files = parseSetValue(ctx, v, types.StringType)
 	}
@@ -680,6 +759,33 @@ func (m *resourceEndpointProtectionProfilesScheduledScanModel) flattenEndpointPr
 		m = &resourceEndpointProtectionProfilesScheduledScanModel{}
 	}
 	o := input.(map[string]interface{})
+	if v, ok := o["time"]; ok {
+		m.Time = parseStringValue(v)
+	}
+
+	if v, ok := o["repeat"]; ok {
+		m.Repeat = parseStringValue(v)
+	}
+
+	if v, ok := o["day"]; ok {
+		m.Day = parseFloat64Value(v)
+	}
+
+	return m
+}
+
+func (m *resourceEndpointProtectionProfilesScheduledAntivirusScanModel) flattenEndpointProtectionProfilesScheduledAntivirusScan(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointProtectionProfilesScheduledAntivirusScanModel {
+	if input == nil {
+		return &resourceEndpointProtectionProfilesScheduledAntivirusScanModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointProtectionProfilesScheduledAntivirusScanModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["scanType"]; ok {
+		m.ScanType = parseStringValue(v)
+	}
+
 	if v, ok := o["time"]; ok {
 		m.Time = parseStringValue(v)
 	}
@@ -755,6 +861,27 @@ func (data *resourceEndpointProtectionProfilesExclusionsModel) expandEndpointPro
 
 func (data *resourceEndpointProtectionProfilesScheduledScanModel) expandEndpointProtectionProfilesScheduledScan(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
+	if !data.Time.IsNull() {
+		result["time"] = data.Time.ValueString()
+	}
+
+	if !data.Repeat.IsNull() {
+		result["repeat"] = data.Repeat.ValueString()
+	}
+
+	if !data.Day.IsNull() {
+		result["day"] = data.Day.ValueFloat64()
+	}
+
+	return result
+}
+
+func (data *resourceEndpointProtectionProfilesScheduledAntivirusScanModel) expandEndpointProtectionProfilesScheduledAntivirusScan(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.ScanType.IsNull() {
+		result["scanType"] = data.ScanType.ValueString()
+	}
+
 	if !data.Time.IsNull() {
 		result["time"] = data.Time.ValueString()
 	}

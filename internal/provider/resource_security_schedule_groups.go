@@ -24,7 +24,8 @@ func newResourceSecurityScheduleGroups() resource.Resource {
 }
 
 type resourceSecurityScheduleGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityScheduleGroupsModel describes the resource data model.
@@ -96,9 +97,13 @@ func (r *resourceSecurityScheduleGroups) Configure(ctx context.Context, req reso
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_schedule_groups"
 }
 
 func (r *resourceSecurityScheduleGroups) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityScheduleGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityScheduleGroupsModel
 	diags := &resp.Diagnostics
 
@@ -119,8 +124,8 @@ func (r *resourceSecurityScheduleGroups) Create(ctx context.Context, req resourc
 	output, err := c.CreateSecurityScheduleGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -134,8 +139,8 @@ func (r *resourceSecurityScheduleGroups) Create(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityScheduleGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -149,6 +154,9 @@ func (r *resourceSecurityScheduleGroups) Create(ctx context.Context, req resourc
 }
 
 func (r *resourceSecurityScheduleGroups) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityScheduleGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -177,11 +185,11 @@ func (r *resourceSecurityScheduleGroups) Update(ctx context.Context, req resourc
 		return
 	}
 
-	_, err := c.UpdateSecurityScheduleGroups(&input_model)
+	output, err := c.UpdateSecurityScheduleGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -192,8 +200,8 @@ func (r *resourceSecurityScheduleGroups) Update(ctx context.Context, req resourc
 	read_output, err := c.ReadSecurityScheduleGroups(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -207,6 +215,9 @@ func (r *resourceSecurityScheduleGroups) Update(ctx context.Context, req resourc
 }
 
 func (r *resourceSecurityScheduleGroups) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityScheduleGroups")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityScheduleGroupsModel
 
@@ -224,11 +235,11 @@ func (r *resourceSecurityScheduleGroups) Delete(ctx context.Context, req resourc
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityScheduleGroups(ctx, "delete", diags))
 
-	err := c.DeleteSecurityScheduleGroups(&input_model)
+	output, err := c.DeleteSecurityScheduleGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -255,8 +266,8 @@ func (r *resourceSecurityScheduleGroups) Read(ctx context.Context, req resource.
 	read_output, err := c.ReadSecurityScheduleGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -277,10 +288,6 @@ func (m *resourceSecurityScheduleGroupsModel) refreshSecurityScheduleGroups(ctx 
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["members"]; ok {
@@ -307,7 +314,7 @@ func (data *resourceSecurityScheduleGroupsModel) getUpdateObjectSecuritySchedule
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if len(data.Members) > 0 || !isSameStruct(data.Members, state.Members) {
+	if data.Members != nil {
 		result["members"] = data.expandSecurityScheduleGroupsMembersList(ctx, data.Members, diags)
 	}
 

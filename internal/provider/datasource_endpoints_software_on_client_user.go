@@ -21,7 +21,8 @@ func newDatasourceEndpointsSoftwareOnClientUser() datasource.DataSource {
 }
 
 type datasourceEndpointsSoftwareOnClientUser struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointsSoftwareOnClientUserModel describes the datasource data model.
@@ -38,11 +39,11 @@ func (r *datasourceEndpointsSoftwareOnClientUser) Schema(ctx context.Context, re
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"client_user_id": schema.Float64Attribute{
-				Description: "The client user ID of the endpoint client",
 				Validators: []validator.Float64{
 					float64validator.AtLeast(1),
 				},
-				Required: true,
+				MarkdownDescription: "The client user ID of the endpoint client.\nValue at least 1.",
+				Required:            true,
 			},
 			"software": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -99,6 +100,7 @@ func (r *datasourceEndpointsSoftwareOnClientUser) Configure(ctx context.Context,
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_software_on_client_user"
 }
 
 func (r *datasourceEndpointsSoftwareOnClientUser) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -122,8 +124,8 @@ func (r *datasourceEndpointsSoftwareOnClientUser) Read(ctx context.Context, req 
 	read_output, err := c.ReadEndpointsSoftwareOnClientUser(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

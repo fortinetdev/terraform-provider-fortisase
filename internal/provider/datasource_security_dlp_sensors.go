@@ -22,7 +22,8 @@ func newDatasourceSecurityDlpSensors() datasource.DataSource {
 }
 
 type datasourceSecurityDlpSensors struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityDlpSensorsModel describes the datasource data model.
@@ -30,6 +31,7 @@ type datasourceSecurityDlpSensorsModel struct {
 	PrimaryKey                  types.String                                          `tfsdk:"primary_key"`
 	EntryMatchesToTriggerSensor types.String                                          `tfsdk:"entry_matches_to_trigger_sensor"`
 	SensorDictionaries          []datasourceSecurityDlpSensorsSensorDictionariesModel `tfsdk:"sensor_dictionaries"`
+	Description                 types.String                                          `tfsdk:"description"`
 }
 
 func (r *datasourceSecurityDlpSensors) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -48,6 +50,13 @@ func (r *datasourceSecurityDlpSensors) Schema(ctx context.Context, req datasourc
 			"entry_matches_to_trigger_sensor": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidator.OneOf("any", "all"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"description": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(255),
 				},
 				Computed: true,
 				Optional: true,
@@ -118,6 +127,7 @@ func (r *datasourceSecurityDlpSensors) Configure(ctx context.Context, req dataso
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_sensors"
 }
 
 func (r *datasourceSecurityDlpSensors) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -141,8 +151,8 @@ func (r *datasourceSecurityDlpSensors) Read(ctx context.Context, req datasource.
 	read_output, err := c.ReadSecurityDlpSensors(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -161,16 +171,16 @@ func (m *datasourceSecurityDlpSensorsModel) refreshSecurityDlpSensors(ctx contex
 		return diags
 	}
 
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
 	if v, ok := o["entryMatchesToTriggerSensor"]; ok {
 		m.EntryMatchesToTriggerSensor = parseStringValue(v)
 	}
 
 	if v, ok := o["sensorDictionaries"]; ok {
 		m.SensorDictionaries = m.flattenSecurityDlpSensorsSensorDictionariesList(ctx, v, &diags)
+	}
+
+	if v, ok := o["description"]; ok {
+		m.Description = parseStringValue(v)
 	}
 
 	return diags

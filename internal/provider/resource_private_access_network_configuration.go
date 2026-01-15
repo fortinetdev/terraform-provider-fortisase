@@ -25,7 +25,8 @@ func newResourcePrivateAccessNetworkConfiguration() resource.Resource {
 }
 
 type resourcePrivateAccessNetworkConfiguration struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourcePrivateAccessNetworkConfigurationModel describes the resource data model.
@@ -55,44 +56,44 @@ func (r *resourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context, 
 				},
 			},
 			"bgp_router_ids_subnet": schema.StringAttribute{
-				Description: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"as_number": schema.StringAttribute{
-				Description: "Autonomous System Number (ASN).",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Autonomous System Number (ASN).",
+				Computed:            true,
+				Optional:            true,
 			},
 			"recursive_next_hop": schema.BoolAttribute{
-				Description: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "BGP Recursive Routing. Enabling this setting allows for interhub connectivity. When use BGP design on-loopback this has to be enabled.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"sdwan_rule_enable": schema.BoolAttribute{
-				Description: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Hub Selection Method. Enabling this setting the highest priority service connection that meets minimum SLA requirements is selected. Otherwise BGP MED (Multi-Exit Discriminator) will be used",
+				Computed:            true,
+				Optional:            true,
 			},
 			"sdwan_health_check_vm": schema.StringAttribute{
-				Description: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Health Check IP. Must be provided when enable sdwan rule which used to obtain Jitter, latency and packet loss measurements.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"config_state": schema.StringAttribute{
-				Description: "Configuration state of network configuration.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
-				Computed: true,
+				MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
+				Computed:            true,
 			},
 			"bgp_design": schema.StringAttribute{
-				Description: "BGP Routing Design.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("overlay", "loopback"),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -117,6 +118,7 @@ func (r *resourcePrivateAccessNetworkConfiguration) Configure(ctx context.Contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_private_access_network_configuration"
 }
 
 func (r *resourcePrivateAccessNetworkConfiguration) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -136,11 +138,11 @@ func (r *resourcePrivateAccessNetworkConfiguration) Create(ctx context.Context, 
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreatePrivateAccessNetworkConfiguration(&input_model)
+	output, err := c.CreatePrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -151,13 +153,13 @@ func (r *resourcePrivateAccessNetworkConfiguration) Create(ctx context.Context, 
 	read_input_model.Mkey = mkey
 
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadPrivateAccessNetworkConfiguration(&read_input_model)
 		if err != nil {
 			diags.AddError(
-				fmt.Sprintf("Error to read resource: %v", err),
-				"",
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
 			)
 			return
 		}
@@ -205,11 +207,11 @@ func (r *resourcePrivateAccessNetworkConfiguration) Update(ctx context.Context, 
 		return
 	}
 
-	_, err := c.UpdatePrivateAccessNetworkConfiguration(&input_model)
+	output, err := c.UpdatePrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -217,13 +219,13 @@ func (r *resourcePrivateAccessNetworkConfiguration) Update(ctx context.Context, 
 	read_input_model.Mkey = mkey
 
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadPrivateAccessNetworkConfiguration(&read_input_model)
 		if err != nil {
 			diags.AddError(
-				fmt.Sprintf("Error to read resource: %v", err),
-				"",
+				fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+				getErrorDetail(&read_input_model, read_output),
 			)
 			return
 		}
@@ -260,16 +262,16 @@ func (r *resourcePrivateAccessNetworkConfiguration) Delete(ctx context.Context, 
 	var input_model forticlient.InputModel
 	input_model.Mkey = mkey
 
-	err := c.DeletePrivateAccessNetworkConfiguration(&input_model)
+	output, err := c.DeletePrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
 	read_output := make(map[string]interface{})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(10 * time.Second)
 		read_output, err = c.ReadPrivateAccessNetworkConfiguration(&input_model)
 		if err != nil || len(read_output) == 0 {
@@ -278,8 +280,8 @@ func (r *resourcePrivateAccessNetworkConfiguration) Delete(ctx context.Context, 
 		}
 	}
 	diags.AddError(
-		fmt.Sprintf("Error to delete resource: %v", err),
-		fmt.Sprintf("The resource still exists: %v", read_output),
+		fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+		fmt.Sprintf("The resource still exists %s: %v", r.resourceName, read_output),
 	)
 }
 
@@ -303,8 +305,8 @@ func (r *resourcePrivateAccessNetworkConfiguration) Read(ctx context.Context, re
 	read_output, err := c.ReadPrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -405,7 +407,7 @@ func (data *resourcePrivateAccessNetworkConfigurationModel) getUpdateObjectPriva
 		result["sdwan_rule_enable"] = data.SdwanRuleEnable.ValueBool()
 	}
 
-	if !data.SdwanHealthCheckVm.IsNull() && !data.SdwanHealthCheckVm.Equal(state.SdwanHealthCheckVm) {
+	if !data.SdwanHealthCheckVm.IsNull() {
 		result["sdwan_health_check_vm"] = data.SdwanHealthCheckVm.ValueString()
 	}
 

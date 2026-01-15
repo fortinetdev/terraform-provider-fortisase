@@ -25,7 +25,8 @@ func newResourceEndpointFssoProfiles() resource.Resource {
 }
 
 type resourceEndpointFssoProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceEndpointFssoProfilesModel describes the resource data model.
@@ -80,8 +81,11 @@ func (r *resourceEndpointFssoProfiles) Schema(ctx context.Context, req resource.
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 		},
 	}
@@ -106,9 +110,13 @@ func (r *resourceEndpointFssoProfiles) Configure(ctx context.Context, req resour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_fsso_profiles"
 }
 
 func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointFssoProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceEndpointFssoProfilesModel
 	diags := &resp.Diagnostics
 
@@ -130,8 +138,8 @@ func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.
 	output, err := c.UpdateEndpointFssoProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -145,8 +153,8 @@ func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.
 	read_output, err := c.ReadEndpointFssoProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -160,6 +168,9 @@ func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.
 }
 
 func (r *resourceEndpointFssoProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("EndpointFssoProfiles")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -188,11 +199,11 @@ func (r *resourceEndpointFssoProfiles) Update(ctx context.Context, req resource.
 		return
 	}
 
-	_, err := c.UpdateEndpointFssoProfiles(&input_model)
+	output, err := c.UpdateEndpointFssoProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -203,8 +214,8 @@ func (r *resourceEndpointFssoProfiles) Update(ctx context.Context, req resource.
 	read_output, err := c.ReadEndpointFssoProfiles(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -242,8 +253,8 @@ func (r *resourceEndpointFssoProfiles) Read(ctx context.Context, req resource.Re
 	read_output, err := c.ReadEndpointFssoProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -320,19 +331,19 @@ func (data *resourceEndpointFssoProfilesModel) getUpdateObjectEndpointFssoProfil
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.PreferEntraId.IsNull() && !data.PreferEntraId.Equal(state.PreferEntraId) {
+	if !data.PreferEntraId.IsNull() {
 		result["preferEntraId"] = data.PreferEntraId.ValueString()
 	}
 
-	if !data.Host.IsNull() && !data.Host.Equal(state.Host) {
+	if !data.Host.IsNull() {
 		result["host"] = data.Host.ValueString()
 	}
 
-	if !data.Port.IsNull() && !data.Port.Equal(state.Port) {
+	if !data.Port.IsNull() {
 		result["port"] = data.Port.ValueFloat64()
 	}
 
-	if !data.PreSharedKey.IsNull() && !data.PreSharedKey.Equal(state.PreSharedKey) {
+	if !data.PreSharedKey.IsNull() {
 		result["preSharedKey"] = data.PreSharedKey.ValueString()
 	}
 

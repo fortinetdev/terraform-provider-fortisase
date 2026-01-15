@@ -19,7 +19,8 @@ func newDatasourceEndpointGroupAdUserProfiles() datasource.DataSource {
 }
 
 type datasourceEndpointGroupAdUserProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointGroupAdUserProfilesModel describes the datasource data model.
@@ -47,8 +48,8 @@ func (r *datasourceEndpointGroupAdUserProfiles) Schema(ctx context.Context, req 
 				ElementType: types.Int64Type,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -73,6 +74,7 @@ func (r *datasourceEndpointGroupAdUserProfiles) Configure(ctx context.Context, r
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_group_ad_user_profiles"
 }
 
 func (r *datasourceEndpointGroupAdUserProfiles) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -96,8 +98,8 @@ func (r *datasourceEndpointGroupAdUserProfiles) Read(ctx context.Context, req da
 	read_output, err := c.ReadEndpointGroupAdUserProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

@@ -19,7 +19,8 @@ func newDatasourceUsageSecurityDlpFilePatterns() datasource.DataSource {
 }
 
 type datasourceUsageSecurityDlpFilePatterns struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceUsageSecurityDlpFilePatternsModel describes the datasource data model.
@@ -45,8 +46,8 @@ func (r *datasourceUsageSecurityDlpFilePatterns) Schema(ctx context.Context, req
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -71,6 +72,7 @@ func (r *datasourceUsageSecurityDlpFilePatterns) Configure(ctx context.Context, 
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_usage_security_dlp_file_patterns"
 }
 
 func (r *datasourceUsageSecurityDlpFilePatterns) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -94,8 +96,8 @@ func (r *datasourceUsageSecurityDlpFilePatterns) Read(ctx context.Context, req d
 	read_output, err := c.ReadUsageSecurityDlpFilePatterns(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

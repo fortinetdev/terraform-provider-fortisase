@@ -28,6 +28,10 @@ func (input_model *InputModel) update() {
 	if !strings.ContainsAny(input_model.URL, "[ | {") {
 		return
 	}
+	// FortiSASE Terraform 1.1.0, direction has been deprecated, so we need to remove it from the URL.
+	if strings.Contains(input_model.URL, "/{direction}") && input_model.URLParams["direction"] == nil {
+		input_model.URL = strings.ReplaceAll(input_model.URL, "/{direction}", "s")
+	}
 	// replace mkey
 	// Find all placeholder patterns {.*?}
 	re := regexp.MustCompile(`{.*?}`)

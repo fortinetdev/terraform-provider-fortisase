@@ -22,7 +22,8 @@ func newDatasourceEndpointConnectionProfiles() datasource.DataSource {
 }
 
 type datasourceEndpointConnectionProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointConnectionProfilesModel describes the datasource data model.
@@ -116,8 +117,8 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 			"lockdown": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -335,6 +336,13 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 						Computed: true,
 						Optional: true,
 					},
+					"allow_fido_auth": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidator.OneOf("enable", "disable"),
+						},
+						Computed: true,
+						Optional: true,
+					},
 					"enable_local_lan": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidator.OneOf("enable", "disable"),
@@ -445,9 +453,37 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 							Computed: true,
 							Optional: true,
 						},
+						"allow_fido_auth": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"enable_local_lan": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidator.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"encapsulation_mode": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidator.OneOf("Auto", "TCP", "UDP"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"udp_port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validator.Between(500, 65535),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"tcp_port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validator.Between(1, 65535),
 							},
 							Computed: true,
 							Optional: true,
@@ -604,6 +640,7 @@ func (r *datasourceEndpointConnectionProfiles) Configure(ctx context.Context, re
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_connection_profiles"
 }
 
 func (r *datasourceEndpointConnectionProfiles) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -627,8 +664,8 @@ func (r *datasourceEndpointConnectionProfiles) Read(ctx context.Context, req dat
 	read_output, err := c.ReadEndpointConnectionProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -793,6 +830,7 @@ type datasourceEndpointConnectionProfilesSplitTunnelSubnetsModel struct {
 
 type datasourceEndpointConnectionProfilesSecureInternetAccessModel struct {
 	AuthenticateWithSso      types.String                                                               `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth            types.String                                                               `tfsdk:"allow_fido_auth"`
 	EnableLocalLan           types.String                                                               `tfsdk:"enable_local_lan"`
 	FailoverSequence         types.Set                                                                  `tfsdk:"failover_sequence"`
 	PostureCheck             *datasourceEndpointConnectionProfilesSecureInternetAccessPostureCheckModel `tfsdk:"posture_check"`
@@ -815,7 +853,11 @@ type datasourceEndpointConnectionProfilesAvailableVpNsModel struct {
 	ShowAutoConnect          types.String                                                        `tfsdk:"show_auto_connect"`
 	ShowRememberPassword     types.String                                                        `tfsdk:"show_remember_password"`
 	AuthenticateWithSso      types.String                                                        `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth            types.String                                                        `tfsdk:"allow_fido_auth"`
 	EnableLocalLan           types.String                                                        `tfsdk:"enable_local_lan"`
+	EncapsulationMode        types.String                                                        `tfsdk:"encapsulation_mode"`
+	UdpPort                  types.Float64                                                       `tfsdk:"udp_port"`
+	TcpPort                  types.Float64                                                       `tfsdk:"tcp_port"`
 	ExternalBrowserSamlLogin types.String                                                        `tfsdk:"external_browser_saml_login"`
 	Port                     types.Float64                                                       `tfsdk:"port"`
 	RequireCertificate       types.String                                                        `tfsdk:"require_certificate"`
@@ -1012,10 +1054,6 @@ func (m *datasourceEndpointConnectionProfilesOffNetSplitTunnelModel) flattenEndp
 		m = &datasourceEndpointConnectionProfilesOffNetSplitTunnelModel{}
 	}
 	o := input.(map[string]interface{})
-	m.LocalApps = types.SetNull(types.StringType)
-	m.Fqdns = types.SetNull(types.StringType)
-	m.SubnetsIpsec = types.SetNull(types.StringType)
-
 	if v, ok := o["localApps"]; ok {
 		m.LocalApps = parseSetValue(ctx, v, types.StringType)
 	}
@@ -1133,10 +1171,6 @@ func (m *datasourceEndpointConnectionProfilesSplitTunnelModel) flattenEndpointCo
 		m = &datasourceEndpointConnectionProfilesSplitTunnelModel{}
 	}
 	o := input.(map[string]interface{})
-	m.LocalApps = types.SetNull(types.StringType)
-	m.Fqdns = types.SetNull(types.StringType)
-	m.SubnetsIpsec = types.SetNull(types.StringType)
-
 	if v, ok := o["localApps"]; ok {
 		m.LocalApps = parseSetValue(ctx, v, types.StringType)
 	}
@@ -1254,10 +1288,12 @@ func (m *datasourceEndpointConnectionProfilesSecureInternetAccessModel) flattenE
 		m = &datasourceEndpointConnectionProfilesSecureInternetAccessModel{}
 	}
 	o := input.(map[string]interface{})
-	m.FailoverSequence = types.SetNull(types.StringType)
-
 	if v, ok := o["authenticateWithSSO"]; ok {
 		m.AuthenticateWithSso = parseStringValue(v)
+	}
+
+	if v, ok := o["allowFidoAuth"]; ok {
+		m.AllowFidoAuth = parseStringValue(v)
 	}
 
 	if v, ok := o["enableLocalLan"]; ok {
@@ -1346,8 +1382,24 @@ func (m *datasourceEndpointConnectionProfilesAvailableVpNsModel) flattenEndpoint
 		m.AuthenticateWithSso = parseStringValue(v)
 	}
 
+	if v, ok := o["allowFidoAuth"]; ok {
+		m.AllowFidoAuth = parseStringValue(v)
+	}
+
 	if v, ok := o["enableLocalLan"]; ok {
 		m.EnableLocalLan = parseStringValue(v)
+	}
+
+	if v, ok := o["encapsulationMode"]; ok {
+		m.EncapsulationMode = parseStringValue(v)
+	}
+
+	if v, ok := o["udpPort"]; ok {
+		m.UdpPort = parseFloat64Value(v)
+	}
+
+	if v, ok := o["tcpPort"]; ok {
+		m.TcpPort = parseFloat64Value(v)
 	}
 
 	if v, ok := o["externalBrowserSamlLogin"]; ok {

@@ -21,7 +21,8 @@ func newDatasourceEndpointsGroups() datasource.DataSource {
 }
 
 type datasourceEndpointsGroups struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointsGroupsModel describes the datasource data model.
@@ -41,18 +42,18 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"guid": schema.StringAttribute{
-				Description: "UID of the group to expand to find child groups.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "UID of the group to expand to find child groups.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"offset": schema.Float64Attribute{
-				Description: "Specifies the starting position of AD groups. Based on this the results will be seperated in AD groups and non AD groups, with AD groups containing a \"total\" count.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "Specifies the starting position of AD groups. Based on this the results will be seperated in AD groups and non AD groups, with AD groups containing a \"total\" count.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "Primary key of the endpoint/domains entry.",
-				Required:    true,
+				MarkdownDescription: "Primary key of the endpoint/domains entry.",
+				Required:            true,
 			},
 			"ad_groups": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -64,50 +65,50 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.Float64Attribute{
-									Description: "Id of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Id of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"name": schema.StringAttribute{
-									Description: "Name of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Name of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"parent_id": schema.Float64Attribute{
-									Description: "Parent id of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Parent id of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"guid": schema.StringAttribute{
-									Description: "UID of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "UID of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"path": schema.StringAttribute{
-									Description: "Path of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Path of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"has_child": schema.BoolAttribute{
-									Description: "Indicate if the group has child or not.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Indicate if the group has child or not.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"is_custom_group": schema.BoolAttribute{
-									Description: "Indicate if the group is custom group or not.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Indicate if the group is custom group or not.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"domain_type": schema.StringAttribute{
-									Description: "Type of the endpint/domains entry the group belongs to.",
 									Validators: []validator.String{
 										stringvalidator.OneOf("azure", "adfs"),
 									},
-									Computed: true,
-									Optional: true,
+									MarkdownDescription: "Type of the endpint/domains entry the group belongs to.\nSupported values: azure, adfs.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"domain": schema.SingleNestedAttribute{
-									Description: "Reference of the endpoint/domains entry the group belongs to.",
+									MarkdownDescription: "Reference of the endpoint/domains entry the group belongs to.",
 									Attributes: map[string]schema.Attribute{
 										"primary_key": schema.StringAttribute{
 											Computed: true,
@@ -140,50 +141,50 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"id": schema.Float64Attribute{
-									Description: "Id of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Id of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"name": schema.StringAttribute{
-									Description: "Name of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Name of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"parent_id": schema.Float64Attribute{
-									Description: "Parent id of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Parent id of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"guid": schema.StringAttribute{
-									Description: "UID of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "UID of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"path": schema.StringAttribute{
-									Description: "Path of the group.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Path of the group.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"has_child": schema.BoolAttribute{
-									Description: "Indicate if the group has child or not.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Indicate if the group has child or not.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"is_custom_group": schema.BoolAttribute{
-									Description: "Indicate if the group is custom group or not.",
-									Computed:    true,
-									Optional:    true,
+									MarkdownDescription: "Indicate if the group is custom group or not.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"domain_type": schema.StringAttribute{
-									Description: "Type of the endpint/domains entry the group belongs to.",
 									Validators: []validator.String{
 										stringvalidator.OneOf("azure", "adfs"),
 									},
-									Computed: true,
-									Optional: true,
+									MarkdownDescription: "Type of the endpint/domains entry the group belongs to.\nSupported values: azure, adfs.",
+									Computed:            true,
+									Optional:            true,
 								},
 								"domain": schema.SingleNestedAttribute{
-									Description: "Reference of the endpoint/domains entry the group belongs to.",
+									MarkdownDescription: "Reference of the endpoint/domains entry the group belongs to.",
 									Attributes: map[string]schema.Attribute{
 										"primary_key": schema.StringAttribute{
 											Computed: true,
@@ -232,6 +233,7 @@ func (r *datasourceEndpointsGroups) Configure(ctx context.Context, req datasourc
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoints_groups"
 }
 
 func (r *datasourceEndpointsGroups) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -255,8 +257,8 @@ func (r *datasourceEndpointsGroups) Read(ctx context.Context, req datasource.Rea
 	read_output, err := c.ReadEndpointsGroups(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}

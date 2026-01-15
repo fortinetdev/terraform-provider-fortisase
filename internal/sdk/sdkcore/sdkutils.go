@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 )
 
-func sendRequest(c *FortiSDKClient, input_model *InputModel) (output map[string]interface{}, code float64, err error) {
+func sendSingleRequest(c *FortiSDKClient, input_model *InputModel) (output map[string]interface{}, code float64, err error) {
 	method := input_model.HTTPMethod
 	path := input_model.URL
 	body_params := input_model.BodyParams
@@ -35,7 +35,7 @@ func sendRequest(c *FortiSDKClient, input_model *InputModel) (output map[string]
 		return nil, -102, err
 	}
 
-	body, err := ioutil.ReadAll(req.HTTPResponse.Body)
+	body, err := io.ReadAll(req.HTTPResponse.Body)
 	req.HTTPResponse.Body.Close()
 
 	if err != nil || body == nil {
@@ -49,12 +49,12 @@ func sendRequest(c *FortiSDKClient, input_model *InputModel) (output map[string]
 	return result, code, err
 }
 
-func createUpdate(c *FortiSDKClient, input_model *InputModel) (map[string]interface{}, error) {
+func sendRequests(c *FortiSDKClient, input_model *InputModel) (map[string]interface{}, error) {
 	var result map[string]interface{}
 	var code float64
 	var err error
-	for i := 0; i < 100; {
-		result, code, err = sendRequest(c, input_model)
+	for i := 0; i <= 100; {
+		result, code, err = sendSingleRequest(c, input_model)
 		if err == nil {
 			// return empty map if data is nil
 			if result["data"] == nil {
@@ -64,6 +64,11 @@ func createUpdate(c *FortiSDKClient, input_model *InputModel) (map[string]interf
 			} else {
 				return result, nil
 			}
+		} else if code == 400.0 {
+			log.Printf("[%v] [RETRY] [%v] retry again due to 400", input_model.HTTPMethod, input_model.URL)
+			time.Sleep(time.Second * 2)
+			i = i + 50
+			continue
 		} else if code == 429.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 429", input_model.HTTPMethod, input_model.URL)
 			time.Sleep(time.Second * 2)
@@ -72,45 +77,21 @@ func createUpdate(c *FortiSDKClient, input_model *InputModel) (map[string]interf
 		} else if code == 500.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 500", input_model.HTTPMethod, input_model.URL)
 			time.Sleep(time.Second * 2)
-			i = i + 30
+			i = i + 20
 			continue
 		} else {
-			return nil, err
+			return result, err
 		}
 	}
-	return nil, err
-}
-
-func delete(c *FortiSDKClient, input_model *InputModel) error {
-	var code float64
-	var err error
-	for i := 0; i < 100; {
-		_, code, err = sendRequest(c, input_model)
-		if err == nil {
-			return err
-		} else if code == 429.0 {
-			log.Printf("[%v] [RETRY] [%v] retry again due to 429", input_model.HTTPMethod, input_model.URL)
-			time.Sleep(time.Second * 2)
-			i = i + 10
-			continue
-		} else if code == 500.0 {
-			log.Printf("[%v] [RETRY] [%v] retry again due to 500", input_model.HTTPMethod, input_model.URL)
-			time.Sleep(time.Second * 2)
-			i = i + 30
-			continue
-		} else {
-			return err
-		}
-	}
-	return err
+	return result, err
 }
 
 func read(c *FortiSDKClient, input_model *InputModel) (map[string]interface{}, error) {
 	var result map[string]interface{}
 	var code float64
 	var err error
-	for i := 0; i < 100; {
-		result, code, err = sendRequest(c, input_model)
+	for i := 0; i <= 100; {
+		result, code, err = sendSingleRequest(c, input_model)
 		if err == nil {
 			if result["data"] == nil {
 				return result, nil
@@ -118,28 +99,33 @@ func read(c *FortiSDKClient, input_model *InputModel) (map[string]interface{}, e
 				return convered_rst, nil
 			} else if convered_rst, ok := result["data"].([]interface{}); ok {
 				if len(convered_rst) == 0 {
-					return nil, nil
+					return result, nil
 				}
 				return convered_rst[0].(map[string]interface{}), err
 			} else {
 				err = fmt.Errorf("Cannot convert respound type: %T", result["data"])
-				return nil, err
+				return result, err
 			}
+		} else if code == 400.0 {
+			log.Printf("[%v] [RETRY] [%v] retry again due to 400", input_model.HTTPMethod, input_model.URL)
+			time.Sleep(time.Second * 2)
+			i = i + 50
+			continue
 		} else if code == 404.0 {
-			return nil, err
+			return result, err
 		} else if code == 429.0 {
-			log.Printf("[%v] [ERROR] [%v] retry again due to 429", input_model.HTTPMethod, input_model.URL)
+			log.Printf("[%v] [RETRY] [%v] retry again due to 429", input_model.HTTPMethod, input_model.URL)
 			time.Sleep(time.Second * 2)
 			i = i + 10
 			continue
 		} else if code == 500.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 500", input_model.HTTPMethod, input_model.URL)
 			time.Sleep(time.Second * 2)
-			i = i + 30
+			i = i + 20
 			continue
 		} else {
-			return nil, err
+			return result, err
 		}
 	}
-	return nil, err
+	return result, err
 }

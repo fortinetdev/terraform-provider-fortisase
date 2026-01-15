@@ -21,7 +21,8 @@ func newDatasourceInfraFortigates() datasource.DataSource {
 }
 
 type datasourceInfraFortigates struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceInfraFortigatesModel describes the datasource data model.
@@ -70,6 +71,7 @@ func (r *datasourceInfraFortigates) Configure(ctx context.Context, req datasourc
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_infra_fortigates"
 }
 
 func (r *datasourceInfraFortigates) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -93,8 +95,8 @@ func (r *datasourceInfraFortigates) Read(ctx context.Context, req datasource.Rea
 	read_output, err := c.ReadInfraFortigates(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -111,10 +113,6 @@ func (m *datasourceInfraFortigatesModel) refreshInfraFortigates(ctx context.Cont
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["status"]; ok {

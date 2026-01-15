@@ -10,7 +10,6 @@ import (
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/auth"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/config"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/request"
-	// "strconv"
 )
 
 // MultValue describes the nested structure in the results
@@ -88,32 +87,7 @@ func (c *FortiSDKClient) GenToken() error {
 // CheckUP checks whether username and password is valid
 // If errors are encountered, it returns the error.
 func (c *FortiSDKClient) CheckUP() error {
-	// todo
-	// var err error
-
-	// req := c.NewRequest("GET", "/api/v2/monitor/system/status", nil, nil)
-	// err = req.CheckValid()
-	// if err != nil {
-	// 	if c.Config.Auth.Token == "" {
-	// 		err = fmt.Errorf("Error using Username/Password to login: %v", err)
-	// 	} else {
-	// 		err = fmt.Errorf("Error using Token to login: %v", err)
-	// 	}
-	// }
 	return nil
-}
-
-func fortiAPIHttpStatus404Checking(result map[string]interface{}) (b404 bool) {
-	b404 = false
-
-	if result != nil {
-		if result["code"] != nil && result["code"] == 404 {
-			b404 = true
-			return
-		}
-	}
-
-	return
 }
 
 func fortiAPIErrorFormat(result map[string]interface{}, body string) (code float64, err error) {
@@ -124,7 +98,7 @@ func fortiAPIErrorFormat(result map[string]interface{}, body string) (code float
 			if code == 200.0 {
 				return code, nil
 			} else if code == 400.0 {
-				err = fmt.Errorf("Bad Request - Request cannot be processed by the API (%v)", result)
+				err = fmt.Errorf("Bad Request - Request cannot be processed by the API (%.0f)", code)
 			} else if code == 401.0 {
 				err = fmt.Errorf("Not Authorized - Request without successful login session (%.0f)", code)
 			} else if code == 403.0 {
@@ -154,5 +128,3 @@ func fortiAPIErrorFormat(result map[string]interface{}, body string) (code float
 	err = fmt.Errorf("\n%v", body)
 	return code, err
 }
-
-//Build input data by sdk

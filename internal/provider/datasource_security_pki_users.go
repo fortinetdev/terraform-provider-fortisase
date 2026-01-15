@@ -19,7 +19,8 @@ func newDatasourceSecurityPkiUsers() datasource.DataSource {
 }
 
 type datasourceSecurityPkiUsers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceSecurityPkiUsersModel describes the datasource data model.
@@ -40,8 +41,8 @@ func (r *datasourceSecurityPkiUsers) Schema(ctx context.Context, req datasource.
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
-				Description: "Primary Key of PKI User.",
-				Required:    true,
+				MarkdownDescription: "Primary Key of PKI User.",
+				Required:            true,
 			},
 			"subject": schema.StringAttribute{
 				Computed: true,
@@ -59,9 +60,9 @@ func (r *datasourceSecurityPkiUsers) Schema(ctx context.Context, req datasource.
 			"ca": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						Description: "CA Cert Name",
-						Computed:    true,
-						Optional:    true,
+						MarkdownDescription: "CA Cert Name",
+						Computed:            true,
+						Optional:            true,
 					},
 				},
 				Computed: true,
@@ -90,6 +91,7 @@ func (r *datasourceSecurityPkiUsers) Configure(ctx context.Context, req datasour
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_pki_users"
 }
 
 func (r *datasourceSecurityPkiUsers) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -113,8 +115,8 @@ func (r *datasourceSecurityPkiUsers) Read(ctx context.Context, req datasource.Re
 	read_output, err := c.ReadSecurityPkiUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -131,10 +133,6 @@ func (m *datasourceSecurityPkiUsersModel) refreshSecurityPkiUsers(ctx context.Co
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["subject"]; ok {

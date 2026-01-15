@@ -21,7 +21,8 @@ func newDatasourceAuthUsers() datasource.DataSource {
 }
 
 type datasourceAuthUsers struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceAuthUsersModel describes the datasource data model.
@@ -107,6 +108,7 @@ func (r *datasourceAuthUsers) Configure(ctx context.Context, req datasource.Conf
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_auth_users"
 }
 
 func (r *datasourceAuthUsers) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -130,8 +132,8 @@ func (r *datasourceAuthUsers) Read(ctx context.Context, req datasource.ReadReque
 	read_output, err := c.ReadAuthUsers(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -148,10 +150,6 @@ func (m *datasourceAuthUsersModel) refreshAuthUsers(ctx context.Context, o map[s
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["authType"]; ok {

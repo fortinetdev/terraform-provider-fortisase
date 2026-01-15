@@ -23,7 +23,8 @@ func newResourceSecurityOutboundPoliciesClone() resource.Resource {
 }
 
 type resourceSecurityOutboundPoliciesClone2Edl struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityOutboundPoliciesClone2EdlModel describes the resource data model.
@@ -55,9 +56,9 @@ func (r *resourceSecurityOutboundPoliciesClone2Edl) Schema(ctx context.Context, 
 				Optional: true,
 			},
 			"based_on": schema.StringAttribute{
-				Description: "The policy you what to clone.",
-				Computed:    true,
-				Optional:    true,
+				MarkdownDescription: "The policy you what to clone.",
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -82,6 +83,7 @@ func (r *resourceSecurityOutboundPoliciesClone2Edl) Configure(ctx context.Contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_outbound_policies_clone"
 }
 
 func (r *resourceSecurityOutboundPoliciesClone2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -102,11 +104,11 @@ func (r *resourceSecurityOutboundPoliciesClone2Edl) Create(ctx context.Context, 
 	if diags.HasError() {
 		return
 	}
-	_, err := c.CreateSecurityOutboundPoliciesClone(&input_model)
+	output, err := c.CreateSecurityOutboundPoliciesClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -146,11 +148,11 @@ func (r *resourceSecurityOutboundPoliciesClone2Edl) Update(ctx context.Context, 
 		return
 	}
 
-	_, err := c.CreateSecurityOutboundPoliciesClone(&input_model)
+	output, err := c.CreateSecurityOutboundPoliciesClone(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -177,7 +179,7 @@ func (data *resourceSecurityOutboundPoliciesClone2EdlModel) getCreateObjectSecur
 
 func (data *resourceSecurityOutboundPoliciesClone2EdlModel) getUpdateObjectSecurityOutboundPoliciesClone(ctx context.Context, state resourceSecurityOutboundPoliciesClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

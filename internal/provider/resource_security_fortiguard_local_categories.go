@@ -24,7 +24,8 @@ func newResourceSecurityFortiguardLocalCategories() resource.Resource {
 }
 
 type resourceSecurityFortiguardLocalCategories struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityFortiguardLocalCategoriesModel describes the resource data model.
@@ -90,9 +91,13 @@ func (r *resourceSecurityFortiguardLocalCategories) Configure(ctx context.Contex
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_fortiguard_local_categories"
 }
 
 func (r *resourceSecurityFortiguardLocalCategories) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityFortiguardLocalCategories")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityFortiguardLocalCategoriesModel
 	diags := &resp.Diagnostics
 
@@ -113,8 +118,8 @@ func (r *resourceSecurityFortiguardLocalCategories) Create(ctx context.Context, 
 	output, err := c.CreateSecurityFortiguardLocalCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -128,8 +133,8 @@ func (r *resourceSecurityFortiguardLocalCategories) Create(ctx context.Context, 
 	read_output, err := c.ReadSecurityFortiguardLocalCategories(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -143,6 +148,9 @@ func (r *resourceSecurityFortiguardLocalCategories) Create(ctx context.Context, 
 }
 
 func (r *resourceSecurityFortiguardLocalCategories) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityFortiguardLocalCategories")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -171,11 +179,11 @@ func (r *resourceSecurityFortiguardLocalCategories) Update(ctx context.Context, 
 		return
 	}
 
-	_, err := c.UpdateSecurityFortiguardLocalCategories(&input_model)
+	output, err := c.UpdateSecurityFortiguardLocalCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -186,8 +194,8 @@ func (r *resourceSecurityFortiguardLocalCategories) Update(ctx context.Context, 
 	read_output, err := c.ReadSecurityFortiguardLocalCategories(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -201,6 +209,9 @@ func (r *resourceSecurityFortiguardLocalCategories) Update(ctx context.Context, 
 }
 
 func (r *resourceSecurityFortiguardLocalCategories) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityFortiguardLocalCategories")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityFortiguardLocalCategoriesModel
 
@@ -218,11 +229,11 @@ func (r *resourceSecurityFortiguardLocalCategories) Delete(ctx context.Context, 
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityFortiguardLocalCategories(ctx, "delete", diags))
 
-	err := c.DeleteSecurityFortiguardLocalCategories(&input_model)
+	output, err := c.DeleteSecurityFortiguardLocalCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -249,8 +260,8 @@ func (r *resourceSecurityFortiguardLocalCategories) Read(ctx context.Context, re
 	read_output, err := c.ReadSecurityFortiguardLocalCategories(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -271,10 +282,6 @@ func (m *resourceSecurityFortiguardLocalCategoriesModel) refreshSecurityFortigua
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["threatWeight"]; ok {
@@ -307,7 +314,7 @@ func (data *resourceSecurityFortiguardLocalCategoriesModel) getCreateObjectSecur
 
 func (data *resourceSecurityFortiguardLocalCategoriesModel) getUpdateObjectSecurityFortiguardLocalCategories(ctx context.Context, state resourceSecurityFortiguardLocalCategoriesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

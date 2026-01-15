@@ -24,7 +24,8 @@ func newResourceSecurityIpsCustomSignatures() resource.Resource {
 }
 
 type resourceSecurityIpsCustomSignatures struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // resourceSecurityIpsCustomSignaturesModel describes the resource data model.
@@ -147,9 +148,13 @@ func (r *resourceSecurityIpsCustomSignatures) Configure(ctx context.Context, req
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_security_ips_custom_signatures"
 }
 
 func (r *resourceSecurityIpsCustomSignatures) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpsCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	var data resourceSecurityIpsCustomSignaturesModel
 	diags := &resp.Diagnostics
 
@@ -170,8 +175,8 @@ func (r *resourceSecurityIpsCustomSignatures) Create(ctx context.Context, req re
 	output, err := c.CreateSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to create resource: %v", err),
-			"",
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -185,8 +190,8 @@ func (r *resourceSecurityIpsCustomSignatures) Create(ctx context.Context, req re
 	read_output, err := c.ReadSecurityIpsCustomSignatures(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -200,6 +205,9 @@ func (r *resourceSecurityIpsCustomSignatures) Create(ctx context.Context, req re
 }
 
 func (r *resourceSecurityIpsCustomSignatures) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpsCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -228,11 +236,11 @@ func (r *resourceSecurityIpsCustomSignatures) Update(ctx context.Context, req re
 		return
 	}
 
-	_, err := c.UpdateSecurityIpsCustomSignatures(&input_model)
+	output, err := c.UpdateSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to update resource: %v", err),
-			"",
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -243,8 +251,8 @@ func (r *resourceSecurityIpsCustomSignatures) Update(ctx context.Context, req re
 	read_output, err := c.ReadSecurityIpsCustomSignatures(&read_input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
 		)
 		return
 	}
@@ -258,6 +266,9 @@ func (r *resourceSecurityIpsCustomSignatures) Update(ctx context.Context, req re
 }
 
 func (r *resourceSecurityIpsCustomSignatures) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityIpsCustomSignatures")
+	lock.Lock()
+	defer lock.Unlock()
 	diags := &resp.Diagnostics
 	var data resourceSecurityIpsCustomSignaturesModel
 
@@ -275,11 +286,11 @@ func (r *resourceSecurityIpsCustomSignatures) Delete(ctx context.Context, req re
 	input_model.Mkey = mkey
 	input_model.URLParams = *(data.getURLObjectSecurityIpsCustomSignatures(ctx, "delete", diags))
 
-	err := c.DeleteSecurityIpsCustomSignatures(&input_model)
+	output, err := c.DeleteSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to delete resource: %v", err),
-			"",
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
 		)
 		return
 	}
@@ -306,8 +317,8 @@ func (r *resourceSecurityIpsCustomSignatures) Read(ctx context.Context, req reso
 	read_output, err := c.ReadSecurityIpsCustomSignatures(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read resource: %v", err),
-			"",
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
@@ -328,10 +339,6 @@ func (m *resourceSecurityIpsCustomSignaturesModel) refreshSecurityIpsCustomSigna
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
 	}
 
 	if v, ok := o["tag"]; ok {
@@ -448,11 +455,11 @@ func (data *resourceSecurityIpsCustomSignaturesModel) getCreateObjectSecurityIps
 
 func (data *resourceSecurityIpsCustomSignaturesModel) getUpdateObjectSecurityIpsCustomSignatures(ctx context.Context, state resourceSecurityIpsCustomSignaturesModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.Equal(state.PrimaryKey) {
+	if !data.PrimaryKey.IsNull() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Tag.IsNull() && !data.Tag.Equal(state.Tag) {
+	if !data.Tag.IsNull() {
 		result["tag"] = data.Tag.ValueString()
 	}
 
@@ -460,47 +467,47 @@ func (data *resourceSecurityIpsCustomSignaturesModel) getUpdateObjectSecurityIps
 		result["signature"] = data.Signature.ValueString()
 	}
 
-	if !data.RuleId.IsNull() && !data.RuleId.Equal(state.RuleId) {
+	if !data.RuleId.IsNull() {
 		result["ruleId"] = data.RuleId.ValueFloat64()
 	}
 
-	if !data.Status.IsNull() && !data.Status.Equal(state.Status) {
+	if !data.Status.IsNull() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Log.IsNull() && !data.Log.Equal(state.Log) {
+	if !data.Log.IsNull() {
 		result["log"] = data.Log.ValueString()
 	}
 
-	if !data.LogPacket.IsNull() && !data.LogPacket.Equal(state.LogPacket) {
+	if !data.LogPacket.IsNull() {
 		result["logPacket"] = data.LogPacket.ValueString()
 	}
 
-	if !data.Action.IsNull() && !data.Action.Equal(state.Action) {
+	if !data.Action.IsNull() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Severity.IsNull() && !data.Severity.Equal(state.Severity) {
+	if !data.Severity.IsNull() {
 		result["severity"] = data.Severity.ValueString()
 	}
 
-	if !data.Location.IsNull() && !data.Location.Equal(state.Location) {
+	if !data.Location.IsNull() {
 		result["location"] = data.Location.ValueString()
 	}
 
-	if !data.Os.IsNull() && !data.Os.Equal(state.Os) {
+	if !data.Os.IsNull() {
 		result["os"] = data.Os.ValueString()
 	}
 
-	if !data.Application.IsNull() && !data.Application.Equal(state.Application) {
+	if !data.Application.IsNull() {
 		result["application"] = data.Application.ValueString()
 	}
 
-	if !data.Protocol.IsNull() && !data.Protocol.Equal(state.Protocol) {
+	if !data.Protocol.IsNull() {
 		result["protocol"] = data.Protocol.ValueString()
 	}
 
-	if !data.Comment.IsNull() && !data.Comment.Equal(state.Comment) {
+	if !data.Comment.IsNull() {
 		result["comment"] = data.Comment.ValueString()
 	}
 

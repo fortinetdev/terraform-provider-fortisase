@@ -21,7 +21,8 @@ func newDatasourceEndpointSettingProfiles() datasource.DataSource {
 }
 
 type datasourceEndpointSettingProfiles struct {
-	fortiClient *FortiClient
+	fortiClient  *FortiClient
+	resourceName string
 }
 
 // datasourceEndpointSettingProfilesModel describes the datasource data model.
@@ -82,8 +83,8 @@ func (r *datasourceEndpointSettingProfiles) Schema(ctx context.Context, req data
 				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
-				Description: "The primary key of the object. Can be found in the response from the get request.",
-				Required:    true,
+				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
+				Required:            true,
 			},
 		},
 	}
@@ -108,6 +109,7 @@ func (r *datasourceEndpointSettingProfiles) Configure(ctx context.Context, req d
 	}
 
 	r.fortiClient = client
+	r.resourceName = "fortisase_endpoint_setting_profiles"
 }
 
 func (r *datasourceEndpointSettingProfiles) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -131,8 +133,8 @@ func (r *datasourceEndpointSettingProfiles) Read(ctx context.Context, req dataso
 	read_output, err := c.ReadEndpointSettingProfiles(&input_model)
 	if err != nil {
 		diags.AddError(
-			fmt.Sprintf("Error to read data source: %v", err),
-			"",
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
 		)
 		return
 	}
