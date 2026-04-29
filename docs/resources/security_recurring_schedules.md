@@ -3,12 +3,12 @@
 page_title: "fortisase_security_recurring_schedules Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Recurring Schedule Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_recurring_schedules (Resource)
 
-
+Recurring Schedule Resource API V2 for FortiSASE.
 
 ## Example Usage
 

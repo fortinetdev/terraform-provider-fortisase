@@ -104,6 +104,22 @@ func (c *FortiSDKClient) CreateAuthRadiusServers(input_model *InputModel) (outpu
 	output, err = sendRequests(c, input_model)
 	return
 }
+func (c *FortiSDKClient) UpdateAuthSslvpnSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/auth/sslvpn-saml-server"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadAuthSslvpnSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/auth/sslvpn-saml-server"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
 func (c *FortiSDKClient) UpdateAuthSwgSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "PUT"
 	input_model.URL = "/resource-api/v2/auth/swg-saml-server"
@@ -195,6 +211,22 @@ func (c *FortiSDKClient) UpdateAuthVpnSamlServer(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadAuthVpnSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/vpn-saml-server"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateBrowserProvision(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/browser/provision"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadBrowserProvision(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/browser/provision"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -312,14 +344,6 @@ func (c *FortiSDKClient) ReadEndpointGroupAdUserProfiles(input_model *InputModel
 	output, err = read(c, input_model)
 	return
 }
-func (c *FortiSDKClient) UpdateEndpointGroupInvitationCodes(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "PUT"
-	input_model.URL = "/resource-api/v2/endpoint/group-invitation-codes/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
 func (c *FortiSDKClient) ReadEndpointGroupInvitationCodes(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/group-invitation-codes/{primaryKey}"
@@ -339,6 +363,38 @@ func (c *FortiSDKClient) DeleteEndpointGroupInvitationCodes(input_model *InputMo
 func (c *FortiSDKClient) CreateEndpointGroupInvitationCodes(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "POST"
 	input_model.URL = "/resource-api/v2/endpoint/group-invitation-codes"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/endpoint/on-net-rules"
 	input_model.update()
 
 	output, err = sendRequests(c, input_model)
@@ -377,6 +433,46 @@ func (c *FortiSDKClient) CreateEndpointPolicies(input_model *InputModel) (output
 	return
 }
 func (c *FortiSDKClient) CreateEndpointPoliciesClone(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/endpoint/policies/{based_on}/clone"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/endpoint/policies"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateEndpointProfileClone(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "POST"
 	input_model.URL = "/resource-api/v2/endpoint/policies/{based_on}/clone"
 	input_model.update()
@@ -475,6 +571,38 @@ func (c *FortiSDKClient) DeleteEndpointZtnaRules(input_model *InputModel) (outpu
 func (c *FortiSDKClient) CreateEndpointZtnaRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "POST"
 	input_model.URL = "/resource-api/v2/endpoint/ztna-rules"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateEndpointZtnaTagRule(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/endpoint/ztna-tag-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadEndpointZtnaTagRule(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/endpoint/ztna-tag-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteEndpointZtnaTagRule(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/endpoint/ztna-tag-rules/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateEndpointZtnaTagRule(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/endpoint/ztna-tag-rules"
 	input_model.update()
 
 	output, err = sendRequests(c, input_model)
@@ -592,6 +720,14 @@ func (c *FortiSDKClient) ReadEndpointsSoftwareOnEndpoint(input_model *InputModel
 	output, err = read(c, input_model)
 	return
 }
+func (c *FortiSDKClient) ReadInfraDataTransfer(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/monitor-api/v1/infra/data-transfer"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
 func (c *FortiSDKClient) ReadInfraExtenders(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/extenders/{primaryKey}"
@@ -603,6 +739,22 @@ func (c *FortiSDKClient) ReadInfraExtenders(input_model *InputModel) (output map
 func (c *FortiSDKClient) ReadInfraFortigates(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/fortigates/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateInfraIpamSetting(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/infra/ipam-settings"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadInfraIpamSetting(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/infra/ipam-settings"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -960,6 +1112,30 @@ func (c *FortiSDKClient) ReadSecurityBotnetDomainsStat(input_model *InputModel) 
 	output, err = read(c, input_model)
 	return
 }
+func (c *FortiSDKClient) ReadSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
 func (c *FortiSDKClient) ReadSecurityCertLocalCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/cert/local-certs/{primaryKey}"
@@ -1003,6 +1179,30 @@ func (c *FortiSDKClient) DeleteSecurityCertRemoteCaCerts(input_model *InputModel
 func (c *FortiSDKClient) CreateSecurityCertRemoteCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "POST"
 	input_model.URL = "/resource-api/v1/security/cert/remote-ca-certs"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v1/security/cert/remote-certs/{primaryKey}"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v1/security/cert/remote-certs/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v1/security/cert/remote-certs"
 	input_model.update()
 
 	output, err = sendRequests(c, input_model)
@@ -2131,142 +2331,6 @@ func (c *FortiSDKClient) CreateUserSwgSessionsDeauth(input_model *InputModel) (o
 func (c *FortiSDKClient) CreateUserVpnSessionsDeauth(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "POST"
 	input_model.URL = "/monitor-api/v1/user/vpn/sessions/deauth"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) UpdateEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "PUT"
-	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) ReadEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
-	input_model.update()
-
-	output, err = read(c, input_model)
-	return
-}
-func (c *FortiSDKClient) DeleteEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "DELETE"
-	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) CreateEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "POST"
-	input_model.URL = "/resource-api/v2/endpoint/policies"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) CreateEndpointProfileClone(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "POST"
-	input_model.URL = "/resource-api/v2/endpoint/policies/{based_on}/clone"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) UpdateEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "PUT"
-	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) ReadEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
-	input_model.update()
-
-	output, err = read(c, input_model)
-	return
-}
-func (c *FortiSDKClient) DeleteEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "DELETE"
-	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) CreateEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "POST"
-	input_model.URL = "/resource-api/v2/endpoint/on-net-rules"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) UpdateInfraIpamSetting(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "PUT"
-	input_model.URL = "/resource-api/v2/infra/ipam-settings"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) ReadInfraIpamSetting(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v2/infra/ipam-settings"
-	input_model.update()
-
-	output, err = read(c, input_model)
-	return
-}
-func (c *FortiSDKClient) ReadSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs/{primaryKey}"
-	input_model.update()
-
-	output, err = read(c, input_model)
-	return
-}
-func (c *FortiSDKClient) DeleteSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "DELETE"
-	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) CreateSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "POST"
-	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) ReadSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v1/security/cert/remote-certs/{primaryKey}"
-	input_model.update()
-
-	output, err = read(c, input_model)
-	return
-}
-func (c *FortiSDKClient) DeleteSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "DELETE"
-	input_model.URL = "/resource-api/v1/security/cert/remote-certs/{primaryKey}"
-	input_model.update()
-
-	output, err = sendRequests(c, input_model)
-	return
-}
-func (c *FortiSDKClient) CreateSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
-	input_model.HTTPMethod = "POST"
-	input_model.URL = "/resource-api/v1/security/cert/remote-certs"
 	input_model.update()
 
 	output, err = sendRequests(c, input_model)

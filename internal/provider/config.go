@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	forticlient "github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -284,43 +283,38 @@ func flattenStringList(v interface{}) interface{} {
 	return vsList
 }
 
-func checkVersionMatch(v string, new_version_map map[string][]string) (bool, error) {
-	v1, err := version.NewVersion(v)
-	if err != nil {
-		return false, err
+func checkVersionMatch(forticlient *forticlient.FortiSDKClient, supported_version_map map[string][]string) (pass bool, err error) {
+	if supported_version_map == nil || len(supported_version_map) == 0 {
+		return true, nil
 	}
 
-	for operator, version_list := range new_version_map {
-		if operator == "=" {
-			for _, cur_version := range version_list {
-				if cur_version == v {
+	fssstatus := forticlient.FSSStatus
+
+	if fssstatus == nil || fssstatus.EMSVersion == "" {
+		err = forticlient.GetFSSStatus()
+		if err != nil {
+			return true, err
+		}
+		fssstatus = forticlient.FSSStatus
+	}
+
+	for k, v := range supported_version_map {
+		if k == "EMS" {
+			fss_ems_version := fssstatus.EMSVersion
+			for _, sv := range v {
+				if strings.HasPrefix(fss_ems_version, sv) {
 					return true, nil
 				}
 			}
-		} else if operator == ">=" {
-			min_version, err := version.NewVersion(version_list[0])
-			if err != nil {
-				continue
+			if err == nil {
+				err = fmt.Errorf("Requires FortiSASE EMS version: %s, your device EMS version is: %s.", v, fss_ems_version)
+			} else {
+				err = fmt.Errorf("Requires FortiSASE EMS version: %s, your device EMS version is: %s. %v", v, fss_ems_version, err)
 			}
-			if v1.GreaterThanOrEqual(min_version) {
-				return true, nil
-			}
-		} else if operator == "<=" {
-			max_version, err := version.NewVersion(version_list[0])
-			if err != nil {
-				continue
-			}
-			if v1.LessThanOrEqual(max_version) {
-				return true, nil
-			}
+			return false, err
 		}
 	}
-	var supported_version_list []string
-	for operator, version_list := range new_version_map {
-		supported_version_list = append(supported_version_list, operator+strings.Join(version_list, ","))
-	}
-	err = fmt.Errorf("requires FortiSASE version: %s, your device version is: %s.", strings.Join(supported_version_list, ""), v)
-	return false, err
+	return true, nil
 }
 
 func toCertFormat(v interface{}) interface{} {
@@ -523,4 +517,71 @@ func getErrorDetail(input_model *forticlient.InputModel, response map[string]int
 		result += fmt.Sprintf("[API Response]\n%s\n", string(response_json_bytes))
 	}
 	return result
+}
+
+func parseJsonString(apiResp, tfConf interface{}) (result basetypes.StringValue, err error) {
+	if apiResp == nil {
+		if tfConf != nil {
+			if tfVal, ok := tfConf.(basetypes.StringValue); ok && !tfVal.IsNull() && tfVal.ValueString() == "" {
+				return tfVal, nil
+			}
+		}
+		return types.StringNull(), nil
+	} else if tfConf == nil {
+		return types.StringValue(apiResp.(string)), nil
+	}
+	apiStr := apiResp.(string)
+	tfVal := tfConf.(basetypes.StringValue)
+	tfStr := tfVal.ValueString()
+	var apiObj interface{}
+	var tfObj interface{}
+	bsame := false
+	if err := json.Unmarshal([]byte(apiStr), &apiObj); err != nil {
+		err = fmt.Errorf("API response is not JSON format: %v", apiStr)
+	}
+	if err := json.Unmarshal([]byte(tfStr), &tfObj); err != nil {
+		err = fmt.Errorf("Terraform configuration is not JSON format: %v", tfStr)
+	}
+
+	if apiObj != nil && tfObj != nil {
+		bsame = reflect.DeepEqual(apiObj, tfObj)
+	} else if apiObj == nil && tfObj == nil {
+		apiStrNoSpace := strings.ReplaceAll(apiStr, " ", "")
+		tfStrNoSpace := strings.ReplaceAll(tfStr, " ", "")
+		bsame = apiStrNoSpace == tfStrNoSpace
+	}
+
+	if bsame {
+		return tfVal, nil
+	} else {
+		return types.StringValue(apiStr), err
+	}
+}
+
+func getAPICode(output map[string]interface{}) (int, bool) {
+	if codeVal, hasCode := output["code"]; hasCode {
+		switch v := codeVal.(type) {
+		case int:
+			return v, true
+		case float64:
+			return int(v), true
+		}
+	}
+	return 0, false
+}
+
+func getErrorCode(output map[string]interface{}) (int, bool) {
+	if errorVal, hasError := output["error"]; hasError {
+		if errorMap, ok := errorVal.(map[string]interface{}); ok {
+			if codeVal, hasCode := errorMap["code"]; hasCode {
+				switch v := codeVal.(type) {
+				case int:
+					return v, true
+				case float64:
+					return int(v), true
+				}
+			}
+		}
+	}
+	return 0, false
 }

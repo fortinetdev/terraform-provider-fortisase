@@ -3,12 +3,12 @@
 page_title: "fortisase_security_ssl_ssh_profile Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  SSL Inspection Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_ssl_ssh_profile (Resource)
 
-
+SSL Inspection Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_private_access_service_connections_auth Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  Secure Private Access Resource API for FortiSASE.
 ---
 
 # fortisase_private_access_service_connections_auth (Resource)
 
-
+Secure Private Access Resource API for FortiSASE.
 
 ## Example Usage
 

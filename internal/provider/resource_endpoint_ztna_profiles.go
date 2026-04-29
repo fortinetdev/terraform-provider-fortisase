@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,6 +33,7 @@ type resourceEndpointZtnaProfiles struct {
 type resourceEndpointZtnaProfilesModel struct {
 	ID                   types.String                                       `tfsdk:"id"`
 	AllowAutomaticSignOn types.String                                       `tfsdk:"allow_automatic_sign_on"`
+	Status               types.String                                       `tfsdk:"status"`
 	ConnectionRules      []resourceEndpointZtnaProfilesConnectionRulesModel `tfsdk:"connection_rules"`
 	EntraId              *resourceEndpointZtnaProfilesEntraIdModel          `tfsdk:"entra_id"`
 	PrimaryKey           types.String                                       `tfsdk:"primary_key"`
@@ -43,6 +45,7 @@ func (r *resourceEndpointZtnaProfiles) Metadata(ctx context.Context, req resourc
 
 func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -53,8 +56,16 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 			},
 			"allow_automatic_sign_on": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
+				Computed: true,
+				Optional: true,
+			},
+			"status": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Default:  stringdefault.StaticString("enable"),
 				Computed: true,
 				Optional: true,
 			},
@@ -94,7 +105,7 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 						},
 						"encryption": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -102,6 +113,10 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 						"gateways": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"id": schema.Float64Attribute{
+										Computed: true,
+										Optional: true,
+									},
 									"alias": schema.StringAttribute{
 										Computed: true,
 										Optional: true,
@@ -116,7 +131,7 @@ func (r *resourceEndpointZtnaProfiles) Schema(ctx context.Context, req resource.
 									},
 									"redirect": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("enable", "disable"),
+											stringvalidatorwarning.OneOf("enable", "disable"),
 										},
 										Computed: true,
 										Optional: true,
@@ -172,7 +187,7 @@ func (r *resourceEndpointZtnaProfiles) Configure(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointZtnaProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointZtnaProfilesModel
@@ -226,7 +241,7 @@ func (r *resourceEndpointZtnaProfiles) Create(ctx context.Context, req resource.
 }
 
 func (r *resourceEndpointZtnaProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointZtnaProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics
@@ -339,6 +354,10 @@ func (m *resourceEndpointZtnaProfilesModel) refreshEndpointZtnaProfiles(ctx cont
 		m.AllowAutomaticSignOn = parseStringValue(v)
 	}
 
+	if v, ok := o["status"]; ok {
+		m.Status = parseStringValue(v)
+	}
+
 	if v, ok := o["connectionRules"]; ok {
 		m.ConnectionRules = m.flattenEndpointZtnaProfilesConnectionRulesList(ctx, v, &diags)
 	}
@@ -356,6 +375,10 @@ func (data *resourceEndpointZtnaProfilesModel) getCreateObjectEndpointZtnaProfil
 		result["allowAutomaticSignOn"] = data.AllowAutomaticSignOn.ValueString()
 	}
 
+	if !data.Status.IsNull() {
+		result["status"] = data.Status.ValueString()
+	}
+
 	if data.ConnectionRules != nil {
 		result["connectionRules"] = data.expandEndpointZtnaProfilesConnectionRulesList(ctx, data.ConnectionRules, diags)
 	}
@@ -371,6 +394,10 @@ func (data *resourceEndpointZtnaProfilesModel) getUpdateObjectEndpointZtnaProfil
 	result := make(map[string]interface{})
 	if !data.AllowAutomaticSignOn.IsNull() {
 		result["allowAutomaticSignOn"] = data.AllowAutomaticSignOn.ValueString()
+	}
+
+	if !data.Status.IsNull() {
+		result["status"] = data.Status.ValueString()
 	}
 
 	if data.ConnectionRules != nil {
@@ -405,6 +432,7 @@ type resourceEndpointZtnaProfilesConnectionRulesModel struct {
 }
 
 type resourceEndpointZtnaProfilesConnectionRulesGatewaysModel struct {
+	Id              types.Float64 `tfsdk:"id"`
 	Alias           types.String  `tfsdk:"alias"`
 	PrivateAppCount types.Float64 `tfsdk:"private_app_count"`
 	Vip             types.String  `tfsdk:"vip"`
@@ -491,6 +519,10 @@ func (m *resourceEndpointZtnaProfilesConnectionRulesGatewaysModel) flattenEndpoi
 		m = &resourceEndpointZtnaProfilesConnectionRulesGatewaysModel{}
 	}
 	o := input.(map[string]interface{})
+	if v, ok := o["id"]; ok {
+		m.Id = parseFloat64Value(v)
+	}
+
 	if v, ok := o["alias"]; ok {
 		m.Alias = parseStringValue(v)
 	}
@@ -598,6 +630,10 @@ func (s *resourceEndpointZtnaProfilesModel) expandEndpointZtnaProfilesConnection
 
 func (data *resourceEndpointZtnaProfilesConnectionRulesGatewaysModel) expandEndpointZtnaProfilesConnectionRulesGateways(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
+	if !data.Id.IsNull() {
+		result["id"] = data.Id.ValueFloat64()
+	}
+
 	if !data.Alias.IsNull() {
 		result["alias"] = data.Alias.ValueString()
 	}

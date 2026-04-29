@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_domain_threat_feeds Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Domain Threat Feed Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_domain_threat_feeds (Data Source)
 
-
+Domain Threat Feed Resource API V2 for FortiSASE.
 
 ## Example Usage
 

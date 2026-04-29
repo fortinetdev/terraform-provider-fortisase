@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_dlp_file_patterns Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  DLP File Pattern Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_dlp_file_patterns (Data Source)
 
-
+DLP File Pattern Resource API V2 for FortiSASE.
 
 ## Example Usage
 

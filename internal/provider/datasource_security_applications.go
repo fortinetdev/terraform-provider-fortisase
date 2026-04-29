@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -50,6 +50,7 @@ func (r *datasourceSecurityApplications) Metadata(ctx context.Context, req datas
 
 func (r *datasourceSecurityApplications) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Application Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
@@ -68,22 +69,22 @@ func (r *datasourceSecurityApplications) Schema(ctx context.Context, req datasou
 			},
 			"popularity": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 5),
+					float64validatorwarning.Between(1, 5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"risk": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 5),
+					float64validatorwarning.Between(1, 5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"behavior": schema.SetAttribute{
 				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf("", "Cloud", "Excessive-Bandwidth", "Botnet", "Tunneling", "Evasive"),
+					setvalidatorwarning.ValueStringsAre(
+						stringvalidatorwarning.OneOf("", "Cloud", "Excessive-Bandwidth", "Botnet", "Tunneling", "Evasive"),
 					),
 				},
 				Computed:    true,

@@ -3,12 +3,12 @@
 page_title: "fortisase_infra_fortigates Data Source - fortisase"
 subcategory: "Others"
 description: |-
-  
+  Edge Device (FortiGate) Resource API V2 for FortiSASE.
 ---
 
 # fortisase_infra_fortigates (Data Source)
 
-
+Edge Device (FortiGate) Resource API V2 for FortiSASE.
 
 ## Example Usage
 

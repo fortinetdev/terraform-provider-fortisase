@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,6 +51,7 @@ func (r *resourceSecurityDnsFilterProfile) Metadata(ctx context.Context, req res
 
 func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DNS Filter Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -68,42 +69,42 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 			},
 			"use_fortiguard_filters": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"enable_all_logs": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"enable_botnet_blocking": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"enable_safe_search": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"allow_dns_requests_on_rating_error": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -126,7 +127,7 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						},
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -145,14 +146,14 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("simple", "wildcard", "regex"),
+								stringvalidatorwarning.OneOf("simple", "wildcard", "regex"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "block", "exempt", "monitor"),
+								stringvalidatorwarning.OneOf("allow", "block", "exempt", "monitor"),
 							},
 							Computed: true,
 							Optional: true,
@@ -171,7 +172,7 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning"),
 							},
 							Computed: true,
 							Optional: true,
@@ -184,7 +185,7 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/fortiguard-categories"),
+										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
 									Computed: true,
 									Optional: true,
@@ -203,7 +204,7 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning", "disable"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -216,7 +217,7 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/domain-threat-feeds"),
+										stringvalidatorwarning.OneOf("security/domain-threat-feeds"),
 									},
 									Computed: true,
 									Optional: true,

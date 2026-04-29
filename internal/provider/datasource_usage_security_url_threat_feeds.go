@@ -36,6 +36,8 @@ func (r *datasourceUsageSecurityUrlThreatFeeds) Metadata(ctx context.Context, re
 
 func (r *datasourceUsageSecurityUrlThreatFeeds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "URL Threat Feed Resource API V2 for FortiSASE.",
+		DeprecationMessage:  "All fortisase_usage_xxx data sources are deprecated and will be removed in version 1.4.0. If you still require these data sources, please contact us by opening a GitHub issue.",
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Computed: true,

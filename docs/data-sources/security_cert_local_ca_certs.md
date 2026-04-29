@@ -3,12 +3,12 @@
 page_title: "fortisase_security_cert_local_ca_certs Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Certificate Resource API for FortiSASE
 ---
 
 # fortisase_security_cert_local_ca_certs (Data Source)
 
-
+Certificate Resource API for FortiSASE
 
 ## Example Usage
 

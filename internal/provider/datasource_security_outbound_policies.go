@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -48,10 +48,11 @@ func (r *datasourceSecurityOutboundPolicies) Metadata(ctx context.Context, req d
 
 func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Outbound Policy Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -61,28 +62,28 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 			},
 			"scope": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "vpn-user", "thin-edge", "specify"),
+					stringvalidatorwarning.OneOf("all", "vpn-user", "thin-edge", "specify"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("accept", "deny"),
+					stringvalidatorwarning.OneOf("accept", "deny", "isolate"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1023),
+					stringvalidatorwarning.LengthAtMost(1023),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"log_traffic": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "utm", "disable"),
+					stringvalidatorwarning.OneOf("all", "utm", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -100,7 +101,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("auth/users", "auth/user-groups", "auth/ad-groups"),
+								stringvalidatorwarning.OneOf("auth/users", "auth/user-groups", "auth/ad-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -119,7 +120,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds", "network/internet-services"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds", "security/proxy-address-rbi", "network/internet-services"),
 							},
 							Computed: true,
 							Optional: true,
@@ -138,7 +139,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/services", "security/service-groups"),
+								stringvalidatorwarning.OneOf("security/services", "security/service-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -156,7 +157,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
+							stringvalidatorwarning.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
 						},
 						Computed: true,
 						Optional: true,
@@ -179,7 +180,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/profile-groups"),
+									stringvalidatorwarning.OneOf("security/profile-groups"),
 								},
 								Computed: true,
 								Optional: true,
@@ -201,7 +202,7 @@ func (r *datasourceSecurityOutboundPolicies) Schema(ctx context.Context, req dat
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "endpoint/ztna-tags", "security/ip-threat-feeds", "infra/ssids", "infra/fortigates", "infra/extenders"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "endpoint/ztna-tags", "endpoint/ztna-tag-rules", "security/ip-threat-feeds", "infra/ssids", "infra/fortigates", "infra/extenders"),
 							},
 							Computed: true,
 							Optional: true,

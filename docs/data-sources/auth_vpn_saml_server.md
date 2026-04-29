@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_vpn_saml_server Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  VPN User SSO Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_vpn_saml_server (Data Source)
 
-
+VPN User SSO Resource API V2 for FortiSASE.
 
 ## Example Usage
 

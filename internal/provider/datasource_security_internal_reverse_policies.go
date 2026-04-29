@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -46,10 +46,11 @@ func (r *datasourceSecurityInternalReversePolicies) Metadata(ctx context.Context
 
 func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Internal Reverse Policy Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -59,28 +60,28 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 			},
 			"scope": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "vpn-user", "thin-edge", "specify"),
+					stringvalidatorwarning.OneOf("all", "vpn-user", "thin-edge", "specify"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("accept", "deny"),
+					stringvalidatorwarning.OneOf("accept", "deny"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1023),
+					stringvalidatorwarning.LengthAtMost(1023),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"log_traffic": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "utm", "disable"),
+					stringvalidatorwarning.OneOf("all", "utm", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -94,7 +95,7 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds"),
 							},
 							Computed: true,
 							Optional: true,
@@ -113,7 +114,7 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/services", "security/service-groups"),
+								stringvalidatorwarning.OneOf("security/services", "security/service-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -131,7 +132,7 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
+							stringvalidatorwarning.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
 						},
 						Computed: true,
 						Optional: true,
@@ -154,7 +155,7 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/profile-groups"),
+									stringvalidatorwarning.OneOf("security/profile-groups"),
 								},
 								Computed: true,
 								Optional: true,
@@ -176,7 +177,7 @@ func (r *datasourceSecurityInternalReversePolicies) Schema(ctx context.Context, 
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "infra/ssids", "infra/fortigates", "infra/extenders"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "infra/ssids", "infra/fortigates", "infra/extenders"),
 							},
 							Computed: true,
 							Optional: true,

@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,6 +55,7 @@ func (r *resourceEndpointProtectionProfiles) Metadata(ctx context.Context, req r
 
 func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Protection Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -65,63 +66,63 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 			},
 			"antivirus": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"antiransomware": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"event_based_scanning": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"vulnerability_scan": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"antivirus_scan": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"automatically_patch_vulnerabilities": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"automatic_vulnerability_patch_level": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("low", "medium", "high", "critical"),
+					stringvalidatorwarning.OneOf("low", "medium", "high", "critical"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"notify_endpoint_of_blocks": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"default_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block", "monitor"),
+					stringvalidatorwarning.OneOf("allow", "block", "monitor"),
 				},
 				Computed: true,
 				Optional: true,
@@ -143,14 +144,14 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "block", "monitor"),
+								stringvalidatorwarning.OneOf("allow", "block", "monitor"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("simple", "regex"),
+								stringvalidatorwarning.OneOf("simple", "regex"),
 							},
 							Computed: true,
 							Optional: true,
@@ -161,7 +162,7 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 						},
 						"class": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("HID", "WPD", "Bluetooth", "CDROM", "SmartCardReader", "USBDevice", "Camera"),
+								stringvalidatorwarning.OneOf("HID", "WPD", "Bluetooth", "CDROM", "SmartCardReader", "USBDevice", "Camera"),
 							},
 							Computed: true,
 							Optional: true,
@@ -211,14 +212,14 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 					},
 					"repeat": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("daily", "weekly", "monthly"),
+							stringvalidatorwarning.OneOf("daily", "weekly", "monthly"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"day": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(1, 31),
+							float64validatorwarning.Between(1, 31),
 						},
 						Computed: true,
 						Optional: true,
@@ -231,7 +232,7 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 				Attributes: map[string]schema.Attribute{
 					"scan_type": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("full", "quick"),
+							stringvalidatorwarning.OneOf("full", "quick"),
 						},
 						Computed: true,
 						Optional: true,
@@ -242,14 +243,14 @@ func (r *resourceEndpointProtectionProfiles) Schema(ctx context.Context, req res
 					},
 					"repeat": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("daily", "weekly", "monthly"),
+							stringvalidatorwarning.OneOf("daily", "weekly", "monthly"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"day": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(1, 31),
+							float64validatorwarning.Between(1, 31),
 						},
 						Computed: true,
 						Optional: true,
@@ -285,7 +286,7 @@ func (r *resourceEndpointProtectionProfiles) Configure(ctx context.Context, req 
 }
 
 func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointProtectionProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointProtectionProfilesModel
@@ -339,7 +340,7 @@ func (r *resourceEndpointProtectionProfiles) Create(ctx context.Context, req res
 }
 
 func (r *resourceEndpointProtectionProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointProtectionProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics

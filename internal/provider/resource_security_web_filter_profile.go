@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -53,6 +53,7 @@ func (r *resourceSecurityWebFilterProfile) Metadata(ctx context.Context, req res
 
 func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Web Filter Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -66,28 +67,28 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 			},
 			"use_fortiguard_filters": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"block_invalid_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"enforce_safe_search": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"log_searched_keywords": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Default:  stringdefault.StaticString("disable"),
 				Computed: true,
@@ -95,14 +96,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 			},
 			"traffic_on_rating_error": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -113,7 +114,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning"),
 							},
 							Computed: true,
 							Optional: true,
@@ -130,7 +131,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/fortiguard-categories"),
+										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
 									Computed: true,
 									Optional: true,
@@ -149,7 +150,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning", "disable"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -166,7 +167,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/fortiguard-local-categories"),
+										stringvalidatorwarning.OneOf("security/fortiguard-local-categories"),
 									},
 									Computed: true,
 									Optional: true,
@@ -185,7 +186,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning", "disable"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -202,7 +203,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/url-threat-feeds"),
+										stringvalidatorwarning.OneOf("security/url-threat-feeds"),
 									},
 									Computed: true,
 									Optional: true,
@@ -221,7 +222,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -232,21 +233,21 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						},
 						"pattern_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("wildcard", "regexp"),
+								stringvalidatorwarning.OneOf("wildcard", "regexp"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"lang": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("western", "simch", "trach", "japanese", "korean", "french", "thai", "spanish", "cyrillic"),
+								stringvalidatorwarning.OneOf("western", "simch", "trach", "japanese", "korean", "french", "thai", "spanish", "cyrillic"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("exempt", "block"),
+								stringvalidatorwarning.OneOf("exempt", "block"),
 							},
 							Computed: true,
 							Optional: true,
@@ -265,7 +266,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 					Attributes: map[string]schema.Attribute{
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -276,14 +277,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("simple", "wildcard", "regex"),
+								stringvalidatorwarning.OneOf("simple", "wildcard", "regex"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "block", "exempt", "monitor"),
+								stringvalidatorwarning.OneOf("allow", "block", "exempt", "monitor"),
 							},
 							Computed: true,
 							Optional: true,
@@ -302,7 +303,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("add-to-request", "add-to-response", "remove-from-request", "remove-from-response"),
+								stringvalidatorwarning.OneOf("add-to-request", "add-to-response", "remove-from-request", "remove-from-response"),
 							},
 							Computed: true,
 							Optional: true,
@@ -320,7 +321,7 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("network/hosts", "network/host-groups"),
+											stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 										},
 										Computed: true,
 										Optional: true,

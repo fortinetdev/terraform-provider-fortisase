@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoints_access_proxy_disconnect Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  ZTNA Access Proxies monitor API for FortiSASE.
 ---
 
 # fortisase_endpoints_access_proxy_disconnect (Resource)
 
-
+ZTNA Access Proxies monitor API for FortiSASE.
 
 ## Example Usage
 

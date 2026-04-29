@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -41,6 +41,7 @@ func (r *resourceEndpointZtnaTags) Metadata(ctx context.Context, req resource.Me
 
 func (r *resourceEndpointZtnaTags) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -51,7 +52,7 @@ func (r *resourceEndpointZtnaTags) Schema(ctx context.Context, req resource.Sche
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 58),
+					stringvalidatorwarning.LengthBetween(1, 58),
 				},
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -60,7 +61,7 @@ func (r *resourceEndpointZtnaTags) Schema(ctx context.Context, req resource.Sche
 			},
 			"name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 58),
+					stringvalidatorwarning.LengthBetween(1, 58),
 				},
 				Computed: true,
 				Optional: true,
@@ -85,6 +86,19 @@ func (r *resourceEndpointZtnaTags) Configure(ctx context.Context, req resource.C
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	support_versions := map[string][]string{
+		"EMS": {"7.2"},
+	}
+	ok, err := checkVersionMatch(client.Client, support_versions)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"FortiSASE EMS version do not support this resource.",
+			fmt.Sprintf("%v", err),
 		)
 
 		return

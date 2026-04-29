@@ -3,12 +3,12 @@
 page_title: "fortisase_security_application_control_profile Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Application Control Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_application_control_profile (Data Source)
 
-
+Application Control Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoints_enable_management Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Endpoint management monitor API for FortiSASE.
 ---
 
 # fortisase_endpoints_enable_management (Resource)
 
-
+Endpoint management monitor API for FortiSASE.
 
 ## Example Usage
 

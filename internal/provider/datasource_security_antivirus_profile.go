@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -45,55 +45,56 @@ func (r *datasourceSecurityAntivirusProfile) Metadata(ctx context.Context, req d
 
 func (r *datasourceSecurityAntivirusProfile) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Antivirus Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
 			},
 			"http": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"smtp": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"pop3": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"imap": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"ftp": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"cifs": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -107,8 +108,8 @@ func (r *datasourceSecurityAntivirusProfile) Schema(ctx context.Context, req dat
 					},
 					"file_types": schema.SetAttribute{
 						Validators: []validator.Set{
-							setvalidator.ValueStringsAre(
-								stringvalidator.OneOf("pdf", "office"),
+							setvalidatorwarning.ValueStringsAre(
+								stringvalidatorwarning.OneOf("pdf", "office"),
 							),
 						},
 						Computed:    true,

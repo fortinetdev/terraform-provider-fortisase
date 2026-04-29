@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -43,6 +43,7 @@ func (r *resourceInfraSecureWebGatewaySupplementaryData) Metadata(ctx context.Co
 
 func (r *resourceInfraSecureWebGatewaySupplementaryData) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Secure Web Gateway Supplementary Data Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -53,7 +54,7 @@ func (r *resourceInfraSecureWebGatewaySupplementaryData) Schema(ctx context.Cont
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("$sase-global"),
+					stringvalidatorwarning.OneOf("$sase-global"),
 				},
 				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,

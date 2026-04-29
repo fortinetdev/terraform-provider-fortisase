@@ -3,12 +3,12 @@
 page_title: "fortisase_security_profile_group_clone Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Profile Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_profile_group_clone (Resource)
 
-
+Profile Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -53,6 +53,7 @@ func (r *resourceSecuritySslSshProfile) Metadata(ctx context.Context, req resour
 
 func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "SSL Inspection Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -66,56 +67,56 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 			},
 			"inspection_mode": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("certificate-inspection", "no-inspection", "deep-inspection"),
+					stringvalidatorwarning.OneOf("certificate-inspection", "no-inspection", "deep-inspection"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"expired_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block"),
+					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"revoked_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block"),
+					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"timed_out_validation_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block"),
+					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"validation_failed_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block"),
+					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"cert_probe_failure": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("allow", "block"),
+					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"quic": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("inspect", "bypass", "block"),
+					stringvalidatorwarning.OneOf("inspect", "bypass", "block"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -125,28 +126,28 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 				Attributes: map[string]schema.Attribute{
 					"unknown_content_encoding": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("block", "inspect", "bypass"),
+							stringvalidatorwarning.OneOf("block", "inspect", "bypass"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"oversized_action": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("allow", "block"),
+							stringvalidatorwarning.OneOf("allow", "block"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"compressed_limit": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(10, 64),
+							float64validatorwarning.Between(10, 64),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"uncompressed_limit": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(10, 64),
+							float64validatorwarning.Between(10, 64),
 						},
 						Computed: true,
 						Optional: true,
@@ -163,7 +164,7 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/ca-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/ca-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -181,7 +182,7 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -200,7 +201,7 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/fortiguard-categories", "security/fortiguard-local-categories"),
+								stringvalidatorwarning.OneOf("security/fortiguard-categories", "security/fortiguard-local-categories"),
 							},
 							Computed: true,
 							Optional: true,

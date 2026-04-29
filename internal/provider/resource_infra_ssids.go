@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,6 +49,7 @@ func (r *resourceInfraSsids) Metadata(ctx context.Context, req resource.Metadata
 
 func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FortiAP SSID Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -59,7 +60,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 10),
+					stringvalidatorwarning.LengthBetween(1, 15),
 				},
 				Required: true,
 			},
@@ -69,7 +70,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"broadcast_ssid": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -80,7 +81,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 			},
 			"security_mode": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("wpa2-only-personal", "wpa2-only-enterprise", "wpa3-only-enterprise", "wpa3-sae", "open", "wpa2-only-personal+captive-portal", "captive-portal"),
+					stringvalidatorwarning.OneOf("wpa2-only-personal", "wpa2-only-enterprise", "wpa3-only-enterprise", "wpa3-sae", "open", "wpa2-only-personal+captive-portal", "captive-portal"),
 				},
 				Computed: true,
 				Optional: true,
@@ -102,7 +103,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("auth/user-groups"),
+								stringvalidatorwarning.OneOf("auth/user-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -120,7 +121,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("auth/radius-servers"),
+							stringvalidatorwarning.OneOf("auth/radius-servers"),
 						},
 						Computed: true,
 						Optional: true,
@@ -134,7 +135,7 @@ func (r *resourceInfraSsids) Schema(ctx context.Context, req resource.SchemaRequ
 					Attributes: map[string]schema.Attribute{
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("auth/user-groups"),
+								stringvalidatorwarning.OneOf("auth/user-groups"),
 							},
 							Computed: true,
 							Optional: true,

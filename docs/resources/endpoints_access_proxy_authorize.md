@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoints_access_proxy_authorize Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  ZTNA Access Proxies monitor API for FortiSASE.
 ---
 
 # fortisase_endpoints_access_proxy_authorize (Resource)
 
-
+ZTNA Access Proxies monitor API for FortiSASE.
 
 ## Example Usage
 

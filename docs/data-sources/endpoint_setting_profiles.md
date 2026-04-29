@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_setting_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Settings Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_setting_profiles (Data Source)
 
-
+Settings Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -29,7 +29,15 @@ data "fortisase_endpoint_setting_profiles" "example" {
 
 - `allow_config_backup` (String)
 - `ems_disconnect_password` (String)
+- `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
 - `notify_vpn_issue` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
 - `users_can_disconnect` (String)
+
+<a id="nestedatt--fct_gui"></a>
+### Nested Schema for `fct_gui`
+
+Optional:
+
+- `default_tab` (String)

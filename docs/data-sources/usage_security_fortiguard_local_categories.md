@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_fortiguard_local_categories Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  FortiGuard Local Category Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_fortiguard_local_categories (Data Source)
 
-
+FortiGuard Local Category Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -37,10 +37,11 @@ func (r *datasourceNetworkHostGroups) Metadata(ctx context.Context, req datasour
 
 func (r *datasourceNetworkHostGroups) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Host Group Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
 			},
@@ -53,7 +54,7 @@ func (r *datasourceNetworkHostGroups) Schema(ctx context.Context, req datasource
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 							},
 							Computed: true,
 							Optional: true,

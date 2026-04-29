@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -44,6 +44,7 @@ func (r *resourceSecurityDlpSensors) Metadata(ctx context.Context, req resource.
 
 func (r *resourceSecurityDlpSensors) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Sensor Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -54,20 +55,20 @@ func (r *resourceSecurityDlpSensors) Schema(ctx context.Context, req resource.Sc
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 64),
 				},
 				Required: true,
 			},
 			"entry_matches_to_trigger_sensor": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("any", "all"),
+					stringvalidatorwarning.OneOf("any", "all"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"description": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(255),
+					stringvalidatorwarning.LengthAtMost(255),
 				},
 				Computed: true,
 				Optional: true,
@@ -77,21 +78,21 @@ func (r *resourceSecurityDlpSensors) Schema(ctx context.Context, req resource.Sc
 					Attributes: map[string]schema.Attribute{
 						"dictionary_id": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(1, 32),
+								float64validatorwarning.Between(1, 32),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"dictionary_matches_to_consider_risk": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.AtMost(255),
+								float64validatorwarning.AtMost(255),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -103,6 +104,9 @@ func (r *resourceSecurityDlpSensors) Schema(ctx context.Context, req resource.Sc
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
+									Validators: []validator.String{
+										stringvalidatorwarning.OneOf("security/dlp-dictionaries", "security/dlp-exact-data-matches"),
+									},
 									Computed: true,
 									Optional: true,
 								},

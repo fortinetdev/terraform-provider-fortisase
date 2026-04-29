@@ -3,12 +3,12 @@
 page_title: "fortisase_security_dlp_dictionaries Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  DLP Dictionary Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_dlp_dictionaries (Resource)
 
-
+DLP Dictionary Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,6 +50,7 @@ func (r *resourceSecurityApplicationControlProfile) Metadata(ctx context.Context
 
 func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Application Control Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -63,28 +64,28 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 			},
 			"unknown_application_action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("block", "allow", "monitor"),
+					stringvalidatorwarning.OneOf("block", "allow", "monitor"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"network_protocol_enforcement": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"block_non_default_port_applications": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -95,7 +96,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
 							Optional: true,
@@ -108,7 +109,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/application-categories"),
+										stringvalidatorwarning.OneOf("security/application-categories"),
 									},
 									Computed: true,
 									Optional: true,
@@ -127,7 +128,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("monitor", "allow", "block"),
+								stringvalidatorwarning.OneOf("monitor", "allow", "block"),
 							},
 							Computed: true,
 							Optional: true,
@@ -141,7 +142,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/applications"),
+											stringvalidatorwarning.OneOf("security/applications"),
 										},
 										Computed: true,
 										Optional: true,
@@ -161,7 +162,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("monitor", "allow", "block"),
+								stringvalidatorwarning.OneOf("monitor", "allow", "block"),
 							},
 							Computed: true,
 							Optional: true,
@@ -191,7 +192,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 								Attributes: map[string]schema.Attribute{
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/applications"),
+											stringvalidatorwarning.OneOf("security/applications"),
 										},
 										Computed: true,
 										Optional: true,
@@ -210,7 +211,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 								Attributes: map[string]schema.Attribute{
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/application-categories"),
+											stringvalidatorwarning.OneOf("security/application-categories"),
 										},
 										Computed: true,
 										Optional: true,
@@ -229,7 +230,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 								Attributes: map[string]schema.Attribute{
 									"id": schema.Float64Attribute{
 										Validators: []validator.Float64{
-											float64validator.AtMost(4),
+											float64validatorwarning.AtMost(4),
 										},
 										MarkdownDescription: "Risk level with 0 being lowest and 4 being highest.\nValue at most 4.",
 										Computed:            true,
@@ -250,24 +251,24 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 					Attributes: map[string]schema.Attribute{
 						"port": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(1, 65535),
+								float64validatorwarning.Between(1, 65535),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("monitor", "pass", "block"),
+								stringvalidatorwarning.OneOf("monitor", "pass", "block"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"services": schema.SetAttribute{
 							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									stringvalidator.OneOf("dns", "ftp", "http", "https", "imap", "nntp", "pop3", "smtp", "snmp", "ssh", "telnet"),
+								setvalidatorwarning.ValueStringsAre(
+									stringvalidatorwarning.OneOf("dns", "ftp", "http", "https", "imap", "nntp", "pop3", "smtp", "snmp", "ssh", "telnet"),
 								),
-								setvalidator.SizeAtLeast(1),
+								setvalidatorwarning.SizeAtLeast(1),
 							},
 							Computed:    true,
 							Optional:    true,

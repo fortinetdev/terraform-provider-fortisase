@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -51,6 +51,7 @@ func (r *resourceSecurityDlpFingerprintDatabases) Metadata(ctx context.Context, 
 
 func (r *resourceSecurityDlpFingerprintDatabases) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Fingerprint Database Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -64,56 +65,56 @@ func (r *resourceSecurityDlpFingerprintDatabases) Schema(ctx context.Context, re
 			},
 			"server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(35),
+					stringvalidatorwarning.LengthAtMost(35),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"sensitivity": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("Warning", "Private", "Critical"),
+					stringvalidatorwarning.OneOf("Warning", "Private", "Critical"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"include_subdirectories": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server_directory": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(119),
+					stringvalidatorwarning.LengthAtMost(119),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"file_pattern": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(35),
+					stringvalidatorwarning.LengthAtMost(35),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"remove_deleted_file_fingerprints": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"keep_modified": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"scan_on_creation": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -122,35 +123,35 @@ func (r *resourceSecurityDlpFingerprintDatabases) Schema(ctx context.Context, re
 				Attributes: map[string]schema.Attribute{
 					"period": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("daily", "weekly", "monthly"),
+							stringvalidatorwarning.OneOf("daily", "weekly", "monthly"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"sync_hour": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.AtMost(23),
+							float64validatorwarning.AtMost(23),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"sync_minute": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.AtMost(59),
+							float64validatorwarning.AtMost(59),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"weekday": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"),
+							stringvalidatorwarning.OneOf("sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"sync_day_of_the_month": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(1, 31),
+							float64validatorwarning.Between(1, 31),
 						},
 						Computed: true,
 						Optional: true,
@@ -163,7 +164,7 @@ func (r *resourceSecurityDlpFingerprintDatabases) Schema(ctx context.Context, re
 				Attributes: map[string]schema.Attribute{
 					"username": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.LengthAtMost(35),
+							stringvalidatorwarning.LengthAtMost(35),
 						},
 						Computed: true,
 						Optional: true,

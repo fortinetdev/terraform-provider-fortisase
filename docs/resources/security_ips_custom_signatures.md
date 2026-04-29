@@ -3,12 +3,12 @@
 page_title: "fortisase_security_ips_custom_signatures Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  IPS Custom Signature Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_ips_custom_signatures (Resource)
 
-
+IPS Custom Signature Resource API V2 for FortiSASE.
 
 ## Example Usage
 

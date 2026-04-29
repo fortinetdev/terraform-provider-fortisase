@@ -39,6 +39,7 @@ func (r *datasourceNetworkBasicInternetServices) Metadata(ctx context.Context, r
 
 func (r *datasourceNetworkBasicInternetServices) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Internet Service Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,

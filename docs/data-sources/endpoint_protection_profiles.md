@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_protection_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Protection Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_protection_profiles (Data Source)
 
-
+Protection Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

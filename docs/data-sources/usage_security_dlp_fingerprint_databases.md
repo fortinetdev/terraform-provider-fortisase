@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_dlp_fingerprint_databases Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  DLP Fingerprint Database Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_dlp_fingerprint_databases (Data Source)
 
-
+DLP Fingerprint Database Resource API V2 for FortiSASE.
 
 ## Example Usage
 

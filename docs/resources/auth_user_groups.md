@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_user_groups Resource - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  User Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_user_groups (Resource)
 
-
+User Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -68,8 +68,11 @@ resource "fortisase_auth_user_groups" "user_group" {
 ### Optional
 
 - `group_type` (String)
+- `local_user` (String)
 - `local_users` (Attributes List) (see [below for nested schema](#nestedatt--local_users))
 - `remote_user_groups` (Attributes List) (see [below for nested schema](#nestedatt--remote_user_groups))
+- `scim_groups` (Attributes List) (see [below for nested schema](#nestedatt--scim_groups))
+- `scim_users` (Attributes List) (see [below for nested schema](#nestedatt--scim_users))
 
 ### Read-Only
 
@@ -99,6 +102,23 @@ Optional:
 
 - `datasource` (String)
 - `primary_key` (String)
+
+
+
+<a id="nestedatt--scim_groups"></a>
+### Nested Schema for `scim_groups`
+
+Optional:
+
+- `name` (String)
+
+
+<a id="nestedatt--scim_users"></a>
+### Nested Schema for `scim_users`
+
+Optional:
+
+- `name` (String)
 
 ## Import
 

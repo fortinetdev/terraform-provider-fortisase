@@ -3,12 +3,12 @@
 page_title: "fortisase_security_endpoint_to_endpoint_policies_clone Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_endpoint_to_endpoint_policies_clone (Resource)
 
-
+Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

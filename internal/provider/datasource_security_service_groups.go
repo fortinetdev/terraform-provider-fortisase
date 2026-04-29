@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -38,10 +38,11 @@ func (r *datasourceSecurityServiceGroups) Metadata(ctx context.Context, req data
 
 func (r *datasourceSecurityServiceGroups) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Service Group Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(79),
+					stringvalidatorwarning.LengthAtMost(79),
 				},
 				Required: true,
 			},
@@ -58,7 +59,7 @@ func (r *datasourceSecurityServiceGroups) Schema(ctx context.Context, req dataso
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/services", "security/service-groups"),
+								stringvalidatorwarning.OneOf("security/services", "security/service-groups"),
 							},
 							Computed: true,
 							Optional: true,

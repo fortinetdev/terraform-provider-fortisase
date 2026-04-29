@@ -3,12 +3,12 @@
 page_title: "fortisase_security_application_categories Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Application Category Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_application_categories (Data Source)
 
-
+Application Category Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -33,10 +33,10 @@ type datasourceSecurityServicesModel struct {
 	Category       types.String                                   `tfsdk:"category"`
 	Protocol       types.String                                   `tfsdk:"protocol"`
 	ProtocolNumber types.Float64                                  `tfsdk:"protocol_number"`
-	IcmpType       types.Float64                                  `tfsdk:"icmp_type"`
 	UdpPortrange   []datasourceSecurityServicesUdpPortrangeModel  `tfsdk:"udp_portrange"`
 	SctpPortrange  []datasourceSecurityServicesSctpPortrangeModel `tfsdk:"sctp_portrange"`
 	TcpPortrange   []datasourceSecurityServicesTcpPortrangeModel  `tfsdk:"tcp_portrange"`
+	IcmpType       types.Float64                                  `tfsdk:"icmp_type"`
 }
 
 func (r *datasourceSecurityServices) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -45,10 +45,11 @@ func (r *datasourceSecurityServices) Metadata(ctx context.Context, req datasourc
 
 func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Service Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
 			},
@@ -58,31 +59,30 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 			},
 			"category": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("Authentication", "Email", "File Access", "General", "Network Services", "Remote Access", "Tunneling", "Uncategorized", "VoIP, Messaging & Other Applications", "Web Access", "Web Proxy"),
+					stringvalidatorwarning.OneOf("Authentication", "Email", "File Access", "General", "Network Services", "Remote Access", "Tunneling", "Uncategorized", "VoIP, Messaging & Other Applications", "Web Access", "Web Proxy"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"protocol": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("TCP/UDP/SCTP"),
+					stringvalidatorwarning.OneOf("TCP/UDP/SCTP", "IP"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"protocol_number": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(254),
+					float64validatorwarning.AtMost(254),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"icmp_type": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(4294967295),
+					float64validatorwarning.AtMost(4294967295),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"udp_portrange": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -92,14 +92,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -112,14 +112,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -141,14 +141,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -161,14 +161,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -190,14 +190,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -210,14 +210,14 @@ func (r *datasourceSecurityServices) Schema(ctx context.Context, req datasource.
 							Attributes: map[string]schema.Attribute{
 								"low": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"high": schema.Float64Attribute{
 									Validators: []validator.Float64{
-										float64validator.AtMost(65535),
+										float64validatorwarning.AtMost(65535),
 									},
 									Computed: true,
 									Optional: true,
@@ -314,10 +314,6 @@ func (m *datasourceSecurityServicesModel) refreshSecurityServices(ctx context.Co
 		m.ProtocolNumber = parseFloat64Value(v)
 	}
 
-	if v, ok := o["icmpType"]; ok {
-		m.IcmpType = parseFloat64Value(v)
-	}
-
 	if v, ok := o["udpPortrange"]; ok {
 		m.UdpPortrange = m.flattenSecurityServicesUdpPortrangeList(ctx, v, &diags)
 	}
@@ -328,6 +324,10 @@ func (m *datasourceSecurityServicesModel) refreshSecurityServices(ctx context.Co
 
 	if v, ok := o["tcpPortrange"]; ok {
 		m.TcpPortrange = m.flattenSecurityServicesTcpPortrangeList(ctx, v, &diags)
+	}
+
+	if v, ok := o["icmpType"]; ok {
+		m.IcmpType = parseFloat64Value(v)
 	}
 
 	return diags

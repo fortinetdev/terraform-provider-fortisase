@@ -36,6 +36,7 @@ func (r *datasourceEndpointGroupAdUserProfiles) Metadata(ctx context.Context, re
 
 func (r *datasourceEndpointGroupAdUserProfiles) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Group & AD Users Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"ad_user_ids": schema.SetAttribute{
 				Computed:    true,

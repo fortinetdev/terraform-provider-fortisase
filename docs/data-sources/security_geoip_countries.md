@@ -3,12 +3,12 @@
 page_title: "fortisase_security_geoip_countries Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  GeoIP Country Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_geoip_countries (Data Source)
 
-
+GeoIP Country Resource API V2 for FortiSASE.
 
 ## Example Usage
 

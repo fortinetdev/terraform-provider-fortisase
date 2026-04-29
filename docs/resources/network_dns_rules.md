@@ -3,12 +3,12 @@
 page_title: "fortisase_network_dns_rules Resource - fortisase"
 subcategory: "Network"
 description: |-
-  
+  DNS Rule Resource API V2 for FortiSASE.
 ---
 
 # fortisase_network_dns_rules (Resource)
 
-
+DNS Rule Resource API V2 for FortiSASE.
 
 ## Example Usage
 

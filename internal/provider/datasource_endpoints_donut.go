@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -39,6 +39,7 @@ func (r *datasourceEndpointsDonut) Metadata(ctx context.Context, req datasource.
 
 func (r *datasourceEndpointsDonut) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Endpoint management monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"token": schema.StringAttribute{
 				Computed: true,
@@ -54,7 +55,7 @@ func (r *datasourceEndpointsDonut) Schema(ctx context.Context, req datasource.Sc
 			},
 			"donut_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("connection", "management"),
+					stringvalidatorwarning.OneOf("connection", "management", "activity"),
 				},
 				Required: true,
 			},

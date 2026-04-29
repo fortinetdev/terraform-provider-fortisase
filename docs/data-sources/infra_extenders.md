@@ -3,12 +3,12 @@
 page_title: "fortisase_infra_extenders Data Source - fortisase"
 subcategory: "Others"
 description: |-
-  
+  Edge Device (Extender) Resource API V2 for FortiSASE.
 ---
 
 # fortisase_infra_extenders (Data Source)
 
-
+Edge Device (Extender) Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_dem_spa_applications Data Source - fortisase"
 subcategory: "Others"
 description: |-
-  
+  DEM SPA Application Resource API V2 for FortiSASE.
 ---
 
 # fortisase_dem_spa_applications (Data Source)
 
-
+DEM SPA Application Resource API V2 for FortiSASE.
 
 ## Example Usage
 

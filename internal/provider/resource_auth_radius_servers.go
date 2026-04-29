@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -46,6 +46,7 @@ func (r *resourceAuthRadiusServers) Metadata(ctx context.Context, req resource.M
 
 func (r *resourceAuthRadiusServers) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "RADIUS Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -56,27 +57,27 @@ func (r *resourceAuthRadiusServers) Schema(ctx context.Context, req resource.Sch
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
 			"auth_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("auto", "pap", "chap", "ms_chap", "ms_chap_v2"),
+					stringvalidatorwarning.OneOf("auto", "pap", "chap", "ms_chap", "ms_chap_v2"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"primary_server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"primary_secret": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -88,14 +89,14 @@ func (r *resourceAuthRadiusServers) Schema(ctx context.Context, req resource.Sch
 			},
 			"secondary_server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"secondary_secret": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Sensitive: true,
 				Computed:  true,

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -43,6 +43,7 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Metadata(ctx context.C
 
 func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Secure Private Access Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -53,7 +54,7 @@ func (r *resourcePrivateAccessServiceConnectionsAuth2Edl) Schema(ctx context.Con
 			},
 			"auth": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("pki", "psk"),
+					stringvalidatorwarning.OneOf("pki", "psk"),
 				},
 				MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
 				Computed:            true,

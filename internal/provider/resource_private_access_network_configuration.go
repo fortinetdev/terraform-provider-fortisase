@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -47,6 +47,7 @@ func (r *resourcePrivateAccessNetworkConfiguration) Metadata(ctx context.Context
 
 func (r *resourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Secure Private Access Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -82,14 +83,14 @@ func (r *resourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context, 
 			},
 			"config_state": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
+					stringvalidatorwarning.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
 				MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
 				Computed:            true,
 			},
 			"bgp_design": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("overlay", "loopback"),
+					stringvalidatorwarning.OneOf("overlay", "loopback"),
 				},
 				MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
 				Computed:            true,

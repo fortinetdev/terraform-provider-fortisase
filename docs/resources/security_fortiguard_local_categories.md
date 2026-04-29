@@ -3,12 +3,12 @@
 page_title: "fortisase_security_fortiguard_local_categories Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  FortiGuard Local Category Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_fortiguard_local_categories (Resource)
 
-
+FortiGuard Local Category Resource API V2 for FortiSASE.
 
 ## Example Usage
 

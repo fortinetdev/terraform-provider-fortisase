@@ -3,12 +3,12 @@
 page_title: "fortisase_security_web_filter_profile Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Web Filter Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_web_filter_profile (Resource)
 
-
+Web Filter Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

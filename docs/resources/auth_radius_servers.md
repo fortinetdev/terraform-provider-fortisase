@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_radius_servers Resource - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  RADIUS Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_radius_servers (Resource)
 
-
+RADIUS Resource API V2 for FortiSASE.
 
 ## Example Usage
 

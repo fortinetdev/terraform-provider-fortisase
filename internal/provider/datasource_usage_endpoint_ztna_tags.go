@@ -36,6 +36,8 @@ func (r *datasourceUsageEndpointZtnaTags) Metadata(ctx context.Context, req data
 
 func (r *datasourceUsageEndpointZtnaTags) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.",
+		DeprecationMessage:  "All fortisase_usage_xxx data sources are deprecated and will be removed in version 1.4.0. If you still require these data sources, please contact us by opening a GitHub issue.",
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Computed: true,
@@ -66,6 +68,19 @@ func (r *datasourceUsageEndpointZtnaTags) Configure(ctx context.Context, req dat
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	support_versions := map[string][]string{
+		"EMS": {"7.2"},
+	}
+	ok, err := checkVersionMatch(client.Client, support_versions)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"FortiSASE EMS version do not support this resource.",
+			fmt.Sprintf("%v", err),
 		)
 
 		return

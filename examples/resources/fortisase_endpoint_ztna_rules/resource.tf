@@ -3,6 +3,7 @@ resource "fortisase_endpoint_ztna_tags" "ztna_tag" {
   primary_key = "Compliant"
 }
 
+# This resource is only available for EMS 7.2
 resource "fortisase_endpoint_ztna_rules" "ztna_rule" {
   primary_key = "Compliant Endpoints"
   status      = "enable"

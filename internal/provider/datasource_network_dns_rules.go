@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,10 +42,11 @@ func (r *datasourceNetworkDnsRules) Metadata(ctx context.Context, req datasource
 
 func (r *datasourceNetworkDnsRules) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DNS Rule Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(30),
+					stringvalidatorwarning.LengthAtMost(30),
 				},
 				Required: true,
 			},
@@ -59,7 +60,7 @@ func (r *datasourceNetworkDnsRules) Schema(ctx context.Context, req datasource.S
 			},
 			"domains": schema.SetAttribute{
 				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
+					setvalidatorwarning.SizeAtLeast(1),
 				},
 				Computed:    true,
 				Optional:    true,

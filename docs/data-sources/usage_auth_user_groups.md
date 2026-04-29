@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_auth_user_groups Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  User Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_auth_user_groups (Data Source)
 
-
+User Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

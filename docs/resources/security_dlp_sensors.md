@@ -3,12 +3,12 @@
 page_title: "fortisase_security_dlp_sensors Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  DLP Sensor Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_dlp_sensors (Resource)
 
-
+DLP Sensor Resource API V2 for FortiSASE.
 
 ## Example Usage
 

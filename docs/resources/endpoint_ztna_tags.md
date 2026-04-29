@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_ztna_tags Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
 ---
 
 # fortisase_endpoint_ztna_tags (Resource)
 
-
+ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_infra_secure_web_gateway_supplementary_data Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  Secure Web Gateway Supplementary Data Resource API V2 for FortiSASE.
 ---
 
 # fortisase_infra_secure_web_gateway_supplementary_data (Resource)
 
-
+Secure Web Gateway Supplementary Data Resource API V2 for FortiSASE.
 
 
 

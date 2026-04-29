@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,30 +40,31 @@ func (r *datasourceAuthUsers) Metadata(ctx context.Context, req datasource.Metad
 
 func (r *datasourceAuthUsers) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "User Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 64),
 				},
 				Required: true,
 			},
 			"auth_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("password", "ldap"),
+					stringvalidatorwarning.OneOf("password", "ldap"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"status": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"email": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -76,7 +77,7 @@ func (r *datasourceAuthUsers) Schema(ctx context.Context, req datasource.SchemaR
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("auth/ldap-servers"),
+							stringvalidatorwarning.OneOf("auth/ldap-servers"),
 						},
 						Computed: true,
 						Optional: true,

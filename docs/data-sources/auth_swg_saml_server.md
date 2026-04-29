@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_swg_saml_server Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  SWG User SSO Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_swg_saml_server (Data Source)
 
-
+SWG User SSO Resource API V2 for FortiSASE.
 
 ## Example Usage
 

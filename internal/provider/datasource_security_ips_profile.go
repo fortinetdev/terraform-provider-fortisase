@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -44,13 +44,14 @@ func (r *datasourceSecurityIpsProfile) Metadata(ctx context.Context, req datasou
 
 func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "IPS Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
 			},
 			"profile_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("recommended", "critical", "monitor", "custom"),
+					stringvalidatorwarning.OneOf("recommended", "critical", "monitor", "custom"),
 				},
 				Computed: true,
 				Optional: true,
@@ -61,7 +62,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 			},
 			"botnet_scanning": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("block", "disable", "monitor"),
+					stringvalidatorwarning.OneOf("block", "disable", "monitor"),
 				},
 				Computed: true,
 				Optional: true,
@@ -76,7 +77,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -87,7 +88,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
 							Optional: true,
@@ -101,7 +102,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/ips-custom-signatures"),
+											stringvalidatorwarning.OneOf("security/ips-custom-signatures"),
 										},
 										Computed: true,
 										Optional: true,
@@ -146,21 +147,21 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 						},
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable", "default"),
+								stringvalidatorwarning.OneOf("enable", "disable", "default"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"log": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"log_packet": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -171,7 +172,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("pass", "block", "default"),
+								stringvalidatorwarning.OneOf("pass", "block", "default"),
 							},
 							Computed: true,
 							Optional: true,
@@ -182,14 +183,14 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 						},
 						"default_action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("all", "pass", "block"),
+								stringvalidatorwarning.OneOf("all", "pass", "block"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"default_status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("all", "enable", "disable"),
+								stringvalidatorwarning.OneOf("all", "enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -203,7 +204,7 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/ips-rule", "security/ips-custom-signatures"),
+											stringvalidatorwarning.OneOf("security/ips-rule", "security/ips-custom-signatures"),
 										},
 										Computed: true,
 										Optional: true,

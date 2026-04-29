@@ -36,6 +36,8 @@ func (r *datasourceUsageSecurityDlpFilePatterns) Metadata(ctx context.Context, r
 
 func (r *datasourceUsageSecurityDlpFilePatterns) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP File Pattern Resource API V2 for FortiSASE.",
+		DeprecationMessage:  "All fortisase_usage_xxx data sources are deprecated and will be removed in version 1.4.0. If you still require these data sources, please contact us by opening a GitHub issue.",
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Computed: true,

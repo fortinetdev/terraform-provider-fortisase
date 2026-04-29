@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -43,6 +43,7 @@ func (r *resourceSecurityDlpProfile) Metadata(ctx context.Context, req resource.
 
 func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -56,7 +57,7 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -71,43 +72,43 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 						},
 						"datasource_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("sensors", "mpip-label", "fingerprint", "none"),
+								stringvalidatorwarning.OneOf("sensors", "mpip-label", "fingerprint", "none"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"severity": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("critical", "informational", "low", "medium", "high"),
+								stringvalidatorwarning.OneOf("critical", "informational", "low", "medium", "high"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"dlp_rule_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("file", "message"),
+								stringvalidatorwarning.OneOf("file", "message"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"file_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("all", "specify"),
+								stringvalidatorwarning.OneOf("all", "specify"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"protocols": schema.SetAttribute{
 							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									stringvalidator.OneOf("smtp", "pop3", "imap", "http-get", "http-post", "ftp", "nntp", "cifs"),
+								setvalidatorwarning.ValueStringsAre(
+									stringvalidatorwarning.OneOf("smtp", "pop3", "imap", "http-get", "http-post", "ftp", "nntp", "cifs"),
 								),
 							},
 							Computed:    true,
@@ -116,10 +117,10 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 						},
 						"sensitivities": schema.SetAttribute{
 							Validators: []validator.Set{
-								setvalidator.ValueStringsAre(
-									stringvalidator.OneOf("Warning", "Private", "Critical"),
+								setvalidatorwarning.ValueStringsAre(
+									stringvalidatorwarning.OneOf("Warning", "Private", "Critical"),
 								),
-								setvalidator.SizeAtLeast(1),
+								setvalidatorwarning.SizeAtLeast(1),
 							},
 							Computed:    true,
 							Optional:    true,
@@ -134,7 +135,7 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("security/dlp-sensors"),
+											stringvalidatorwarning.OneOf("security/dlp-sensors"),
 										},
 										Computed: true,
 										Optional: true,
@@ -152,7 +153,7 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/dlp-dictionaries"),
+										stringvalidatorwarning.OneOf("security/dlp-dictionaries"),
 									},
 									Computed: true,
 									Optional: true,
@@ -169,7 +170,7 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/dlp-file-patterns"),
+										stringvalidatorwarning.OneOf("security/dlp-file-patterns"),
 									},
 									Computed: true,
 									Optional: true,

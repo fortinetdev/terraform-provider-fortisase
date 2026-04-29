@@ -39,6 +39,7 @@ func (r *datasourceSecurityPkiUsers) Metadata(ctx context.Context, req datasourc
 
 func (r *datasourceSecurityPkiUsers) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "PKI User Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				MarkdownDescription: "Primary Key of PKI User.",

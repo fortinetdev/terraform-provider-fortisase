@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -43,23 +43,24 @@ func (r *datasourceNetworkHosts) Metadata(ctx context.Context, req datasource.Me
 
 func (r *datasourceNetworkHosts) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Host Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
 			},
 			"type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("ipmask", "iprange", "fqdn", "geography"),
+					stringvalidatorwarning.OneOf("ipmask", "iprange", "fqdn", "geography"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"location": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal", "external", "private-access", "unspecified"),
+					stringvalidatorwarning.OneOf("internal", "external", "private-access", "unspecified"),
 				},
 				Computed: true,
 				Optional: true,
@@ -78,14 +79,14 @@ func (r *datasourceNetworkHosts) Schema(ctx context.Context, req datasource.Sche
 			},
 			"fqdn": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 255),
+					stringvalidatorwarning.LengthBetween(1, 255),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"country_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 2),
+					stringvalidatorwarning.LengthBetween(2, 2),
 				},
 				Computed: true,
 				Optional: true,

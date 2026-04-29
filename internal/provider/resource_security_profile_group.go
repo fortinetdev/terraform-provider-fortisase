@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,6 +50,7 @@ func (r *resourceSecurityProfileGroup) Metadata(ctx context.Context, req resourc
 
 func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Profile Group Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -60,13 +61,13 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -76,7 +77,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -89,7 +90,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/antivirus-profiles"),
+									stringvalidatorwarning.OneOf("security/antivirus-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -106,7 +107,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -119,7 +120,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/web-filter-profiles"),
+									stringvalidatorwarning.OneOf("security/web-filter-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -136,7 +137,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -149,7 +150,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/video-filter-profiles"),
+									stringvalidatorwarning.OneOf("security/video-filter-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -166,7 +167,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -179,7 +180,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/dns-filter-profiles"),
+									stringvalidatorwarning.OneOf("security/dns-filter-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -196,7 +197,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -209,7 +210,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/application-control-profiles"),
+									stringvalidatorwarning.OneOf("security/application-control-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -226,7 +227,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -239,7 +240,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/file-filter-profiles"),
+									stringvalidatorwarning.OneOf("security/file-filter-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -256,7 +257,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -269,7 +270,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/dlp-profiles"),
+									stringvalidatorwarning.OneOf("security/dlp-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -286,7 +287,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -299,7 +300,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/ips-profiles"),
+									stringvalidatorwarning.OneOf("security/ips-profiles"),
 								},
 								Computed: true,
 								Optional: true,
@@ -316,7 +317,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable"),
+							stringvalidatorwarning.OneOf("enable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -329,7 +330,7 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/ssl-ssh-profiles"),
+									stringvalidatorwarning.OneOf("security/ssl-ssh-profiles"),
 								},
 								Computed: true,
 								Optional: true,

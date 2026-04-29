@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -49,44 +49,45 @@ func (r *datasourceAuthVpnSamlServer) Metadata(ctx context.Context, req datasour
 
 func (r *datasourceAuthVpnSamlServer) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "VPN User SSO Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("$sase-global"),
+					stringvalidatorwarning.OneOf("$sase-global"),
 				},
 				Required: true,
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_sign_on_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_log_out_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -97,7 +98,7 @@ func (r *datasourceAuthVpnSamlServer) Schema(ctx context.Context, req datasource
 			},
 			"digest_method": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("sha256", "sha1"),
+					stringvalidatorwarning.OneOf("sha256", "sha1"),
 				},
 				Computed: true,
 				Optional: true,
@@ -112,14 +113,14 @@ func (r *datasourceAuthVpnSamlServer) Schema(ctx context.Context, req datasource
 			},
 			"domain_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"application_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -132,7 +133,7 @@ func (r *datasourceAuthVpnSamlServer) Schema(ctx context.Context, req datasource
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/local-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -149,7 +150,7 @@ func (r *datasourceAuthVpnSamlServer) Schema(ctx context.Context, req datasource
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/remote-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
 						Computed: true,
 						Optional: true,

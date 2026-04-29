@@ -3,12 +3,12 @@
 page_title: "fortisase_security_botnet_domains_stat Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Botnet Domains monitor API for FortiSASE.
 ---
 
 # fortisase_security_botnet_domains_stat (Data Source)
 
-
+Botnet Domains monitor API for FortiSASE.
 
 ## Example Usage
 

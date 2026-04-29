@@ -3,6 +3,7 @@ package forticlient
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,8 +23,14 @@ type MultValues []MultValue
 
 // FortiSDKClient describes the global FortiSASE plugin client instance
 type FortiSDKClient struct {
-	Config  config.Config
-	Retries int
+	Config    config.Config
+	FSSStatus *FSSStatus
+	Retries   int
+}
+
+// FortiSASE system information
+type FSSStatus struct {
+	EMSVersion string
 }
 
 // ExtractString extracts strings from result and put them into a string array,
@@ -53,7 +60,16 @@ func NewClient(auth *auth.Auth, client *http.Client) (*FortiSDKClient, error) {
 
 	c.Config.Auth = auth
 	c.Config.HTTPCon = client
-	c.GenToken()
+	err := c.GenToken()
+	if err != nil {
+		err = fmt.Errorf("Generate token failed: %v", err)
+		return c, err
+	}
+
+	err = c.GetFSSStatus()
+	if err != nil {
+		log.Printf("Could not get EMS version: %v", err)
+	}
 
 	return c, nil
 }
@@ -82,6 +98,29 @@ func (c *FortiSDKClient) GenToken() error {
 		return err
 	}
 	return nil
+}
+
+// Get the FortiSASE status
+// If errors are encountered, it returns the error.
+func (c *FortiSDKClient) GetFSSStatus() error {
+	fssstatus := &FSSStatus{}
+
+	// Get EMS version of FortiSASE
+	base_url := "https://portal.prod.fortisase.com"
+	req := c.NewRequest("GET", fmt.Sprintf("%s/resource-api/v1/admin/config?include_ems_version=true", base_url), nil, nil)
+	ems_version, err := req.GetEMSVersion()
+	if err != nil {
+		err = fmt.Errorf("Could not get EMS version: %v", err)
+		log.Printf("%v", err)
+	} else if ems_version == "" {
+		err = fmt.Errorf("EMS version is empty.")
+		log.Printf("%v", err)
+	} else {
+		fssstatus.EMSVersion = ems_version
+		c.FSSStatus = fssstatus
+	}
+
+	return err
 }
 
 // CheckUP checks whether username and password is valid

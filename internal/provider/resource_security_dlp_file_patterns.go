@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -42,6 +42,7 @@ func (r *resourceSecurityDlpFilePatterns) Metadata(ctx context.Context, req reso
 
 func (r *resourceSecurityDlpFilePatterns) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP File Pattern Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -55,7 +56,7 @@ func (r *resourceSecurityDlpFilePatterns) Schema(ctx context.Context, req resour
 			},
 			"tag": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
+					stringvalidatorwarning.LengthBetween(1, 63),
 				},
 				Computed: true,
 				Optional: true,
@@ -65,21 +66,21 @@ func (r *resourceSecurityDlpFilePatterns) Schema(ctx context.Context, req resour
 					Attributes: map[string]schema.Attribute{
 						"pattern": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidatorwarning.LengthAtLeast(1),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"filter_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("type", "pattern"),
+								stringvalidatorwarning.OneOf("type", "pattern"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"file_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("7z", "arj", "cab", "lzh", "rar", "tar", "zip", "bzip", "gzip", "bzip2", "xz", "bat", "uue", "mime", "base64", "binhex", "elf", "exe", "hta", "html", "jad", "class", "cod", "javascript", "msoffice", "msofficex", "fsg", "upx", "petite", "aspack", "sis", "hlp", "activemime", "jpeg", "gif", "tiff", "png", "bmp", "unknown", "mpeg", "mov", "mp3", "wma", "wav", "pdf", "avi", "rm", "torrent", "hibun", "msi", "mach-o", "dmg", ".net", "xar", "chm", "iso", "crx", "flac"),
+								stringvalidatorwarning.OneOf("7z", "arj", "cab", "lzh", "rar", "tar", "zip", "bzip", "gzip", "bzip2", "xz", "bat", "uue", "mime", "base64", "binhex", "elf", "exe", "hta", "html", "jad", "class", "cod", "javascript", "msoffice", "msofficex", "fsg", "upx", "petite", "aspack", "sis", "hlp", "activemime", "jpeg", "gif", "tiff", "png", "bmp", "unknown", "mpeg", "mov", "mp3", "wma", "wav", "pdf", "avi", "rm", "torrent", "hibun", "msi", "mach-o", "dmg", ".net", "xar", "chm", "iso", "crx", "flac"),
 							},
 							Computed: true,
 							Optional: true,

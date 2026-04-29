@@ -3,12 +3,12 @@
 page_title: "fortisase_network_implicit_dns_rules Resource - fortisase"
 subcategory: "Network"
 description: |-
-  
+  Implicit DNS Rule Resource API V2 for FortiSASE.
 ---
 
 # fortisase_network_implicit_dns_rules (Resource)
 
-
+Implicit DNS Rule Resource API V2 for FortiSASE.
 
 ## Example Usage
 

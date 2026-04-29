@@ -43,6 +43,7 @@ func (r *resourceSecurityPkiUsers) Metadata(ctx context.Context, req resource.Me
 
 func (r *resourceSecurityPkiUsers) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "PKI User Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

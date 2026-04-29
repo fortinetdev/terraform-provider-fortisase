@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoints_groups Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Endpoint Domain monitor API for FortiSASE.
 ---
 
 # fortisase_endpoints_groups (Data Source)
 
-
+Endpoint Domain monitor API for FortiSASE.
 
 ## Example Usage
 

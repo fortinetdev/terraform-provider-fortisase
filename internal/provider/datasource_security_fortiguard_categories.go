@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -41,6 +41,7 @@ func (r *datasourceSecurityFortiguardCategories) Metadata(ctx context.Context, r
 
 func (r *datasourceSecurityFortiguardCategories) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FortiGuard Category Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
@@ -55,15 +56,15 @@ func (r *datasourceSecurityFortiguardCategories) Schema(ctx context.Context, req
 			},
 			"rating": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("G", "PG-13", "R", "security-risk"),
+					stringvalidatorwarning.OneOf("G", "PG-13", "R", "security-risk"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"blocked_in_ratings": schema.SetAttribute{
 				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf("G", "PG-13", "R"),
+					setvalidatorwarning.ValueStringsAre(
+						stringvalidatorwarning.OneOf("G", "PG-13", "R"),
 					),
 				},
 				Computed:    true,

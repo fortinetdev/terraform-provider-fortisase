@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_ztna_rules Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
 ---
 
 # fortisase_endpoint_ztna_rules (Resource)
 
-
+ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
 
 ## Example Usage
 
@@ -18,6 +18,7 @@ resource "fortisase_endpoint_ztna_tags" "ztna_tag" {
   primary_key = "Compliant"
 }
 
+# This resource is only available for EMS 7.2
 resource "fortisase_endpoint_ztna_rules" "ztna_rule" {
   primary_key = "Compliant Endpoints"
   status      = "enable"
@@ -110,8 +111,8 @@ resource "fortisase_endpoint_ztna_rules" "ztna_rule" {
 ### Optional
 
 - `comments` (String)
-- `logic` (Attributes) The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. (see [below for nested schema](#nestedatt--logic))
-- `rules` (Attributes List) The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. (see [below for nested schema](#nestedatt--rules))
+- `logic` (Attributes) The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. This resource is restricted to EMS version: 7.2. (see [below for nested schema](#nestedatt--logic))
+- `rules` (Attributes List) The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. This resource is restricted to EMS version: 7.2. (see [below for nested schema](#nestedatt--rules))
 - `status` (String)
 - `tag` (Attributes) (see [below for nested schema](#nestedatt--tag))
 

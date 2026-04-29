@@ -16,7 +16,7 @@ The FortiSASE provider is used to interact with the resources supported by Forti
 terraform {
   required_providers {
     fortisase = {
-      version = "~> 1.0.0"
+      version = "~> 1.0"
       source  = "fortinet.com/fortinetdev/fortisase"
     }
   }

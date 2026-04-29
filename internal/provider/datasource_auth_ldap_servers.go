@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -56,44 +56,45 @@ func (r *datasourceAuthLdapServers) Metadata(ctx context.Context, req datasource
 
 func (r *datasourceAuthLdapServers) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "LDAP Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
 			"server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
+					stringvalidatorwarning.LengthBetween(1, 63),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"port": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 65535),
+					float64validatorwarning.Between(1, 65535),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"cnid": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 20),
+					stringvalidatorwarning.LengthBetween(1, 20),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"dn": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 511),
+					stringvalidatorwarning.LengthBetween(1, 511),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"bind_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("simple", "anonymous", "regular"),
+					stringvalidatorwarning.OneOf("simple", "anonymous", "regular"),
 				},
 				Computed: true,
 				Optional: true,
@@ -108,35 +109,35 @@ func (r *datasourceAuthLdapServers) Schema(ctx context.Context, req datasource.S
 			},
 			"group_member_check": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("user-attr", "group-object", "posix-group-object"),
+					stringvalidatorwarning.OneOf("user-attr", "group-object", "posix-group-object"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"member_attribute": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_filter": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(2047),
+					stringvalidatorwarning.LengthAtMost(2047),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_search_base": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(511),
+					stringvalidatorwarning.LengthAtMost(511),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_object_filter": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(2047),
+					stringvalidatorwarning.LengthAtMost(2047),
 				},
 				Computed: true,
 				Optional: true,
@@ -155,14 +156,14 @@ func (r *datasourceAuthLdapServers) Schema(ctx context.Context, req datasource.S
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 64),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 128),
+					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Computed: true,
 				Optional: true,
@@ -175,7 +176,7 @@ func (r *datasourceAuthLdapServers) Schema(ctx context.Context, req datasource.S
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/ca-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/remote-ca-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -192,7 +193,7 @@ func (r *datasourceAuthLdapServers) Schema(ctx context.Context, req datasource.S
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/local-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
 						Optional: true,

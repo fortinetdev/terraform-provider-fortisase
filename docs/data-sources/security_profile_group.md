@@ -3,12 +3,12 @@
 page_title: "fortisase_security_profile_group Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Profile Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_profile_group (Data Source)
 
-
+Profile Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

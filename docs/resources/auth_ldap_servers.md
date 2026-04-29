@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_ldap_servers Resource - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  LDAP Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_ldap_servers (Resource)
 
-
+LDAP Resource API V2 for FortiSASE.
 
 ## Example Usage
 

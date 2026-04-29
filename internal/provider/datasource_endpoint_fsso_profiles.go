@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,6 +42,7 @@ func (r *datasourceEndpointFssoProfiles) Metadata(ctx context.Context, req datas
 
 func (r *datasourceEndpointFssoProfiles) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FSSO Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"enabled": schema.BoolAttribute{
 				Computed: true,
@@ -49,7 +50,7 @@ func (r *datasourceEndpointFssoProfiles) Schema(ctx context.Context, req datasou
 			},
 			"prefer_entra_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -60,7 +61,7 @@ func (r *datasourceEndpointFssoProfiles) Schema(ctx context.Context, req datasou
 			},
 			"port": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(65535),
+					float64validatorwarning.AtMost(65535),
 				},
 				Computed: true,
 				Optional: true,

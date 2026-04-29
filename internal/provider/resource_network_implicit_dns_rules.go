@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -46,6 +46,7 @@ func (r *resourceNetworkImplicitDnsRules) Metadata(ctx context.Context, req reso
 
 func (r *resourceNetworkImplicitDnsRules) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Implicit DNS Rule Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -56,13 +57,13 @@ func (r *resourceNetworkImplicitDnsRules) Schema(ctx context.Context, req resour
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("vpn", "other", "implicit_all"),
+					stringvalidatorwarning.OneOf("vpn", "other", "implicit_all"),
 				},
 				Required: true,
 			},
 			"dns_server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("fortiguard", "google", "quad9", "cloudflare", "endpoint", "custom"),
+					stringvalidatorwarning.OneOf("fortiguard", "google", "quad9", "cloudflare", "endpoint", "custom"),
 				},
 				Computed: true,
 				Optional: true,
@@ -77,7 +78,7 @@ func (r *resourceNetworkImplicitDnsRules) Schema(ctx context.Context, req resour
 			},
 			"protocols": schema.SetAttribute{
 				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
+					setvalidatorwarning.SizeAtLeast(1),
 				},
 				Computed:    true,
 				Optional:    true,

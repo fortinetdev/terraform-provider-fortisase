@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -47,23 +47,24 @@ func (r *datasourceSecurityAppCustomSignatures) Metadata(ctx context.Context, re
 
 func (r *datasourceSecurityAppCustomSignatures) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Custom Application Signature Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 63),
+					stringvalidatorwarning.LengthBetween(1, 63),
 				},
 				Required: true,
 			},
 			"signature": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(4095),
+					stringvalidatorwarning.LengthAtMost(4095),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comment": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
 				},
 				Computed: true,
 				Optional: true,
@@ -74,7 +75,7 @@ func (r *datasourceSecurityAppCustomSignatures) Schema(ctx context.Context, req 
 			},
 			"tag": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
 				},
 				Computed: true,
 				Optional: true,

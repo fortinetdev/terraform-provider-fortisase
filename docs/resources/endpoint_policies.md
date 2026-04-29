@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_policies Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Endpoint Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_policies (Resource)
 
-
+Endpoint Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

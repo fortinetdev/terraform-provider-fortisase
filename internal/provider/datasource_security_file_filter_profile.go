@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,6 +40,7 @@ func (r *datasourceSecurityFileFilterProfile) Metadata(ctx context.Context, req 
 
 func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "File Filter Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
@@ -50,7 +51,7 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -65,7 +66,7 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/antivirus-filetypes"),
+								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
 							Computed: true,
 							Optional: true,
@@ -80,7 +81,7 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 					Attributes: map[string]schema.Attribute{
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/antivirus-filetypes"),
+								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
 							Computed: true,
 							Optional: true,

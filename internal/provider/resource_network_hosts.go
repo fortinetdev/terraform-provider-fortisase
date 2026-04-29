@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -47,6 +47,7 @@ func (r *resourceNetworkHosts) Metadata(ctx context.Context, req resource.Metada
 
 func (r *resourceNetworkHosts) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Host Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -57,20 +58,20 @@ func (r *resourceNetworkHosts) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
 			},
 			"type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("ipmask", "iprange", "fqdn", "geography"),
+					stringvalidatorwarning.OneOf("ipmask", "iprange", "fqdn", "geography"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"location": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal", "external", "private-access", "unspecified"),
+					stringvalidatorwarning.OneOf("internal", "external", "private-access", "unspecified"),
 				},
 				Computed: true,
 				Optional: true,
@@ -89,14 +90,14 @@ func (r *resourceNetworkHosts) Schema(ctx context.Context, req resource.SchemaRe
 			},
 			"fqdn": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 255),
+					stringvalidatorwarning.LengthBetween(1, 255),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"country_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 2),
+					stringvalidatorwarning.LengthBetween(2, 2),
 				},
 				Computed: true,
 				Optional: true,

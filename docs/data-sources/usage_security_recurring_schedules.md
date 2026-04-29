@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_recurring_schedules Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Recurring Schedule Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_recurring_schedules (Data Source)
 
-
+Recurring Schedule Resource API V2 for FortiSASE.
 
 ## Example Usage
 

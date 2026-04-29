@@ -3,12 +3,12 @@
 page_title: "fortisase_security_services Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Service Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_services (Resource)
 
-
+Service Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -38,7 +38,6 @@ resource "fortisase_security_services" "service" {
 ### Optional
 
 - `category` (String)
-- `icmp_type` (Number)
 - `protocol` (String)
 - `protocol_number` (Number)
 - `proxy` (Boolean)
@@ -48,6 +47,7 @@ resource "fortisase_security_services" "service" {
 
 ### Read-Only
 
+- `icmp_type` (Number)
 - `id` (String) Identifier, required by Terraform, not configurable.
 
 <a id="nestedatt--sctp_portrange"></a>

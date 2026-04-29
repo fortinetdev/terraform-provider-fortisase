@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_ips_custom_signatures Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  IPS Custom Signature Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_ips_custom_signatures (Data Source)
 
-
+IPS Custom Signature Resource API V2 for FortiSASE.
 
 ## Example Usage
 

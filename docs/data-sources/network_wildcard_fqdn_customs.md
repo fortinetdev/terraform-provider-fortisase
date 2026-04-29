@@ -3,12 +3,12 @@
 page_title: "fortisase_network_wildcard_fqdn_customs Data Source - fortisase"
 subcategory: "Network"
 description: |-
-  
+  Wildcard FQDN Resource API V2 for FortiSASE.
 ---
 
 # fortisase_network_wildcard_fqdn_customs (Data Source)
 
-
+Wildcard FQDN Resource API V2 for FortiSASE.
 
 ## Example Usage
 

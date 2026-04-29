@@ -40,6 +40,7 @@ func (r *resourceEndpointGroupAdUserProfiles) Metadata(ctx context.Context, req 
 
 func (r *resourceEndpointGroupAdUserProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Group & AD Users Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -92,7 +93,7 @@ func (r *resourceEndpointGroupAdUserProfiles) Configure(ctx context.Context, req
 }
 
 func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointGroupAdUserProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointGroupAdUserProfilesModel
@@ -146,7 +147,7 @@ func (r *resourceEndpointGroupAdUserProfiles) Create(ctx context.Context, req re
 }
 
 func (r *resourceEndpointGroupAdUserProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointGroupAdUserProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics

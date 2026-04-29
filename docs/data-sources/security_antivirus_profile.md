@@ -3,12 +3,12 @@
 page_title: "fortisase_security_antivirus_profile Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Antivirus Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_antivirus_profile (Data Source)
 
-
+Antivirus Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

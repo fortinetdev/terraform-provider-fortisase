@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -39,8 +39,12 @@ type datasourceEndpointConnectionProfilesModel struct {
 	SecureInternetAccess           *datasourceEndpointConnectionProfilesSecureInternetAccessModel `tfsdk:"secure_internet_access"`
 	PreferredDtlsTunnel            types.String                                                   `tfsdk:"preferred_dtls_tunnel"`
 	UseGuiSamlAuth                 types.String                                                   `tfsdk:"use_gui_saml_auth"`
+	UseWebview2SamlAuth            types.String                                                   `tfsdk:"use_webview2_saml_auth"`
+	BeforeLogonSamlAuth            types.String                                                   `tfsdk:"before_logon_saml_auth"`
+	AfterLogonSamlAuth             types.String                                                   `tfsdk:"after_logon_saml_auth"`
 	AllowPersonalVpns              types.Bool                                                     `tfsdk:"allow_personal_vpns"`
 	MtuSize                        types.Float64                                                  `tfsdk:"mtu_size"`
+	VpnType                        types.String                                                   `tfsdk:"vpn_type"`
 	AvailableVpNs                  []datasourceEndpointConnectionProfilesAvailableVpNsModel       `tfsdk:"available_vp_ns"`
 	ShowDisconnectBtn              types.String                                                   `tfsdk:"show_disconnect_btn"`
 	EnableInvalidServerCertWarning types.String                                                   `tfsdk:"enable_invalid_server_cert_warning"`
@@ -54,17 +58,18 @@ func (r *datasourceEndpointConnectionProfiles) Metadata(ctx context.Context, req
 
 func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Connection Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"connect_to_forti_sase": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("automatically", "manually"),
+					stringvalidatorwarning.OneOf("automatically", "manually"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"allow_invalid_server_certificate": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -79,17 +84,40 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 			},
 			"preferred_dtls_tunnel": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"use_gui_saml_auth": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
+			},
+			"use_webview2_saml_auth": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"before_logon_saml_auth": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("webBrowser", "electron"),
+				},
+				MarkdownDescription: "Specifies the browser framework used for Pre-logon VPN SAML authentication.\nSupported values: webBrowser, electron.",
+				Computed:            true,
+				Optional:            true,
+			},
+			"after_logon_saml_auth": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("webBrowser", "electron", "webView2"),
+				},
+				MarkdownDescription: "Specifies the browser framework used for normal VPN SAML authentication.\nSupported values: webBrowser, electron, webView2.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"allow_personal_vpns": schema.BoolAttribute{
 				Computed: true,
@@ -97,21 +125,28 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 			},
 			"mtu_size": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(576, 1500),
+					float64validatorwarning.Between(576, 1500),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"vpn_type": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("sslVPN", "ipSecVPN"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"show_disconnect_btn": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"enable_invalid_server_cert_warning": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -124,7 +159,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 				Attributes: map[string]schema.Attribute{
 					"status": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -135,7 +170,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 					},
 					"max_attempts": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.AtLeast(1),
+							float64validatorwarning.AtLeast(1),
 						},
 						Computed: true,
 						Optional: true,
@@ -153,7 +188,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"protocol": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("tcp", "udp", "icmp", ""),
+										stringvalidatorwarning.OneOf("tcp", "udp", "icmp", ""),
 									},
 									Computed: true,
 									Optional: true,
@@ -179,7 +214,14 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 						Attributes: map[string]schema.Attribute{
 							"status": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("enable", "disable"),
+									stringvalidatorwarning.OneOf("enable", "disable"),
+								},
+								Computed: true,
+								Optional: true,
+							},
+							"disable_windows_captive_portal": schema.StringAttribute{
+								Validators: []validator.String{
+									stringvalidatorwarning.OneOf("enable", "disable"),
 								},
 								Computed: true,
 								Optional: true,
@@ -200,7 +242,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("endpoint/on-net-rules"),
+							stringvalidatorwarning.OneOf("endpoint/on-net-rules"),
 						},
 						Computed: true,
 						Optional: true,
@@ -235,7 +277,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("network/basic-internet-services"),
+										stringvalidatorwarning.OneOf("network/basic-internet-services"),
 									},
 									Computed: true,
 									Optional: true,
@@ -254,7 +296,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("network/hosts", "network/host-groups"),
+										stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 									},
 									Computed: true,
 									Optional: true,
@@ -294,7 +336,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("network/basic-internet-services"),
+										stringvalidatorwarning.OneOf("network/basic-internet-services"),
 									},
 									Computed: true,
 									Optional: true,
@@ -313,7 +355,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("network/hosts", "network/host-groups"),
+										stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 									},
 									Computed: true,
 									Optional: true,
@@ -331,21 +373,26 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 				Attributes: map[string]schema.Attribute{
 					"authenticate_with_sso": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"allow_fido_auth": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
 					},
+					"dns_suffixes": schema.SetAttribute{
+						Computed:    true,
+						Optional:    true,
+						ElementType: types.StringType,
+					},
 					"enable_local_lan": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -357,7 +404,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 					},
 					"external_browser_saml_login": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -370,7 +417,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 							},
 							"action": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("allow", "prohibit"),
+									stringvalidatorwarning.OneOf("allow", "prohibit"),
 								},
 								Computed: true,
 								Optional: true,
@@ -392,133 +439,145 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("sslVPN", "ipSecVPN"),
+								stringvalidatorwarning.OneOf("sslVPN", "ipSecVPN"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"name": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidatorwarning.LengthAtLeast(1),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"remote_gateway": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidatorwarning.LengthAtLeast(1),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"username_prompt": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"save_username": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"show_always_up": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"show_auto_connect": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"show_remember_password": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"authenticate_with_sso": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"allow_fido_auth": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"enable_local_lan": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"encapsulation_mode": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("Auto", "TCP", "UDP"),
+								stringvalidatorwarning.OneOf("Auto", "TCP", "UDP"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"udp_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(500, 65535),
+								float64validatorwarning.Between(500, 65535),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"tcp_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(1, 65535),
-							},
-							Computed: true,
-							Optional: true,
-						},
-						"external_browser_saml_login": schema.StringAttribute{
-							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								float64validatorwarning.Between(1, 65535),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"port": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.AtMost(65535),
+								float64validatorwarning.AtMost(65535),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"require_certificate": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"external_browser_saml_login": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"auth_method": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("preSharedKey", "smartCardCert", "systemStoreCert"),
+								stringvalidatorwarning.OneOf("preSharedKey", "smartCardCert", "systemStoreCert"),
 							},
 							Computed: true,
 							Optional: true,
 						},
+						"dns_suffixes": schema.SetAttribute{
+							Computed:    true,
+							Optional:    true,
+							ElementType: types.StringType,
+						},
 						"show_passcode": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"saml_port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(65535),
 							},
 							Computed: true,
 							Optional: true,
@@ -535,7 +594,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 								},
 								"action": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("allow", "prohibit"),
+										stringvalidatorwarning.OneOf("allow", "prohibit"),
 									},
 									Computed: true,
 									Optional: true,
@@ -557,7 +616,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 				Attributes: map[string]schema.Attribute{
 					"vpn_type": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("sslVPN", "ipSecVPN"),
+							stringvalidatorwarning.OneOf("sslVPN", "ipSecVPN"),
 						},
 						Computed: true,
 						Optional: true,
@@ -568,7 +627,7 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 					},
 					"port": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.AtMost(65535),
+							float64validatorwarning.AtMost(65535),
 						},
 						Computed: true,
 						Optional: true,
@@ -577,14 +636,14 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 						Attributes: map[string]schema.Attribute{
 							"match_type": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("wildcard", "regex"),
+									stringvalidatorwarning.OneOf("wildcard", "regex"),
 								},
 								Computed: true,
 								Optional: true,
 							},
 							"pattern": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.LengthAtLeast(1),
+									stringvalidatorwarning.LengthAtLeast(1),
 								},
 								Computed: true,
 								Optional: true,
@@ -597,14 +656,14 @@ func (r *datasourceEndpointConnectionProfiles) Schema(ctx context.Context, req d
 						Attributes: map[string]schema.Attribute{
 							"match_type": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("wildcard", "regex"),
+									stringvalidatorwarning.OneOf("wildcard", "regex"),
 								},
 								Computed: true,
 								Optional: true,
 							},
 							"pattern": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.LengthAtLeast(1),
+									stringvalidatorwarning.LengthAtLeast(1),
 								},
 								Computed: true,
 								Optional: true,
@@ -728,12 +787,28 @@ func (m *datasourceEndpointConnectionProfilesModel) refreshEndpointConnectionPro
 		m.UseGuiSamlAuth = parseStringValue(v)
 	}
 
+	if v, ok := o["useWebview2SamlAuth"]; ok {
+		m.UseWebview2SamlAuth = parseStringValue(v)
+	}
+
+	if v, ok := o["beforeLogonSamlAuth"]; ok {
+		m.BeforeLogonSamlAuth = parseStringValue(v)
+	}
+
+	if v, ok := o["afterLogonSamlAuth"]; ok {
+		m.AfterLogonSamlAuth = parseStringValue(v)
+	}
+
 	if v, ok := o["allowPersonalVpns"]; ok {
 		m.AllowPersonalVpns = parseBoolValue(v)
 	}
 
 	if v, ok := o["mtuSize"]; ok {
 		m.MtuSize = parseFloat64Value(v)
+	}
+
+	if v, ok := o["vpnType"]; ok {
+		m.VpnType = parseStringValue(v)
 	}
 
 	if v, ok := o["availableVPNs"]; ok {
@@ -784,7 +859,8 @@ type datasourceEndpointConnectionProfilesLockdownDomainsModel struct {
 }
 
 type datasourceEndpointConnectionProfilesLockdownDetectCaptivePortalModel struct {
-	Status types.String `tfsdk:"status"`
+	Status                      types.String `tfsdk:"status"`
+	DisableWindowsCaptivePortal types.String `tfsdk:"disable_windows_captive_portal"`
 }
 
 type datasourceEndpointConnectionProfilesOnFabricRuleSetModel struct {
@@ -831,6 +907,7 @@ type datasourceEndpointConnectionProfilesSplitTunnelSubnetsModel struct {
 type datasourceEndpointConnectionProfilesSecureInternetAccessModel struct {
 	AuthenticateWithSso      types.String                                                               `tfsdk:"authenticate_with_sso"`
 	AllowFidoAuth            types.String                                                               `tfsdk:"allow_fido_auth"`
+	DnsSuffixes              types.Set                                                                  `tfsdk:"dns_suffixes"`
 	EnableLocalLan           types.String                                                               `tfsdk:"enable_local_lan"`
 	FailoverSequence         types.Set                                                                  `tfsdk:"failover_sequence"`
 	PostureCheck             *datasourceEndpointConnectionProfilesSecureInternetAccessPostureCheckModel `tfsdk:"posture_check"`
@@ -858,12 +935,14 @@ type datasourceEndpointConnectionProfilesAvailableVpNsModel struct {
 	EncapsulationMode        types.String                                                        `tfsdk:"encapsulation_mode"`
 	UdpPort                  types.Float64                                                       `tfsdk:"udp_port"`
 	TcpPort                  types.Float64                                                       `tfsdk:"tcp_port"`
-	ExternalBrowserSamlLogin types.String                                                        `tfsdk:"external_browser_saml_login"`
 	Port                     types.Float64                                                       `tfsdk:"port"`
 	RequireCertificate       types.String                                                        `tfsdk:"require_certificate"`
+	ExternalBrowserSamlLogin types.String                                                        `tfsdk:"external_browser_saml_login"`
 	AuthMethod               types.String                                                        `tfsdk:"auth_method"`
+	DnsSuffixes              types.Set                                                           `tfsdk:"dns_suffixes"`
 	ShowPasscode             types.String                                                        `tfsdk:"show_passcode"`
 	PostureCheck             *datasourceEndpointConnectionProfilesAvailableVpNsPostureCheckModel `tfsdk:"posture_check"`
+	SamlPort                 types.Float64                                                       `tfsdk:"saml_port"`
 	PreSharedKey             types.String                                                        `tfsdk:"pre_shared_key"`
 }
 
@@ -1022,6 +1101,10 @@ func (m *datasourceEndpointConnectionProfilesLockdownDetectCaptivePortalModel) f
 	o := input.(map[string]interface{})
 	if v, ok := o["status"]; ok {
 		m.Status = parseStringValue(v)
+	}
+
+	if v, ok := o["disableWindowsCaptivePortal"]; ok {
+		m.DisableWindowsCaptivePortal = parseStringValue(v)
 	}
 
 	return m
@@ -1296,6 +1379,10 @@ func (m *datasourceEndpointConnectionProfilesSecureInternetAccessModel) flattenE
 		m.AllowFidoAuth = parseStringValue(v)
 	}
 
+	if v, ok := o["dnsSuffixes"]; ok {
+		m.DnsSuffixes = parseSetValue(ctx, v, types.StringType)
+	}
+
 	if v, ok := o["enableLocalLan"]; ok {
 		m.EnableLocalLan = parseStringValue(v)
 	}
@@ -1402,10 +1489,6 @@ func (m *datasourceEndpointConnectionProfilesAvailableVpNsModel) flattenEndpoint
 		m.TcpPort = parseFloat64Value(v)
 	}
 
-	if v, ok := o["externalBrowserSamlLogin"]; ok {
-		m.ExternalBrowserSamlLogin = parseStringValue(v)
-	}
-
 	if v, ok := o["port"]; ok {
 		m.Port = parseFloat64Value(v)
 	}
@@ -1414,8 +1497,16 @@ func (m *datasourceEndpointConnectionProfilesAvailableVpNsModel) flattenEndpoint
 		m.RequireCertificate = parseStringValue(v)
 	}
 
+	if v, ok := o["externalBrowserSamlLogin"]; ok {
+		m.ExternalBrowserSamlLogin = parseStringValue(v)
+	}
+
 	if v, ok := o["authMethod"]; ok {
 		m.AuthMethod = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsSuffixes"]; ok {
+		m.DnsSuffixes = parseSetValue(ctx, v, types.StringType)
 	}
 
 	if v, ok := o["showPasscode"]; ok {
@@ -1424,6 +1515,10 @@ func (m *datasourceEndpointConnectionProfilesAvailableVpNsModel) flattenEndpoint
 
 	if v, ok := o["postureCheck"]; ok {
 		m.PostureCheck = m.PostureCheck.flattenEndpointConnectionProfilesAvailableVpNsPostureCheck(ctx, v, diags)
+	}
+
+	if v, ok := o["samlPort"]; ok {
+		m.SamlPort = parseFloat64Value(v)
 	}
 
 	if v, ok := o["preSharedKey"]; ok {

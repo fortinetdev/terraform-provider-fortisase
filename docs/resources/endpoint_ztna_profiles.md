@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_ztna_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  ZTNA Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_ztna_profiles (Resource)
 
-
+ZTNA Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -48,6 +48,7 @@ resource "fortisase_endpoint_ztna_profiles" "example" {
 - `allow_automatic_sign_on` (String)
 - `connection_rules` (Attributes List) (see [below for nested schema](#nestedatt--connection_rules))
 - `entra_id` (Attributes) (see [below for nested schema](#nestedatt--entra_id))
+- `status` (String)
 
 ### Read-Only
 
@@ -73,6 +74,7 @@ Optional:
 Optional:
 
 - `alias` (String)
+- `id` (Number)
 - `private_app_count` (Number)
 - `redirect` (String)
 - `vip` (String)

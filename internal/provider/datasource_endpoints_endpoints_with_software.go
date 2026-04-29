@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -38,6 +38,7 @@ func (r *datasourceEndpointsEndpointsWithSoftware) Metadata(ctx context.Context,
 
 func (r *datasourceEndpointsEndpointsWithSoftware) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Endpoint management monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"total": schema.Float64Attribute{
 				Computed: true,
@@ -45,7 +46,7 @@ func (r *datasourceEndpointsEndpointsWithSoftware) Schema(ctx context.Context, r
 			},
 			"software_id": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtLeast(1),
+					float64validatorwarning.AtLeast(1),
 				},
 				MarkdownDescription: "The ID property of a specific software.\nValue at least 1.",
 				Required:            true,

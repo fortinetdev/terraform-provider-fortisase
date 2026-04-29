@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -44,6 +44,7 @@ func (r *resourceSecurityDlpDictionaries) Metadata(ctx context.Context, req reso
 
 func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Dictionary Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -57,7 +58,7 @@ func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resour
 			},
 			"dictionary_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("sensor", "mip-label"),
+					stringvalidatorwarning.OneOf("sensor", "mip-label"),
 				},
 				Computed: true,
 				Optional: true,
@@ -68,7 +69,7 @@ func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resour
 			},
 			"entries_to_evaluate": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "any"),
+					stringvalidatorwarning.OneOf("all", "any"),
 				},
 				Computed: true,
 				Optional: true,
@@ -78,14 +79,14 @@ func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resour
 					Attributes: map[string]schema.Attribute{
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"repeat": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -96,7 +97,7 @@ func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resour
 						},
 						"case_sensitive": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -109,7 +110,7 @@ func (r *resourceSecurityDlpDictionaries) Schema(ctx context.Context, req resour
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/dlp-data-types"),
+										stringvalidatorwarning.OneOf("security/dlp-data-types"),
 									},
 									Computed: true,
 									Optional: true,

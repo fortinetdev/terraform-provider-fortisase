@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,6 +52,7 @@ func (r *resourceEndpointSandboxProfiles) Metadata(ctx context.Context, req reso
 
 func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Sandbox Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -62,7 +63,7 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 			},
 			"sandbox_mode": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("Disabled", "FortiSASE", "StandaloneFortiSandbox"),
+					stringvalidatorwarning.OneOf("Disabled", "FortiSASE", "StandaloneFortiSandbox"),
 				},
 				Computed: true,
 				Optional: true,
@@ -74,28 +75,28 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 			},
 			"timeout_awaiting_sandbox_results": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(2147483647),
+					float64validatorwarning.AtMost(2147483647),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"detection_verdict_level": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("Clean", "Malicious", "High", "Medium", "Low"),
+					stringvalidatorwarning.OneOf("Clean", "Malicious", "High", "Medium", "Low"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"remediation_actions": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("quarantine", "alert"),
+					stringvalidatorwarning.OneOf("quarantine", "alert"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"host_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 128),
+					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Computed: true,
 				Optional: true,
@@ -106,14 +107,14 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 128),
+					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -129,28 +130,28 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 				Attributes: map[string]schema.Attribute{
 					"all_email_downloads": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"all_files_mapped_network_drives": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"all_files_removable_media": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"all_web_downloads": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -163,7 +164,7 @@ func (r *resourceEndpointSandboxProfiles) Schema(ctx context.Context, req resour
 				Attributes: map[string]schema.Attribute{
 					"exclude_files_from_trusted_sources": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("enable", "disable"),
+							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
 						Optional: true,
@@ -209,7 +210,7 @@ func (r *resourceEndpointSandboxProfiles) Configure(ctx context.Context, req res
 }
 
 func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointSandboxProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointSandboxProfilesModel
@@ -263,7 +264,7 @@ func (r *resourceEndpointSandboxProfiles) Create(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointSandboxProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointSandboxProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics

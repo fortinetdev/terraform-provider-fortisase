@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -46,6 +46,7 @@ func (r *resourceEndpointFssoProfiles) Metadata(ctx context.Context, req resourc
 
 func (r *resourceEndpointFssoProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FSSO Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -60,7 +61,7 @@ func (r *resourceEndpointFssoProfiles) Schema(ctx context.Context, req resource.
 			},
 			"prefer_entra_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -71,7 +72,7 @@ func (r *resourceEndpointFssoProfiles) Schema(ctx context.Context, req resource.
 			},
 			"port": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(65535),
+					float64validatorwarning.AtMost(65535),
 				},
 				Computed: true,
 				Optional: true,
@@ -114,7 +115,7 @@ func (r *resourceEndpointFssoProfiles) Configure(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointFssoProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointFssoProfilesModel
@@ -168,7 +169,7 @@ func (r *resourceEndpointFssoProfiles) Create(ctx context.Context, req resource.
 }
 
 func (r *resourceEndpointFssoProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointFssoProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics

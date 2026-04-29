@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_ip_threat_feeds Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  IP Threat Feed Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_ip_threat_feeds (Data Source)
 
-
+IP Threat Feed Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_infra_ipam_setting Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  IPAM configuration
 ---
 
 # fortisase_infra_ipam_setting (Resource)
 
-
+IPAM configuration
 
 ## Example Usage
 

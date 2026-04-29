@@ -3,12 +3,12 @@
 page_title: "fortisase_security_service_groups Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Service Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_service_groups (Data Source)
 
-
+Service Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

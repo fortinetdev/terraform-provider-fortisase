@@ -3,12 +3,12 @@
 page_title: "fortisase_security_pki_users Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  PKI User Resource API for FortiSASE.
 ---
 
 # fortisase_security_pki_users (Resource)
 
-
+PKI User Resource API for FortiSASE.
 
 ## Example Usage
 

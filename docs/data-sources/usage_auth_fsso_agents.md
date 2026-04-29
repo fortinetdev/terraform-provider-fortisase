@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_auth_fsso_agents Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  FSSO Agent Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_auth_fsso_agents (Data Source)
 
-
+FSSO Agent Resource API V2 for FortiSASE.
 
 ## Example Usage
 

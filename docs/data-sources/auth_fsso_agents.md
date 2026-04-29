@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_fsso_agents Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  FSSO Agent Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_fsso_agents (Data Source)
 
-
+FSSO Agent Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -29,6 +29,11 @@ data "fortisase_auth_fsso_agents" "example" {
 
 - `active_server` (String)
 - `name` (String)
+- `port` (String)
+- `port2` (String)
+- `port3` (String)
+- `port4` (String)
+- `port5` (String)
 - `server` (String)
 - `server2` (String)
 - `server3` (String)

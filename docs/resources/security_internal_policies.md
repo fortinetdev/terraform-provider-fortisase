@@ -3,12 +3,12 @@
 page_title: "fortisase_security_internal_policies Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Internal Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_internal_policies (Resource)
 
-
+Internal Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

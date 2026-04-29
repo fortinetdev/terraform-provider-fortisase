@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_dlp_dictionaries Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  DLP Dictionary Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_dlp_dictionaries (Data Source)
 
-
+DLP Dictionary Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_internal_policies Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Internal Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_internal_policies (Data Source)
 
-
+Internal Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

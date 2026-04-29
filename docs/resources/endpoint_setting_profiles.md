@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_setting_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Settings Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_setting_profiles (Resource)
 
-
+Settings Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -34,6 +34,7 @@ resource "fortisase_endpoint_setting_profiles" "endpoint_setting_profile" {
 
 - `allow_config_backup` (String)
 - `ems_disconnect_password` (String)
+- `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
 - `notify_vpn_issue` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
@@ -42,6 +43,13 @@ resource "fortisase_endpoint_setting_profiles" "endpoint_setting_profile" {
 ### Read-Only
 
 - `id` (String) Identifier, required by Terraform, not configurable.
+
+<a id="nestedatt--fct_gui"></a>
+### Nested Schema for `fct_gui`
+
+Optional:
+
+- `default_tab` (String)
 
 ## Import
 

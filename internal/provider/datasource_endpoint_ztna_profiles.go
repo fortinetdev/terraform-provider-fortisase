@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -28,6 +28,7 @@ type datasourceEndpointZtnaProfiles struct {
 // datasourceEndpointZtnaProfilesModel describes the datasource data model.
 type datasourceEndpointZtnaProfilesModel struct {
 	AllowAutomaticSignOn types.String                                         `tfsdk:"allow_automatic_sign_on"`
+	Status               types.String                                         `tfsdk:"status"`
 	ConnectionRules      []datasourceEndpointZtnaProfilesConnectionRulesModel `tfsdk:"connection_rules"`
 	EntraId              *datasourceEndpointZtnaProfilesEntraIdModel          `tfsdk:"entra_id"`
 	PrimaryKey           types.String                                         `tfsdk:"primary_key"`
@@ -39,10 +40,18 @@ func (r *datasourceEndpointZtnaProfiles) Metadata(ctx context.Context, req datas
 
 func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"allow_automatic_sign_on": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"status": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -80,7 +89,7 @@ func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasou
 						},
 						"encryption": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("enable", "disable"),
+								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
 							Optional: true,
@@ -88,6 +97,10 @@ func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasou
 						"gateways": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"id": schema.Float64Attribute{
+										Computed: true,
+										Optional: true,
+									},
 									"alias": schema.StringAttribute{
 										Computed: true,
 										Optional: true,
@@ -102,7 +115,7 @@ func (r *datasourceEndpointZtnaProfiles) Schema(ctx context.Context, req datasou
 									},
 									"redirect": schema.StringAttribute{
 										Validators: []validator.String{
-											stringvalidator.OneOf("enable", "disable"),
+											stringvalidatorwarning.OneOf("enable", "disable"),
 										},
 										Computed: true,
 										Optional: true,
@@ -202,6 +215,10 @@ func (m *datasourceEndpointZtnaProfilesModel) refreshEndpointZtnaProfiles(ctx co
 		m.AllowAutomaticSignOn = parseStringValue(v)
 	}
 
+	if v, ok := o["status"]; ok {
+		m.Status = parseStringValue(v)
+	}
+
 	if v, ok := o["connectionRules"]; ok {
 		m.ConnectionRules = m.flattenEndpointZtnaProfilesConnectionRulesList(ctx, v, &diags)
 	}
@@ -234,6 +251,7 @@ type datasourceEndpointZtnaProfilesConnectionRulesModel struct {
 }
 
 type datasourceEndpointZtnaProfilesConnectionRulesGatewaysModel struct {
+	Id              types.Float64 `tfsdk:"id"`
 	Alias           types.String  `tfsdk:"alias"`
 	PrivateAppCount types.Float64 `tfsdk:"private_app_count"`
 	Vip             types.String  `tfsdk:"vip"`
@@ -320,6 +338,10 @@ func (m *datasourceEndpointZtnaProfilesConnectionRulesGatewaysModel) flattenEndp
 		m = &datasourceEndpointZtnaProfilesConnectionRulesGatewaysModel{}
 	}
 	o := input.(map[string]interface{})
+	if v, ok := o["id"]; ok {
+		m.Id = parseFloat64Value(v)
+	}
+
 	if v, ok := o["alias"]; ok {
 		m.Alias = parseStringValue(v)
 	}

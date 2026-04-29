@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,6 +40,7 @@ func (r *datasourceSecurityVideoFilterProfile) Metadata(ctx context.Context, req
 
 func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Video Filter Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
@@ -50,7 +51,7 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("internal-profiles", "outbound-profiles"),
+					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
 				Computed:            true,
@@ -61,7 +62,7 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block", "warning", "default"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "default"),
 							},
 							Computed: true,
 							Optional: true,
@@ -74,7 +75,7 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/video-filter-fortiguard-categories"),
+										stringvalidatorwarning.OneOf("security/video-filter-fortiguard-categories"),
 									},
 									Computed: true,
 									Optional: true,
@@ -93,21 +94,21 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("allow", "monitor", "block"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"name": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 32),
+								stringvalidatorwarning.LengthBetween(1, 32),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"channel_id": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 64),
+								stringvalidatorwarning.LengthBetween(1, 64),
 							},
 							Computed: true,
 							Optional: true,

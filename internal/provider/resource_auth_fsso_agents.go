@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -36,14 +36,19 @@ type resourceAuthFssoAgentsModel struct {
 	Status         types.String `tfsdk:"status"`
 	Name           types.String `tfsdk:"name"`
 	Server         types.String `tfsdk:"server"`
+	Port           types.String `tfsdk:"port"`
 	Password       types.String `tfsdk:"password"`
 	Server2        types.String `tfsdk:"server2"`
+	Port2          types.String `tfsdk:"port2"`
 	Password2      types.String `tfsdk:"password2"`
 	Server3        types.String `tfsdk:"server3"`
+	Port3          types.String `tfsdk:"port3"`
 	Password3      types.String `tfsdk:"password3"`
 	Server4        types.String `tfsdk:"server4"`
+	Port4          types.String `tfsdk:"port4"`
 	Password4      types.String `tfsdk:"password4"`
 	Server5        types.String `tfsdk:"server5"`
+	Port5          types.String `tfsdk:"port5"`
 	Password5      types.String `tfsdk:"password5"`
 	SslTrustedCert types.String `tfsdk:"ssl_trusted_cert"`
 }
@@ -54,6 +59,7 @@ func (r *resourceAuthFssoAgents) Metadata(ctx context.Context, req resource.Meta
 
 func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FSSO Agent Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -64,7 +70,7 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -74,28 +80,35 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"status": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("connected", "disconnected"),
+					stringvalidatorwarning.OneOf("connected", "disconnected"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(128),
+					stringvalidatorwarning.LengthAtMost(128),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -103,14 +116,21 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"server2": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port2": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password2": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(128),
+					stringvalidatorwarning.LengthAtMost(128),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -118,14 +138,21 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"server3": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port3": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password3": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(128),
+					stringvalidatorwarning.LengthAtMost(128),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -133,14 +160,21 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"server4": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port4": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password4": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(128),
+					stringvalidatorwarning.LengthAtMost(128),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -148,14 +182,21 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"server5": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port5": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"password5": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(128),
+					stringvalidatorwarning.LengthAtMost(128),
 				},
 				Sensitive: true,
 				Computed:  true,
@@ -163,7 +204,7 @@ func (r *resourceAuthFssoAgents) Schema(ctx context.Context, req resource.Schema
 			},
 			"ssl_trusted_cert": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(79),
+					stringvalidatorwarning.LengthAtMost(79),
 				},
 				Computed: true,
 				Optional: true,
@@ -400,20 +441,40 @@ func (m *resourceAuthFssoAgentsModel) refreshAuthFssoAgents(ctx context.Context,
 		m.Server = parseStringValue(v)
 	}
 
+	if v, ok := o["port"]; ok {
+		m.Port = parseStringValue(v)
+	}
+
 	if v, ok := o["server2"]; ok {
 		m.Server2 = parseStringValue(v)
+	}
+
+	if v, ok := o["port2"]; ok {
+		m.Port2 = parseStringValue(v)
 	}
 
 	if v, ok := o["server3"]; ok {
 		m.Server3 = parseStringValue(v)
 	}
 
+	if v, ok := o["port3"]; ok {
+		m.Port3 = parseStringValue(v)
+	}
+
 	if v, ok := o["server4"]; ok {
 		m.Server4 = parseStringValue(v)
 	}
 
+	if v, ok := o["port4"]; ok {
+		m.Port4 = parseStringValue(v)
+	}
+
 	if v, ok := o["server5"]; ok {
 		m.Server5 = parseStringValue(v)
+	}
+
+	if v, ok := o["port5"]; ok {
+		m.Port5 = parseStringValue(v)
 	}
 
 	if v, ok := o["sslTrustedCert"]; ok {
@@ -445,12 +506,20 @@ func (data *resourceAuthFssoAgentsModel) getCreateObjectAuthFssoAgents(ctx conte
 		result["server"] = data.Server.ValueString()
 	}
 
+	if !data.Port.IsNull() {
+		result["port"] = data.Port.ValueString()
+	}
+
 	if !data.Password.IsNull() {
 		result["password"] = data.Password.ValueString()
 	}
 
 	if !data.Server2.IsNull() {
 		result["server2"] = data.Server2.ValueString()
+	}
+
+	if !data.Port2.IsNull() {
+		result["port2"] = data.Port2.ValueString()
 	}
 
 	if !data.Password2.IsNull() {
@@ -461,6 +530,10 @@ func (data *resourceAuthFssoAgentsModel) getCreateObjectAuthFssoAgents(ctx conte
 		result["server3"] = data.Server3.ValueString()
 	}
 
+	if !data.Port3.IsNull() {
+		result["port3"] = data.Port3.ValueString()
+	}
+
 	if !data.Password3.IsNull() {
 		result["password3"] = data.Password3.ValueString()
 	}
@@ -469,12 +542,20 @@ func (data *resourceAuthFssoAgentsModel) getCreateObjectAuthFssoAgents(ctx conte
 		result["server4"] = data.Server4.ValueString()
 	}
 
+	if !data.Port4.IsNull() {
+		result["port4"] = data.Port4.ValueString()
+	}
+
 	if !data.Password4.IsNull() {
 		result["password4"] = data.Password4.ValueString()
 	}
 
 	if !data.Server5.IsNull() {
 		result["server5"] = data.Server5.ValueString()
+	}
+
+	if !data.Port5.IsNull() {
+		result["port5"] = data.Port5.ValueString()
 	}
 
 	if !data.Password5.IsNull() {
@@ -510,12 +591,20 @@ func (data *resourceAuthFssoAgentsModel) getUpdateObjectAuthFssoAgents(ctx conte
 		result["server"] = data.Server.ValueString()
 	}
 
+	if !data.Port.IsNull() {
+		result["port"] = data.Port.ValueString()
+	}
+
 	if !data.Password.IsNull() {
 		result["password"] = data.Password.ValueString()
 	}
 
 	if !data.Server2.IsNull() {
 		result["server2"] = data.Server2.ValueString()
+	}
+
+	if !data.Port2.IsNull() {
+		result["port2"] = data.Port2.ValueString()
 	}
 
 	if !data.Password2.IsNull() {
@@ -526,6 +615,10 @@ func (data *resourceAuthFssoAgentsModel) getUpdateObjectAuthFssoAgents(ctx conte
 		result["server3"] = data.Server3.ValueString()
 	}
 
+	if !data.Port3.IsNull() {
+		result["port3"] = data.Port3.ValueString()
+	}
+
 	if !data.Password3.IsNull() {
 		result["password3"] = data.Password3.ValueString()
 	}
@@ -534,12 +627,20 @@ func (data *resourceAuthFssoAgentsModel) getUpdateObjectAuthFssoAgents(ctx conte
 		result["server4"] = data.Server4.ValueString()
 	}
 
+	if !data.Port4.IsNull() {
+		result["port4"] = data.Port4.ValueString()
+	}
+
 	if !data.Password4.IsNull() {
 		result["password4"] = data.Password4.ValueString()
 	}
 
 	if !data.Server5.IsNull() {
 		result["server5"] = data.Server5.ValueString()
+	}
+
+	if !data.Port5.IsNull() {
+		result["port5"] = data.Port5.ValueString()
 	}
 
 	if !data.Password5.IsNull() {

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -32,10 +32,15 @@ type datasourceAuthFssoAgentsModel struct {
 	Status         types.String `tfsdk:"status"`
 	Name           types.String `tfsdk:"name"`
 	Server         types.String `tfsdk:"server"`
+	Port           types.String `tfsdk:"port"`
 	Server2        types.String `tfsdk:"server2"`
+	Port2          types.String `tfsdk:"port2"`
 	Server3        types.String `tfsdk:"server3"`
+	Port3          types.String `tfsdk:"port3"`
 	Server4        types.String `tfsdk:"server4"`
+	Port4          types.String `tfsdk:"port4"`
 	Server5        types.String `tfsdk:"server5"`
+	Port5          types.String `tfsdk:"port5"`
 	SslTrustedCert types.String `tfsdk:"ssl_trusted_cert"`
 }
 
@@ -45,10 +50,11 @@ func (r *datasourceAuthFssoAgents) Metadata(ctx context.Context, req datasource.
 
 func (r *datasourceAuthFssoAgents) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "FSSO Agent Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -58,56 +64,91 @@ func (r *datasourceAuthFssoAgents) Schema(ctx context.Context, req datasource.Sc
 			},
 			"status": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("connected", "disconnected"),
+					stringvalidatorwarning.OneOf("connected", "disconnected"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server2": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port2": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server3": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port3": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server4": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port4": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"server5": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(63),
+					stringvalidatorwarning.LengthAtMost(63),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"port5": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(5),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"ssl_trusted_cert": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(79),
+					stringvalidatorwarning.LengthAtMost(79),
 				},
 				Computed: true,
 				Optional: true,
@@ -195,20 +236,40 @@ func (m *datasourceAuthFssoAgentsModel) refreshAuthFssoAgents(ctx context.Contex
 		m.Server = parseStringValue(v)
 	}
 
+	if v, ok := o["port"]; ok {
+		m.Port = parseStringValue(v)
+	}
+
 	if v, ok := o["server2"]; ok {
 		m.Server2 = parseStringValue(v)
+	}
+
+	if v, ok := o["port2"]; ok {
+		m.Port2 = parseStringValue(v)
 	}
 
 	if v, ok := o["server3"]; ok {
 		m.Server3 = parseStringValue(v)
 	}
 
+	if v, ok := o["port3"]; ok {
+		m.Port3 = parseStringValue(v)
+	}
+
 	if v, ok := o["server4"]; ok {
 		m.Server4 = parseStringValue(v)
 	}
 
+	if v, ok := o["port4"]; ok {
+		m.Port4 = parseStringValue(v)
+	}
+
 	if v, ok := o["server5"]; ok {
 		m.Server5 = parseStringValue(v)
+	}
+
+	if v, ok := o["port5"]; ok {
+		m.Port5 = parseStringValue(v)
 	}
 
 	if v, ok := o["sslTrustedCert"]; ok {

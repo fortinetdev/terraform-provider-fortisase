@@ -3,12 +3,12 @@
 page_title: "fortisase_security_ips_profile Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  IPS Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_ips_profile (Data Source)
 
-
+IPS Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_security_dlp_profile Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  DLP Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_dlp_profile (Data Source)
 
-
+DLP Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

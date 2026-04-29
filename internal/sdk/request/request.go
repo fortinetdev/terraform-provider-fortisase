@@ -174,3 +174,52 @@ func (r *Request) LogoutToken(token string) error {
 	// logout the token
 	return nil
 }
+
+// Get EMS version of FortiSASE.
+// If errors are encountered, it returns the error.
+func (r *Request) GetEMSVersion() (string, error) {
+	var err error
+	r.HTTPRequest.Header.Set("Content-Type", "application/json")
+	r.HTTPRequest.Header.Set("accept", "application/json")
+	access_token := r.Config.Auth.AccessToken
+	r.HTTPRequest.Header.Set("Authorization", "Bearer "+access_token)
+	r.HTTPRequest.URL, err = url.Parse(r.Path)
+	if err != nil {
+		return "", err
+	}
+
+	rsp, err := r.Config.HTTPCon.Do(r.HTTPRequest)
+	if err != nil {
+		if strings.Contains(err.Error(), "x509: ") {
+			err = fmt.Errorf("HTTP request error: %v", err)
+			return "", err
+		}
+	}
+
+	if rsp == nil {
+		err = fmt.Errorf("Host is unreachable. HTTP response is nil.")
+		return "", err
+	}
+
+	body, err := io.ReadAll(rsp.Body)
+	rsp.Body.Close()
+
+	if err != nil || body == nil {
+		err = fmt.Errorf("Cannot get response body, %s", err)
+		return "", err
+	}
+	var result map[string]interface{}
+	json.Unmarshal([]byte(string(body)), &result)
+
+	if data, ok := result["data"].(map[string]interface{}); ok {
+		if emsv, ok := data["emsVersion"].(string); ok {
+			return emsv, nil
+		} else {
+			err = fmt.Errorf("Response data do not contains emsVersion: %v", result["data"])
+		}
+	} else {
+		err = fmt.Errorf("Response do not contains data: %v", result)
+	}
+
+	return "", err
+}

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,6 +42,7 @@ func (r *datasourcePrivateAccessNetworkConfiguration) Metadata(ctx context.Conte
 
 func (r *datasourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Secure Private Access Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"bgp_router_ids_subnet": schema.StringAttribute{
 				MarkdownDescription: "Available/unused subnet that can be used to assign loopback interface IP addresses used for BGP router IDs parameter on the FortiSASE security PoPs. /28 is the minimum subnet size.",
@@ -70,14 +71,14 @@ func (r *datasourcePrivateAccessNetworkConfiguration) Schema(ctx context.Context
 			},
 			"config_state": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
+					stringvalidatorwarning.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
 				MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
 				Computed:            true,
 			},
 			"bgp_design": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("overlay", "loopback"),
+					stringvalidatorwarning.OneOf("overlay", "loopback"),
 				},
 				MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
 				Computed:            true,

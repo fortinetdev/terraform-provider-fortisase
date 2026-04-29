@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_on_net_rules Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Endpoint on net rule
 ---
 
 # fortisase_endpoint_on_net_rules (Resource)
 
-
+Endpoint on net rule
 
 ## Example Usage
 

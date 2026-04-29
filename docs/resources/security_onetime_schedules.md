@@ -3,12 +3,12 @@
 page_title: "fortisase_security_onetime_schedules Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Onetime Schedule Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_onetime_schedules (Resource)
 
-
+Onetime Schedule Resource API V2 for FortiSASE.
 
 ## Example Usage
 

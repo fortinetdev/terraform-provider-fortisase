@@ -3,12 +3,12 @@
 page_title: "fortisase_security_services Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Service Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_services (Data Source)
 
-
+Service Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -28,13 +28,16 @@ data "fortisase_security_services" "example" {
 ### Optional
 
 - `category` (String)
-- `icmp_type` (Number)
 - `protocol` (String)
 - `protocol_number` (Number)
 - `proxy` (Boolean)
 - `sctp_portrange` (Attributes List) (see [below for nested schema](#nestedatt--sctp_portrange))
 - `tcp_portrange` (Attributes List) (see [below for nested schema](#nestedatt--tcp_portrange))
 - `udp_portrange` (Attributes List) (see [below for nested schema](#nestedatt--udp_portrange))
+
+### Read-Only
+
+- `icmp_type` (Number)
 
 <a id="nestedatt--sctp_portrange"></a>
 ### Nested Schema for `sctp_portrange`

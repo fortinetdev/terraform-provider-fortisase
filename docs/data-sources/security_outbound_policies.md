@@ -3,12 +3,12 @@
 page_title: "fortisase_security_outbound_policies Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Outbound Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_outbound_policies (Data Source)
 
-
+Outbound Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

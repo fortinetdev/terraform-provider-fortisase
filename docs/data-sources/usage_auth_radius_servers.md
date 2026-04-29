@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_auth_radius_servers Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  RADIUS Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_auth_radius_servers (Data Source)
 
-
+RADIUS Resource API V2 for FortiSASE.
 
 ## Example Usage
 

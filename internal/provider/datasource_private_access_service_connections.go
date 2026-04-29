@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -56,6 +56,7 @@ func (r *datasourcePrivateAccessServiceConnections) Metadata(ctx context.Context
 
 func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Secure Private Access Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"alias": schema.StringAttribute{
 				MarkdownDescription: "alias for serivce connection",
@@ -79,7 +80,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			},
 			"auth": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("pki", "psk"),
+					stringvalidatorwarning.OneOf("pki", "psk"),
 				},
 				MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
 				Optional:            true,
@@ -94,7 +95,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			},
 			"ipsec_ike_version": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("2"),
+					stringvalidatorwarning.OneOf("2"),
 				},
 				MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
 				Optional:            true,
@@ -109,7 +110,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			},
 			"type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("overlay", "loopback"),
+					stringvalidatorwarning.OneOf("overlay", "loopback"),
 				},
 				MarkdownDescription: "BGP Routing Design. Must be same as network configuration.\nSupported values: overlay, loopback.",
 				Computed:            true,
@@ -117,7 +118,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 			},
 			"config_state": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
+					stringvalidatorwarning.OneOf("success", "failed", "creating", "updating", "deleting"),
 				},
 				MarkdownDescription: "Configuration state of service connection.\nSupported values: success, failed, creating, updating, deleting.",
 				Computed:            true,
@@ -149,7 +150,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 						},
 						"auth": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("pki", "psk"),
+								stringvalidatorwarning.OneOf("pki", "psk"),
 							},
 							MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
 							Computed:            true,
@@ -162,7 +163,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 						},
 						"ipsec_ike_version": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("2"),
+								stringvalidatorwarning.OneOf("2"),
 							},
 							MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
 							Computed:            true,
@@ -201,7 +202,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 					},
 					"auth": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("pki", "psk"),
+							stringvalidatorwarning.OneOf("pki", "psk"),
 						},
 						MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
 						Computed:            true,
@@ -219,7 +220,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 					},
 					"ipsec_ike_version": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("2"),
+							stringvalidatorwarning.OneOf("2"),
 						},
 						MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
 						Computed:            true,
@@ -266,7 +267,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 								},
 								"auth": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("pki", "psk"),
+										stringvalidatorwarning.OneOf("pki", "psk"),
 									},
 									MarkdownDescription: "IPSEC authentication method.\nSupported values: pki, psk.",
 									Computed:            true,
@@ -279,7 +280,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 								},
 								"ipsec_ike_version": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("2"),
+										stringvalidatorwarning.OneOf("2"),
 									},
 									MarkdownDescription: "IKE version for IPSEC.\nSupported values: 2.",
 									Computed:            true,
@@ -312,7 +313,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 				Attributes: map[string]schema.Attribute{
 					"config_state": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("success", "failed", "creating", "updating", "deleting"),
+							stringvalidatorwarning.OneOf("success", "failed", "creating", "updating", "deleting"),
 						},
 						MarkdownDescription: "Configuration state of network configuration.\nSupported values: success, failed, creating, updating, deleting.",
 						Computed:            true,
@@ -320,7 +321,7 @@ func (r *datasourcePrivateAccessServiceConnections) Schema(ctx context.Context, 
 					},
 					"bgp_design": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("overlay", "loopback"),
+							stringvalidatorwarning.OneOf("overlay", "loopback"),
 						},
 						MarkdownDescription: "BGP Routing Design.\nSupported values: overlay, loopback.",
 						Computed:            true,

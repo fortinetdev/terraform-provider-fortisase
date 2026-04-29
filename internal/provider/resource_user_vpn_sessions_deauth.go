@@ -38,6 +38,7 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Metadata(ctx context.Context, req re
 
 func (r *resourceUserVpnSessionsDeauth2Edl) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "User monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

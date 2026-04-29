@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,6 +50,7 @@ func (r *resourceSecurityInternalReversePolicies) Metadata(ctx context.Context, 
 
 func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Internal Reverse Policy Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -60,7 +61,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -70,28 +71,28 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 			},
 			"scope": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "vpn-user", "thin-edge", "specify"),
+					stringvalidatorwarning.OneOf("all", "vpn-user", "thin-edge", "specify"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("accept", "deny"),
+					stringvalidatorwarning.OneOf("accept", "deny"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1023),
+					stringvalidatorwarning.LengthAtMost(1023),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"log_traffic": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "utm", "disable"),
+					stringvalidatorwarning.OneOf("all", "utm", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -105,7 +106,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "security/ip-threat-feeds"),
 							},
 							Computed: true,
 							Optional: true,
@@ -124,7 +125,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/services", "security/service-groups"),
+								stringvalidatorwarning.OneOf("security/services", "security/service-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -142,7 +143,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
+							stringvalidatorwarning.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
 						},
 						Computed: true,
 						Optional: true,
@@ -165,7 +166,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/profile-groups"),
+									stringvalidatorwarning.OneOf("security/profile-groups"),
 								},
 								Computed: true,
 								Optional: true,
@@ -187,7 +188,7 @@ func (r *resourceSecurityInternalReversePolicies) Schema(ctx context.Context, re
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("network/hosts", "network/host-groups", "infra/ssids", "infra/fortigates", "infra/extenders"),
+								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups", "infra/ssids", "infra/fortigates", "infra/extenders"),
 							},
 							Computed: true,
 							Optional: true,
@@ -267,12 +268,44 @@ func (r *resourceSecurityInternalReversePolicies) Create(ctx context.Context, re
 		)
 		return
 	}
-
-	diags.Append(data.refreshSecurityInternalReversePolicies(ctx, read_output)...)
-	if diags.HasError() {
-		return
+	ignore_refresh := false
+	if messageVal, hasMessage := read_output["message"]; hasMessage {
+		if message, ok := messageVal.(string); ok {
+			if message == "Warning: one or more Security PoP(s) are down. Returned available data." {
+				ignore_refresh = true
+				diags.AddWarning(
+					fmt.Sprintf("Warning: one or more Security PoP(s) are down."),
+					"Please go to GUI to check the status of the Security PoP(s).",
+				)
+				is_resource_created := false
+				if dataList, ok := read_output["data"]; ok {
+					if dataList, ok := dataList.([]interface{}); ok {
+						for _, item := range dataList {
+							if dataItem, ok := item.(map[string]interface{}); ok {
+								if dataName, ok := dataItem["name"].(string); ok && dataName == data.PrimaryKey.ValueString() {
+									is_resource_created = true
+									break
+								}
+							}
+						}
+					}
+				}
+				if !is_resource_created {
+					ignore_refresh = true
+					diags.AddError(
+						fmt.Sprintf("Error: resource %s not created", r.resourceName),
+						getErrorDetail(&read_input_model, read_output),
+					)
+				}
+			}
+		}
 	}
-
+	if !ignore_refresh {
+		diags.Append(data.refreshSecurityInternalReversePolicies(ctx, read_output)...)
+		if diags.HasError() {
+			return
+		}
+	}
 	diags.Append(resp.State.Set(ctx, &data)...)
 }
 

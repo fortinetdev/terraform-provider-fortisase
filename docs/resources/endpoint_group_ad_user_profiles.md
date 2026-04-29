@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_group_ad_user_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Group & AD Users Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_group_ad_user_profiles (Resource)
 
-
+Group & AD Users Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

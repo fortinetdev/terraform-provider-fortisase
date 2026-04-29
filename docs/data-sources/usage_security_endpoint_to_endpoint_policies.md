@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_endpoint_to_endpoint_policies Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_endpoint_to_endpoint_policies (Data Source)
 
-
+Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

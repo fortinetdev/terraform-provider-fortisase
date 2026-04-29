@@ -3,12 +3,12 @@
 page_title: "fortisase_security_schedule_groups Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Schedule Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_schedule_groups (Data Source)
 
-
+Schedule Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

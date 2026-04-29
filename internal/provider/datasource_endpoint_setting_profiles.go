@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -27,13 +27,14 @@ type datasourceEndpointSettingProfiles struct {
 
 // datasourceEndpointSettingProfilesModel describes the datasource data model.
 type datasourceEndpointSettingProfilesModel struct {
-	AllowConfigBackup     types.String `tfsdk:"allow_config_backup"`
-	ShowTagFortiClient    types.String `tfsdk:"show_tag_forti_client"`
-	ShowNotifications     types.String `tfsdk:"show_notifications"`
-	NotifyVpnIssue        types.String `tfsdk:"notify_vpn_issue"`
-	UsersCanDisconnect    types.String `tfsdk:"users_can_disconnect"`
-	EmsDisconnectPassword types.String `tfsdk:"ems_disconnect_password"`
-	PrimaryKey            types.String `tfsdk:"primary_key"`
+	AllowConfigBackup     types.String                                  `tfsdk:"allow_config_backup"`
+	ShowTagFortiClient    types.String                                  `tfsdk:"show_tag_forti_client"`
+	ShowNotifications     types.String                                  `tfsdk:"show_notifications"`
+	NotifyVpnIssue        types.String                                  `tfsdk:"notify_vpn_issue"`
+	UsersCanDisconnect    types.String                                  `tfsdk:"users_can_disconnect"`
+	FctGui                *datasourceEndpointSettingProfilesFctGuiModel `tfsdk:"fct_gui"`
+	EmsDisconnectPassword types.String                                  `tfsdk:"ems_disconnect_password"`
+	PrimaryKey            types.String                                  `tfsdk:"primary_key"`
 }
 
 func (r *datasourceEndpointSettingProfiles) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -42,38 +43,39 @@ func (r *datasourceEndpointSettingProfiles) Metadata(ctx context.Context, req da
 
 func (r *datasourceEndpointSettingProfiles) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Settings Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"allow_config_backup": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"show_tag_forti_client": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"show_notifications": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"notify_vpn_issue": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"users_can_disconnect": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -85,6 +87,16 @@ func (r *datasourceEndpointSettingProfiles) Schema(ctx context.Context, req data
 			"primary_key": schema.StringAttribute{
 				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
 				Required:            true,
+			},
+			"fct_gui": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"default_tab": schema.StringAttribute{
+						Computed: true,
+						Optional: true,
+					},
+				},
+				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -173,6 +185,10 @@ func (m *datasourceEndpointSettingProfilesModel) refreshEndpointSettingProfiles(
 		m.UsersCanDisconnect = parseStringValue(v)
 	}
 
+	if v, ok := o["fctGui"]; ok {
+		m.FctGui = m.FctGui.flattenEndpointSettingProfilesFctGui(ctx, v, &diags)
+	}
+
 	if v, ok := o["emsDisconnectPassword"]; ok {
 		m.EmsDisconnectPassword = parseStringValue(v)
 	}
@@ -187,4 +203,23 @@ func (data *datasourceEndpointSettingProfilesModel) getURLObjectEndpointSettingP
 	}
 
 	return &result
+}
+
+type datasourceEndpointSettingProfilesFctGuiModel struct {
+	DefaultTab types.String `tfsdk:"default_tab"`
+}
+
+func (m *datasourceEndpointSettingProfilesFctGuiModel) flattenEndpointSettingProfilesFctGui(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointSettingProfilesFctGuiModel {
+	if input == nil {
+		return &datasourceEndpointSettingProfilesFctGuiModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointSettingProfilesFctGuiModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["defaultTab"]; ok {
+		m.DefaultTab = parseStringValue(v)
+	}
+
+	return m
 }

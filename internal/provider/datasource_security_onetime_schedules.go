@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,16 +40,17 @@ func (r *datasourceSecurityOnetimeSchedules) Metadata(ctx context.Context, req d
 
 func (r *datasourceSecurityOnetimeSchedules) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Onetime Schedule Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
+					stringvalidatorwarning.LengthBetween(1, 31),
 				},
 				Required: true,
 			},
 			"expiration_days": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 100),
+					float64validatorwarning.Between(1, 100),
 				},
 				Computed: true,
 				Optional: true,

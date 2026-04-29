@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,14 +30,15 @@ type resourceEndpointSettingProfiles struct {
 
 // resourceEndpointSettingProfilesModel describes the resource data model.
 type resourceEndpointSettingProfilesModel struct {
-	ID                    types.String `tfsdk:"id"`
-	AllowConfigBackup     types.String `tfsdk:"allow_config_backup"`
-	ShowTagFortiClient    types.String `tfsdk:"show_tag_forti_client"`
-	ShowNotifications     types.String `tfsdk:"show_notifications"`
-	NotifyVpnIssue        types.String `tfsdk:"notify_vpn_issue"`
-	UsersCanDisconnect    types.String `tfsdk:"users_can_disconnect"`
-	EmsDisconnectPassword types.String `tfsdk:"ems_disconnect_password"`
-	PrimaryKey            types.String `tfsdk:"primary_key"`
+	ID                    types.String                                `tfsdk:"id"`
+	AllowConfigBackup     types.String                                `tfsdk:"allow_config_backup"`
+	ShowTagFortiClient    types.String                                `tfsdk:"show_tag_forti_client"`
+	ShowNotifications     types.String                                `tfsdk:"show_notifications"`
+	NotifyVpnIssue        types.String                                `tfsdk:"notify_vpn_issue"`
+	UsersCanDisconnect    types.String                                `tfsdk:"users_can_disconnect"`
+	FctGui                *resourceEndpointSettingProfilesFctGuiModel `tfsdk:"fct_gui"`
+	EmsDisconnectPassword types.String                                `tfsdk:"ems_disconnect_password"`
+	PrimaryKey            types.String                                `tfsdk:"primary_key"`
 }
 
 func (r *resourceEndpointSettingProfiles) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -46,6 +47,7 @@ func (r *resourceEndpointSettingProfiles) Metadata(ctx context.Context, req reso
 
 func (r *resourceEndpointSettingProfiles) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Settings Profile Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -56,35 +58,35 @@ func (r *resourceEndpointSettingProfiles) Schema(ctx context.Context, req resour
 			},
 			"allow_config_backup": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"show_tag_forti_client": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"show_notifications": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"notify_vpn_issue": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"users_can_disconnect": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -99,6 +101,16 @@ func (r *resourceEndpointSettingProfiles) Schema(ctx context.Context, req resour
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+			},
+			"fct_gui": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"default_tab": schema.StringAttribute{
+						Computed: true,
+						Optional: true,
+					},
+				},
+				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -127,7 +139,7 @@ func (r *resourceEndpointSettingProfiles) Configure(ctx context.Context, req res
 }
 
 func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointSettingProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	var data resourceEndpointSettingProfilesModel
@@ -181,7 +193,7 @@ func (r *resourceEndpointSettingProfiles) Create(ctx context.Context, req resour
 }
 
 func (r *resourceEndpointSettingProfiles) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointSettingProfiles")
+	lock := r.fortiClient.GetResourceLock("endpoint-profile")
 	lock.Lock()
 	defer lock.Unlock()
 	diags := &resp.Diagnostics
@@ -310,6 +322,10 @@ func (m *resourceEndpointSettingProfilesModel) refreshEndpointSettingProfiles(ct
 		m.UsersCanDisconnect = parseStringValue(v)
 	}
 
+	if v, ok := o["fctGui"]; ok {
+		m.FctGui = m.FctGui.flattenEndpointSettingProfilesFctGui(ctx, v, &diags)
+	}
+
 	if v, ok := o["emsDisconnectPassword"]; ok {
 		m.EmsDisconnectPassword = parseStringValue(v)
 	}
@@ -337,6 +353,10 @@ func (data *resourceEndpointSettingProfilesModel) getCreateObjectEndpointSetting
 
 	if !data.UsersCanDisconnect.IsNull() {
 		result["usersCanDisconnect"] = data.UsersCanDisconnect.ValueString()
+	}
+
+	if data.FctGui != nil && !isZeroStruct(*data.FctGui) {
+		result["fctGui"] = data.FctGui.expandEndpointSettingProfilesFctGui(ctx, diags)
 	}
 
 	if !data.EmsDisconnectPassword.IsNull() {
@@ -368,6 +388,10 @@ func (data *resourceEndpointSettingProfilesModel) getUpdateObjectEndpointSetting
 		result["usersCanDisconnect"] = data.UsersCanDisconnect.ValueString()
 	}
 
+	if data.FctGui != nil {
+		result["fctGui"] = data.FctGui.expandEndpointSettingProfilesFctGui(ctx, diags)
+	}
+
 	if !data.EmsDisconnectPassword.IsNull() {
 		result["emsDisconnectPassword"] = data.EmsDisconnectPassword.ValueString()
 	}
@@ -382,4 +406,32 @@ func (data *resourceEndpointSettingProfilesModel) getURLObjectEndpointSettingPro
 	}
 
 	return &result
+}
+
+type resourceEndpointSettingProfilesFctGuiModel struct {
+	DefaultTab types.String `tfsdk:"default_tab"`
+}
+
+func (m *resourceEndpointSettingProfilesFctGuiModel) flattenEndpointSettingProfilesFctGui(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointSettingProfilesFctGuiModel {
+	if input == nil {
+		return &resourceEndpointSettingProfilesFctGuiModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointSettingProfilesFctGuiModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["defaultTab"]; ok {
+		m.DefaultTab = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (data *resourceEndpointSettingProfilesFctGuiModel) expandEndpointSettingProfilesFctGui(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.DefaultTab.IsNull() {
+		result["defaultTab"] = data.DefaultTab.ValueString()
+	}
+
+	return result
 }

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,6 +40,7 @@ func (r *datasourceEndpointsGroups) Metadata(ctx context.Context, req datasource
 
 func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Endpoint Domain monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"guid": schema.StringAttribute{
 				MarkdownDescription: "UID of the group to expand to find child groups.",
@@ -101,7 +102,7 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 								},
 								"domain_type": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("azure", "adfs"),
+										stringvalidatorwarning.OneOf("azure", "adfs"),
 									},
 									MarkdownDescription: "Type of the endpint/domains entry the group belongs to.\nSupported values: azure, adfs.",
 									Computed:            true,
@@ -116,7 +117,7 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 										},
 										"datasource": schema.StringAttribute{
 											Validators: []validator.String{
-												stringvalidator.OneOf("endpoint/domains"),
+												stringvalidatorwarning.OneOf("endpoint/domains"),
 											},
 											Computed: true,
 											Optional: true,
@@ -177,7 +178,7 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 								},
 								"domain_type": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("azure", "adfs"),
+										stringvalidatorwarning.OneOf("azure", "adfs"),
 									},
 									MarkdownDescription: "Type of the endpint/domains entry the group belongs to.\nSupported values: azure, adfs.",
 									Computed:            true,
@@ -192,7 +193,7 @@ func (r *datasourceEndpointsGroups) Schema(ctx context.Context, req datasource.S
 										},
 										"datasource": schema.StringAttribute{
 											Validators: []validator.String{
-												stringvalidator.OneOf("endpoint/domains"),
+												stringvalidatorwarning.OneOf("endpoint/domains"),
 											},
 											Computed: true,
 											Optional: true,

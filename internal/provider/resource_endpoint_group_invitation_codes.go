@@ -5,12 +5,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -43,6 +45,7 @@ func (r *resourceEndpointGroupInvitationCodes) Metadata(ctx context.Context, req
 
 func (r *resourceEndpointGroupInvitationCodes) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Group-Based Invitation Code Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -53,35 +56,50 @@ func (r *resourceEndpointGroupInvitationCodes) Schema(ctx context.Context, req r
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 128),
+					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"expire_date": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"group_assignment": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Computed: true,
 						Optional: true,
+						PlanModifiers: []planmodifier.Bool{
+							boolplanmodifier.RequiresReplace(),
+						},
 					},
 					"group": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"id": schema.Float64Attribute{
 								Validators: []validator.Float64{
-									float64validator.AtLeast(1),
+									float64validatorwarning.AtLeast(1),
 								},
 								Computed: true,
 								Optional: true,
+								PlanModifiers: []planmodifier.Float64{
+									float64planmodifier.RequiresReplace(),
+								},
 							},
 							"path": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.LengthAtLeast(1),
+									stringvalidatorwarning.LengthAtLeast(1),
 								},
 								Computed: true,
 								Optional: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.RequiresReplace(),
+								},
 							},
 						},
 						Computed: true,
@@ -171,64 +189,11 @@ func (r *resourceEndpointGroupInvitationCodes) Create(ctx context.Context, req r
 }
 
 func (r *resourceEndpointGroupInvitationCodes) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointGroupInvitationCodes")
-	lock.Lock()
-	defer lock.Unlock()
-	diags := &resp.Diagnostics
-
-	// Read Terraform plan data into the model
-	var state resourceEndpointGroupInvitationCodesModel
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	var data resourceEndpointGroupInvitationCodesModel
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-	data.ID = state.ID
-
-	mkey := state.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.BodyParams = *(data.getUpdateObjectEndpointGroupInvitationCodes(ctx, state, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointGroupInvitationCodes(ctx, "update", diags))
-
-	if diags.HasError() {
-		return
-	}
-
-	output, err := c.UpdateEndpointGroupInvitationCodes(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectEndpointGroupInvitationCodes(ctx, "read", diags))
-
-	read_output, err := c.ReadEndpointGroupInvitationCodes(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&read_input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshEndpointGroupInvitationCodes(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
+	// No update operation for this resource
+	resp.Diagnostics.AddError(
+		"Update not supported",
+		"This resource does not support update. You use terraform taint <resource_type>.<resource_name> to force a replacement.",
+	)
 }
 
 func (r *resourceEndpointGroupInvitationCodes) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

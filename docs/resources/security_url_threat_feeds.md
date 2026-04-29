@@ -3,12 +3,12 @@
 page_title: "fortisase_security_url_threat_feeds Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  URL Threat Feed Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_url_threat_feeds (Resource)
 
-
+URL Threat Feed Resource API V2 for FortiSASE.
 
 ## Example Usage
 

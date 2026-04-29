@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_group_invitation_codes Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Group-Based Invitation Code Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_group_invitation_codes (Resource)
 
-
+Group-Based Invitation Code Resource API V2 for FortiSASE.
 
 ## Example Usage
 

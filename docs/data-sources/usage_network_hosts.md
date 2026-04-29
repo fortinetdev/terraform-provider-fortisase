@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_network_hosts Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Host Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_network_hosts (Data Source)
 
-
+Host Resource API V2 for FortiSASE.
 
 ## Example Usage
 

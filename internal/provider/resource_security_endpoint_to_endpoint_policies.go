@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,6 +49,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Metadata(ctx context.Contex
 
 func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Endpoint to Endpoint Policy Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -59,7 +60,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -69,21 +70,21 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 			},
 			"action": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("accept", "deny"),
+					stringvalidatorwarning.OneOf("accept", "deny"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1023),
+					stringvalidatorwarning.LengthAtMost(1023),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"log_traffic": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "utm", "disable"),
+					stringvalidatorwarning.OneOf("all", "utm", "disable"),
 				},
 				Computed: true,
 				Optional: true,
@@ -97,7 +98,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("auth/users", "auth/user-groups", "auth/ad-groups"),
+								stringvalidatorwarning.OneOf("auth/users", "auth/user-groups", "auth/ad-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -116,7 +117,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("endpoint/ztna-tags"),
+								stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
 							},
 							Computed: true,
 							Optional: true,
@@ -135,7 +136,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("security/services", "security/service-groups"),
+								stringvalidatorwarning.OneOf("security/services", "security/service-groups"),
 							},
 							Computed: true,
 							Optional: true,
@@ -153,7 +154,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
+							stringvalidatorwarning.OneOf("security/onetime-schedules", "security/recurring-schedules", "security/schedule-groups"),
 						},
 						Computed: true,
 						Optional: true,
@@ -176,7 +177,7 @@ func (r *resourceSecurityEndpointToEndpointPolicies) Schema(ctx context.Context,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidator.OneOf("security/profile-groups"),
+									stringvalidatorwarning.OneOf("security/profile-groups"),
 								},
 								Computed: true,
 								Optional: true,

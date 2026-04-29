@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_sandbox_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Sandbox Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_sandbox_profiles (Data Source)
 
-
+Sandbox Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

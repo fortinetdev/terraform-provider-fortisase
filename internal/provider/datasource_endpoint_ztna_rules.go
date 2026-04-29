@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,23 +42,24 @@ func (r *datasourceEndpointZtnaRules) Metadata(ctx context.Context, req datasour
 
 func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 128),
+					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Required: true,
 			},
 			"status": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("enable", "disable"),
+					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1000),
+					stringvalidatorwarning.LengthAtMost(1000),
 				},
 				Computed: true,
 				Optional: true,
@@ -71,7 +72,7 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("endpoint/ztna-tags"),
+							stringvalidatorwarning.OneOf("endpoint/ztna-tags"),
 						},
 						Computed: true,
 						Optional: true,
@@ -81,68 +82,68 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 				Optional: true,
 			},
 			"rules": schema.ListNestedAttribute{
-				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. This resource is restricted to EMS version: 7.2.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.AtLeast(1),
+								float64validatorwarning.AtLeast(1),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"os": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("windows", "macos", "linux", "ios", "android"),
+								stringvalidatorwarning.OneOf("windows", "macos", "linux", "ios", "android"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("ad-groups", "anti-virus", "certificate", "file", "logged-in-domain", "running-process", "registry-key", "os-version", "sandbox-detection", "vulnerable-devices", "windows-security", "user-identity", "ems-management", "security", "ip-range", "on-fabric-status", "fct-version", "security-status", "cve", "crowdstrike-zta-score"),
+								stringvalidatorwarning.OneOf("ad-groups", "anti-virus", "certificate", "file", "logged-in-domain", "running-process", "registry-key", "os-version", "sandbox-detection", "vulnerable-devices", "windows-security", "user-identity", "ems-management", "security", "ip-range", "on-fabric-status", "fct-version", "security-status", "cve", "crowdstrike-zta-score"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"service": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("Google", "LinkedIn", "Salesforce", "Custom"),
+								stringvalidatorwarning.OneOf("Google", "LinkedIn", "Salesforce", "Custom"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"account": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 256),
+								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"match_type": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("simple", "regex", "wildcard"),
+								stringvalidatorwarning.OneOf("simple", "regex", "wildcard"),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"subject": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 256),
+								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"issuer": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(1, 256),
+								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"path": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.LengthAtLeast(1),
+								stringvalidatorwarning.LengthAtLeast(1),
 							},
 							Computed: true,
 							Optional: true,
@@ -157,14 +158,14 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 						},
 						"check_updates_within_days": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(1, 3653),
+								float64validatorwarning.Between(1, 3653),
 							},
 							Computed: true,
 							Optional: true,
 						},
 						"comparator": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("=", ">", "<", ">=", "<="),
+								stringvalidatorwarning.OneOf("=", ">", "<", ">=", "<="),
 							},
 							Computed: true,
 							Optional: true,
@@ -177,7 +178,7 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 							Attributes: map[string]schema.Attribute{
 								"key": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 256),
+										stringvalidatorwarning.LengthBetween(1, 256),
 									},
 									Computed: true,
 									Optional: true,
@@ -188,14 +189,14 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 								},
 								"comparator": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("=", "!=", ">", ">=", "<", "<="),
+										stringvalidatorwarning.OneOf("=", "!=", ">", ">=", "<", "<="),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"value": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.LengthBetween(1, 256),
+										stringvalidatorwarning.LengthBetween(1, 256),
 									},
 									Computed: true,
 									Optional: true,
@@ -210,7 +211,7 @@ func (r *datasourceEndpointZtnaRules) Schema(ctx context.Context, req datasource
 				Optional: true,
 			},
 			"logic": schema.SingleNestedAttribute{
-				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value.",
+				MarkdownDescription: "The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. This resource is restricted to EMS version: 7.2.",
 				Attributes: map[string]schema.Attribute{
 					"windows": schema.StringAttribute{
 						Computed: true,
@@ -253,6 +254,19 @@ func (r *datasourceEndpointZtnaRules) Configure(ctx context.Context, req datasou
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	support_versions := map[string][]string{
+		"EMS": {"7.2"},
+	}
+	ok, err := checkVersionMatch(client.Client, support_versions)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"FortiSASE EMS version do not support this resource.",
+			fmt.Sprintf("%v", err),
 		)
 
 		return

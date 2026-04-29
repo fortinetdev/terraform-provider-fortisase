@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,6 +52,7 @@ func (r *resourceAuthSwgSamlServer) Metadata(ctx context.Context, req resource.M
 
 func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "SWG User SSO Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -62,7 +63,7 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("$sase-global"),
+					stringvalidatorwarning.OneOf("$sase-global"),
 				},
 				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
@@ -70,35 +71,35 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_sign_on_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_log_out_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -109,7 +110,7 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"digest_method": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("sha256", "sha1"),
+					stringvalidatorwarning.OneOf("sha256", "sha1"),
 				},
 				Computed: true,
 				Optional: true,
@@ -126,7 +127,7 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/local-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -143,7 +144,7 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/remote-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -160,14 +161,14 @@ func (r *resourceAuthSwgSamlServer) Schema(ctx context.Context, req resource.Sch
 					},
 					"auth_method": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("token"),
+							stringvalidatorwarning.OneOf("token"),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"token": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 128),
+							stringvalidatorwarning.LengthBetween(1, 128),
 						},
 						Computed: true,
 						Optional: true,

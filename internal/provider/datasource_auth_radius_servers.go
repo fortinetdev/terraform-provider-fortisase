@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,23 +40,24 @@ func (r *datasourceAuthRadiusServers) Metadata(ctx context.Context, req datasour
 
 func (r *datasourceAuthRadiusServers) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "RADIUS Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
 			"auth_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("auto", "pap", "chap", "ms_chap", "ms_chap_v2"),
+					stringvalidatorwarning.OneOf("auto", "pap", "chap", "ms_chap", "ms_chap_v2"),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"primary_server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -67,7 +68,7 @@ func (r *datasourceAuthRadiusServers) Schema(ctx context.Context, req datasource
 			},
 			"secondary_server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,

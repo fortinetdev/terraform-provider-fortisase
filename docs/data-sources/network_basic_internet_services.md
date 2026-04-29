@@ -3,12 +3,12 @@
 page_title: "fortisase_network_basic_internet_services Data Source - fortisase"
 subcategory: "Network"
 description: |-
-  
+  Internet Service Resource API V2 for FortiSASE.
 ---
 
 # fortisase_network_basic_internet_services (Data Source)
 
-
+Internet Service Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -34,6 +34,7 @@ func (r *datasourceNetworkWildcardFqdnCustoms) Metadata(ctx context.Context, req
 
 func (r *datasourceNetworkWildcardFqdnCustoms) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Wildcard FQDN Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,

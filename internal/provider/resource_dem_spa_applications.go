@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -48,6 +48,7 @@ func (r *resourceDemSpaApplications) Metadata(ctx context.Context, req resource.
 
 func (r *resourceDemSpaApplications) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DEM SPA Application Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -58,55 +59,55 @@ func (r *resourceDemSpaApplications) Schema(ctx context.Context, req resource.Sc
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 35),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
 			"server": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 79),
+					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"latency_threshold": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(10000000),
+					float64validatorwarning.AtMost(10000000),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"jitter_threshold": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(10000000),
+					float64validatorwarning.AtMost(10000000),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"packetloss_threshold": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(100),
+					float64validatorwarning.AtMost(100),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"interval": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(20, 3600000),
+					float64validatorwarning.Between(20, 3600000),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"fail_time": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 3600),
+					float64validatorwarning.Between(1, 3600),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"recovery_time": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.Between(1, 3600),
+					float64validatorwarning.Between(1, 3600),
 				},
 				Computed: true,
 				Optional: true,

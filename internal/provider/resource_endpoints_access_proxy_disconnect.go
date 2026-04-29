@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -39,6 +39,7 @@ func (r *resourceEndpointsAccessProxyDisconnect2Edl) Metadata(ctx context.Contex
 
 func (r *resourceEndpointsAccessProxyDisconnect2Edl) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Access Proxies monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -49,7 +50,7 @@ func (r *resourceEndpointsAccessProxyDisconnect2Edl) Schema(ctx context.Context,
 			},
 			"sn_list": schema.SetAttribute{
 				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
+					setvalidatorwarning.SizeAtLeast(1),
 				},
 				Computed:    true,
 				Optional:    true,

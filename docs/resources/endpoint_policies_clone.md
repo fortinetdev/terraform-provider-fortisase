@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_policies_clone Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Endpoint Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_policies_clone (Resource)
 
-
+Endpoint Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

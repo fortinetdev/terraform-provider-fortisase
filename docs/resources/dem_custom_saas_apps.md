@@ -3,12 +3,12 @@
 page_title: "fortisase_dem_custom_saas_apps Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  DEM Custom SaaS Applications Resource API V2 for FortiSASE.
 ---
 
 # fortisase_dem_custom_saas_apps (Resource)
 
-
+DEM Custom SaaS Applications Resource API V2 for FortiSASE.
 
 ## Example Usage
 

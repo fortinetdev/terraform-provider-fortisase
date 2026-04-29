@@ -5,8 +5,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/float64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -40,13 +40,14 @@ func (r *datasourceSecurityDlpExactDataMatches) Metadata(ctx context.Context, re
 
 func (r *datasourceSecurityDlpExactDataMatches) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Exact Data Match Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,
 			},
 			"optional_count": schema.Float64Attribute{
 				Validators: []validator.Float64{
-					float64validator.AtMost(32),
+					float64validatorwarning.AtMost(32),
 				},
 				Computed: true,
 				Optional: true,
@@ -59,14 +60,14 @@ func (r *datasourceSecurityDlpExactDataMatches) Schema(ctx context.Context, req 
 					},
 					"refresh_rate": schema.Float64Attribute{
 						Validators: []validator.Float64{
-							float64validator.Between(1, 43200),
+							float64validatorwarning.Between(1, 43200),
 						},
 						Computed: true,
 						Optional: true,
 					},
 					"username": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.LengthAtMost(64),
+							stringvalidatorwarning.LengthAtMost(64),
 						},
 						Computed: true,
 						Optional: true,
@@ -78,7 +79,7 @@ func (r *datasourceSecurityDlpExactDataMatches) Schema(ctx context.Context, req 
 					},
 					"update_method": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("feed", "push"),
+							stringvalidatorwarning.OneOf("feed", "push"),
 						},
 						Computed: true,
 						Optional: true,
@@ -92,7 +93,7 @@ func (r *datasourceSecurityDlpExactDataMatches) Schema(ctx context.Context, req 
 					Attributes: map[string]schema.Attribute{
 						"index": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validator.Between(1, 32),
+								float64validatorwarning.Between(1, 32),
 							},
 							Computed: true,
 							Optional: true,
@@ -109,7 +110,7 @@ func (r *datasourceSecurityDlpExactDataMatches) Schema(ctx context.Context, req 
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("security/dlp-data-types"),
+										stringvalidatorwarning.OneOf("security/dlp-data-types"),
 									},
 									Computed: true,
 									Optional: true,

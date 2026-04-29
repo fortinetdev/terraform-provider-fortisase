@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -55,6 +55,7 @@ func (r *resourceAuthVpnSamlServer) Metadata(ctx context.Context, req resource.M
 
 func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "VPN User SSO Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -65,7 +66,7 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("$sase-global"),
+					stringvalidatorwarning.OneOf("$sase-global"),
 				},
 				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
@@ -73,35 +74,35 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_sign_on_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"idp_log_out_url": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"group_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -112,7 +113,7 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"digest_method": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("sha256", "sha1"),
+					stringvalidatorwarning.OneOf("sha256", "sha1"),
 				},
 				Computed: true,
 				Optional: true,
@@ -127,14 +128,14 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			},
 			"domain_name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
 			},
 			"application_id": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
 				Optional: true,
@@ -147,7 +148,7 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/local-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -164,7 +165,7 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
-							stringvalidator.OneOf("system/certificate/remote-certificates"),
+							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
 						Computed: true,
 						Optional: true,
@@ -220,28 +221,7 @@ func (r *resourceAuthVpnSamlServer) Create(ctx context.Context, req resource.Cre
 	}
 	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		shouldReportError := true
-		if errorVal, hasError := output["error"]; hasError {
-			if errorMap, ok := errorVal.(map[string]interface{}); ok {
-				if codeVal, hasCode := errorMap["code"]; hasCode {
-					var code int
-					switch v := codeVal.(type) {
-					case int:
-						code = v
-					default:
-						// should report error
-					}
-					if code == 51901 {
-						shouldReportError = false
-					}
-				}
-			}
-		}
-		if shouldReportError {
-			diags.AddError(
-				fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
-				getErrorDetail(&input_model, output),
-			)
+		if r.handleBadRequestError(output, err, &input_model, diags, fmt.Sprintf("Error to create resource: %s: %v", r.resourceName, err)) {
 			return
 		}
 	}
@@ -321,28 +301,7 @@ func (r *resourceAuthVpnSamlServer) Update(ctx context.Context, req resource.Upd
 
 	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		shouldReportError := true
-		if errorVal, hasError := output["error"]; hasError {
-			if errorMap, ok := errorVal.(map[string]interface{}); ok {
-				if codeVal, hasCode := errorMap["code"]; hasCode {
-					var code int
-					switch v := codeVal.(type) {
-					case int:
-						code = v
-					default:
-						// should report error
-					}
-					if code == 51901 {
-						shouldReportError = false
-					}
-				}
-			}
-		}
-		if shouldReportError {
-			diags.AddError(
-				fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-				getErrorDetail(&input_model, output),
-			)
+		if r.handleBadRequestError(output, err, &input_model, diags, fmt.Sprintf("Error to update resource: %s: %v", r.resourceName, err)) {
 			return
 		}
 	}
@@ -388,10 +347,39 @@ func (r *resourceAuthVpnSamlServer) Update(ctx context.Context, req resource.Upd
 	diags.Append(resp.State.Set(ctx, &data)...)
 }
 
+func (r *resourceAuthVpnSamlServer) handleBadRequestError(output map[string]interface{}, err error, inputModel *forticlient.InputModel, diags *diag.Diagnostics, errorMsg string) bool {
+	shouldReportError := true
+	if errorVal, hasError := output["error"]; hasError {
+		if errorMap, ok := errorVal.(map[string]interface{}); ok {
+			if codeVal, hasCode := errorMap["code"]; hasCode {
+				var code int
+				switch v := codeVal.(type) {
+				case int:
+					code = v
+				case float64:
+					code = int(v)
+				default:
+					// should report error
+				}
+				if code == 51901 || code == 51903 {
+					shouldReportError = false
+				}
+			}
+		}
+	}
+	if shouldReportError {
+		diags.AddError(
+			errorMsg,
+			getErrorDetail(inputModel, output),
+		)
+		return true
+	}
+	return false
+}
+
 func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	diags := &resp.Diagnostics
 	var data resourceAuthVpnSamlServerModel
-
 	// Read Terraform prior state data into the model
 	diags.Append(req.State.Get(ctx, &data)...)
 
@@ -411,28 +399,7 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 
 	output, err := c.UpdateAuthVpnSamlServer(&input_model)
 	if err != nil {
-		shouldReportError := true
-		if errorVal, hasError := output["error"]; hasError {
-			if errorMap, ok := errorVal.(map[string]interface{}); ok {
-				if codeVal, hasCode := errorMap["code"]; hasCode {
-					var code int
-					switch v := codeVal.(type) {
-					case int:
-						code = v
-					default:
-						// should report error
-					}
-					if code == 51901 {
-						shouldReportError = false
-					}
-				}
-			}
-		}
-		if shouldReportError {
-			diags.AddError(
-				fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
-				getErrorDetail(&input_model, output),
-			)
+		if r.handleBadRequestError(output, err, &input_model, diags, fmt.Sprintf("Error to delete resource: %s: %v", r.resourceName, err)) {
 			return
 		}
 	}
@@ -460,11 +427,9 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 					// resend the request
 					output, err := c.UpdateAuthVpnSamlServer(&input_model)
 					if err != nil {
-						diags.AddError(
-							fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
-							getErrorDetail(&input_model, output),
-						)
-						return
+						if r.handleBadRequestError(output, err, &input_model, diags, fmt.Sprintf("Error to delete resource, failed: %s: %v", r.resourceName, err)) {
+							return
+						}
 					}
 					continue
 				}
@@ -472,7 +437,7 @@ func (r *resourceAuthVpnSamlServer) Delete(ctx context.Context, req resource.Del
 		}
 	}
 	diags.AddError(
-		fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+		fmt.Sprintf("Error to delete resource: %s: %v", r.resourceName, err),
 		fmt.Sprintf("The resource still exists: %v", read_output),
 	)
 }

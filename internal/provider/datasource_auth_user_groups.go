@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -31,6 +31,9 @@ type datasourceAuthUserGroupsModel struct {
 	GroupType        types.String                                    `tfsdk:"group_type"`
 	LocalUsers       []datasourceAuthUserGroupsLocalUsersModel       `tfsdk:"local_users"`
 	RemoteUserGroups []datasourceAuthUserGroupsRemoteUserGroupsModel `tfsdk:"remote_user_groups"`
+	ScimUsers        []datasourceAuthUserGroupsScimUsersModel        `tfsdk:"scim_users"`
+	ScimGroups       []datasourceAuthUserGroupsScimGroupsModel       `tfsdk:"scim_groups"`
+	LocalUser        types.String                                    `tfsdk:"local_user"`
 }
 
 func (r *datasourceAuthUserGroups) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -39,18 +42,22 @@ func (r *datasourceAuthUserGroups) Metadata(ctx context.Context, req datasource.
 
 func (r *datasourceAuthUserGroups) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "User Group Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(35),
+					stringvalidatorwarning.LengthAtMost(35),
 				},
 				Required: true,
 			},
 			"group_type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("fsso", "firewall"),
+					stringvalidatorwarning.OneOf("fsso", "firewall", "scim"),
 				},
 				Computed: true,
+				Optional: true,
+			},
+			"local_user": schema.StringAttribute{
 				Optional: true,
 			},
 			"local_users": schema.ListNestedAttribute{
@@ -62,7 +69,7 @@ func (r *datasourceAuthUserGroups) Schema(ctx context.Context, req datasource.Sc
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidator.OneOf("auth/users"),
+								stringvalidatorwarning.OneOf("auth/users"),
 							},
 							Computed: true,
 							Optional: true,
@@ -88,7 +95,7 @@ func (r *datasourceAuthUserGroups) Schema(ctx context.Context, req datasource.Sc
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidator.OneOf("auth/ldap-servers", "auth/radius-servers", "auth/swg-saml-server", "auth/vpn-saml-server"),
+										stringvalidatorwarning.OneOf("auth/ldap-servers", "auth/radius-servers", "auth/swg-saml-server", "auth/vpn-saml-server", "auth/sslvpn-saml-server"),
 									},
 									Computed: true,
 									Optional: true,
@@ -100,6 +107,28 @@ func (r *datasourceAuthUserGroups) Schema(ctx context.Context, req datasource.Sc
 					},
 				},
 				Computed: true,
+				Optional: true,
+			},
+			"scim_users": schema.ListNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+					},
+				},
+				Optional: true,
+			},
+			"scim_groups": schema.ListNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Computed: true,
+							Optional: true,
+						},
+					},
+				},
 				Optional: true,
 			},
 		},
@@ -208,6 +237,14 @@ type datasourceAuthUserGroupsRemoteUserGroupsServerModel struct {
 	Datasource types.String `tfsdk:"datasource"`
 }
 
+type datasourceAuthUserGroupsScimUsersModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+type datasourceAuthUserGroupsScimGroupsModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
 func (m *datasourceAuthUserGroupsLocalUsersModel) flattenAuthUserGroupsLocalUsers(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceAuthUserGroupsLocalUsersModel {
 	if input == nil {
 		return &datasourceAuthUserGroupsLocalUsersModel{}
@@ -311,4 +348,82 @@ func (m *datasourceAuthUserGroupsRemoteUserGroupsServerModel) flattenAuthUserGro
 	}
 
 	return m
+}
+
+func (m *datasourceAuthUserGroupsScimUsersModel) flattenAuthUserGroupsScimUsers(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceAuthUserGroupsScimUsersModel {
+	if input == nil {
+		return &datasourceAuthUserGroupsScimUsersModel{}
+	}
+	if m == nil {
+		m = &datasourceAuthUserGroupsScimUsersModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["name"]; ok {
+		m.Name = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (s *datasourceAuthUserGroupsModel) flattenAuthUserGroupsScimUsersList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourceAuthUserGroupsScimUsersModel {
+	if o == nil {
+		return []datasourceAuthUserGroupsScimUsersModel{}
+	}
+
+	if _, ok := o.([]interface{}); !ok {
+		diags.AddError("Argument scim_users is not type of []interface{}.", "")
+		return []datasourceAuthUserGroupsScimUsersModel{}
+	}
+
+	l := o.([]interface{})
+	if len(l) == 0 || l[0] == nil {
+		return []datasourceAuthUserGroupsScimUsersModel{}
+	}
+
+	values := make([]datasourceAuthUserGroupsScimUsersModel, len(l))
+	for i, ele := range l {
+		var m datasourceAuthUserGroupsScimUsersModel
+		values[i] = *m.flattenAuthUserGroupsScimUsers(ctx, ele, diags)
+	}
+
+	return values
+}
+
+func (m *datasourceAuthUserGroupsScimGroupsModel) flattenAuthUserGroupsScimGroups(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceAuthUserGroupsScimGroupsModel {
+	if input == nil {
+		return &datasourceAuthUserGroupsScimGroupsModel{}
+	}
+	if m == nil {
+		m = &datasourceAuthUserGroupsScimGroupsModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["name"]; ok {
+		m.Name = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (s *datasourceAuthUserGroupsModel) flattenAuthUserGroupsScimGroupsList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourceAuthUserGroupsScimGroupsModel {
+	if o == nil {
+		return []datasourceAuthUserGroupsScimGroupsModel{}
+	}
+
+	if _, ok := o.([]interface{}); !ok {
+		diags.AddError("Argument scim_groups is not type of []interface{}.", "")
+		return []datasourceAuthUserGroupsScimGroupsModel{}
+	}
+
+	l := o.([]interface{})
+	if len(l) == 0 || l[0] == nil {
+		return []datasourceAuthUserGroupsScimGroupsModel{}
+	}
+
+	values := make([]datasourceAuthUserGroupsScimGroupsModel, len(l))
+	for i, ele := range l {
+		var m datasourceAuthUserGroupsScimGroupsModel
+		values[i] = *m.flattenAuthUserGroupsScimGroups(ctx, ele, diags)
+	}
+
+	return values
 }

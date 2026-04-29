@@ -3,12 +3,12 @@
 page_title: "fortisase_user_swg_sessions_deauth Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  User monitor API for FortiSASE.
 ---
 
 # fortisase_user_swg_sessions_deauth (Resource)
 
-
+User monitor API for FortiSASE.
 
 ## Example Usage
 

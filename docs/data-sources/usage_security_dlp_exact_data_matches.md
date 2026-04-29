@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_dlp_exact_data_matches Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  DLP Exact Data Match Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_dlp_exact_data_matches (Data Source)
 
-
+DLP Exact Data Match Resource API V2 for FortiSASE.
 
 ## Example Usage
 

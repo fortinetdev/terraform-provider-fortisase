@@ -3,12 +3,12 @@
 page_title: "fortisase_security_dlp_data_types Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  DLP Data Type Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_dlp_data_types (Data Source)
 
-
+DLP Data Type Resource API V2 for FortiSASE.
 
 ## Example Usage
 

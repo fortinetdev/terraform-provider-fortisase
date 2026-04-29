@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_connection_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  Connection Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_connection_profiles (Resource)
 
-
+Connection Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -74,10 +74,14 @@ resource "fortisase_endpoint_connection_profiles" "connection_profile" {
 
 ### Optional
 
+- `after_logon_saml_auth` (String) Specifies the browser framework used for normal VPN SAML authentication.
+Supported values: webBrowser, electron, webView2.
 - `allow_invalid_server_certificate` (String)
 - `allow_personal_vpns` (Boolean)
 - `auth_before_user_logon` (Boolean)
 - `available_vp_ns` (Attributes List) (see [below for nested schema](#nestedatt--available_vp_ns))
+- `before_logon_saml_auth` (String) Specifies the browser framework used for Pre-logon VPN SAML authentication.
+Supported values: webBrowser, electron.
 - `connect_to_forti_sase` (String)
 - `enable_invalid_server_cert_warning` (String)
 - `endpoint_on_net_bypass` (Boolean)
@@ -91,6 +95,8 @@ resource "fortisase_endpoint_connection_profiles" "connection_profile" {
 - `show_disconnect_btn` (String)
 - `split_tunnel` (Attributes) (see [below for nested schema](#nestedatt--split_tunnel))
 - `use_gui_saml_auth` (String)
+- `use_webview2_saml_auth` (String)
+- `vpn_type` (String)
 
 ### Read-Only
 
@@ -104,6 +110,7 @@ Optional:
 - `allow_fido_auth` (String)
 - `auth_method` (String)
 - `authenticate_with_sso` (String)
+- `dns_suffixes` (Set of String)
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
@@ -113,6 +120,7 @@ Optional:
 - `pre_shared_key` (String)
 - `remote_gateway` (String)
 - `require_certificate` (String)
+- `saml_port` (Number)
 - `save_username` (String)
 - `show_always_up` (String)
 - `show_auto_connect` (String)
@@ -151,6 +159,7 @@ Optional:
 
 Optional:
 
+- `disable_windows_captive_portal` (String)
 - `status` (String)
 
 
@@ -249,6 +258,7 @@ Optional:
 
 - `allow_fido_auth` (String)
 - `authenticate_with_sso` (String)
+- `dns_suffixes` (Set of String)
 - `enable_local_lan` (String)
 - `external_browser_saml_login` (String)
 - `failover_sequence` (Set of String)

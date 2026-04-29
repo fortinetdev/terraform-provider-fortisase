@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_auth_ldap_servers Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  LDAP Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_auth_ldap_servers (Data Source)
 
-
+LDAP Resource API V2 for FortiSASE.
 
 ## Example Usage
 

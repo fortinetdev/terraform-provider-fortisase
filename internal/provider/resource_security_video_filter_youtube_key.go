@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -42,6 +42,7 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Metadata(ctx context.Context, re
 
 func (r *resourceSecurityVideoFilterYoutubeKey) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Video Filter Youtube API Key Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -52,7 +53,7 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Schema(ctx context.Context, req 
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("$sase-global"),
+					stringvalidatorwarning.OneOf("$sase-global"),
 				},
 				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
@@ -60,7 +61,7 @@ func (r *resourceSecurityVideoFilterYoutubeKey) Schema(ctx context.Context, req 
 			},
 			"api_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 47),
+					stringvalidatorwarning.LengthBetween(1, 47),
 				},
 				Computed: true,
 				Optional: true,

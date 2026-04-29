@@ -3,12 +3,12 @@
 page_title: "fortisase_network_host_groups Resource - fortisase"
 subcategory: "Network"
 description: |-
-  
+  Host Group Resource API V2 for FortiSASE.
 ---
 
 # fortisase_network_host_groups (Resource)
 
-
+Host Group Resource API V2 for FortiSASE.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "fortisase_auth_users Resource - fortisase"
 subcategory: "Autentication"
 description: |-
-  
+  User Resource API V2 for FortiSASE.
 ---
 
 # fortisase_auth_users (Resource)
 
-
+User Resource API V2 for FortiSASE.
 
 ## Example Usage
 

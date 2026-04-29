@@ -34,6 +34,7 @@ func (r *datasourceSecurityBotnetDomainsStat2Edl) Metadata(ctx context.Context, 
 
 func (r *datasourceSecurityBotnetDomainsStat2Edl) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Botnet Domains monitor API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"total_entries": schema.Float64Attribute{
 				Computed: true,

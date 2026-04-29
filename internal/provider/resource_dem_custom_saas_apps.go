@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -42,6 +42,7 @@ func (r *resourceDemCustomSaasApps) Metadata(ctx context.Context, req resource.M
 
 func (r *resourceDemCustomSaasApps) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DEM Custom SaaS Applications Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -52,7 +53,7 @@ func (r *resourceDemCustomSaasApps) Schema(ctx context.Context, req resource.Sch
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 253),
+					stringvalidatorwarning.LengthBetween(1, 253),
 				},
 				MarkdownDescription: "The primary key object of the DEM custom SaaS application. Can not be updated once created.\nLength between 1 and 253.",
 				Required:            true,
@@ -63,7 +64,7 @@ func (r *resourceDemCustomSaasApps) Schema(ctx context.Context, req resource.Sch
 			},
 			"fqdn": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 253),
+					stringvalidatorwarning.LengthBetween(1, 253),
 				},
 				MarkdownDescription: "The FQDN of the custom SaaS application.\nLength between 1 and 253.",
 				Computed:            true,

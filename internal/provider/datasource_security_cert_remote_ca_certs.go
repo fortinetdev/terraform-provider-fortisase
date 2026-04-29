@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -47,6 +47,7 @@ func (r *datasourceSecurityCertRemoteCaCerts) Metadata(ctx context.Context, req 
 
 func (r *datasourceSecurityCertRemoteCaCerts) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Certificate Resource API for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"ftntid": schema.Float64Attribute{
 				Computed: true,
@@ -59,7 +60,7 @@ func (r *datasourceSecurityCertRemoteCaCerts) Schema(ctx context.Context, req da
 			},
 			"type": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.OneOf("local-cer", "emote-ca"),
+					stringvalidatorwarning.OneOf("local-cer", "emote-ca"),
 				},
 				Computed: true,
 			},

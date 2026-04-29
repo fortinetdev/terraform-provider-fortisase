@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -37,16 +37,17 @@ func (r *datasourceEndpointZtnaTags) Metadata(ctx context.Context, req datasourc
 
 func (r *datasourceEndpointZtnaTags) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 58),
+					stringvalidatorwarning.LengthBetween(1, 58),
 				},
 				Required: true,
 			},
 			"name": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 58),
+					stringvalidatorwarning.LengthBetween(1, 58),
 				},
 				Computed: true,
 				Optional: true,
@@ -68,6 +69,19 @@ func (r *datasourceEndpointZtnaTags) Configure(ctx context.Context, req datasour
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	support_versions := map[string][]string{
+		"EMS": {"7.2"},
+	}
+	ok, err := checkVersionMatch(client.Client, support_versions)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"FortiSASE EMS version do not support this resource.",
+			fmt.Sprintf("%v", err),
 		)
 
 		return

@@ -35,6 +35,7 @@ func (r *datasourceSecurityDlpDataTypes) Metadata(ctx context.Context, req datas
 
 func (r *datasourceSecurityDlpDataTypes) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Data Type Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,

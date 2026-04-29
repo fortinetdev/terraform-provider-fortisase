@@ -35,6 +35,7 @@ func (r *datasourceSecurityVideoFilterFortiguardCategories) Metadata(ctx context
 
 func (r *datasourceSecurityVideoFilterFortiguardCategories) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "Video Filter FortiGuard Category Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Required: true,

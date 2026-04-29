@@ -3,12 +3,12 @@
 page_title: "fortisase_security_dlp_file_patterns Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  DLP File Pattern Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_dlp_file_patterns (Resource)
 
-
+DLP File Pattern Resource API V2 for FortiSASE.
 
 ## Example Usage
 

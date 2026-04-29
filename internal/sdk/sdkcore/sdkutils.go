@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -66,8 +67,16 @@ func sendRequests(c *FortiSDKClient, input_model *InputModel) (map[string]interf
 			}
 		} else if code == 400.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 400", input_model.HTTPMethod, input_model.URL)
-			time.Sleep(time.Second * 2)
-			i = i + 50
+			time.Sleep(time.Second * 5)
+			var err_msg string
+			if error_content, ok := result["error"].(map[string]interface{}); ok {
+				err_msg = error_content["message"].(string)
+			}
+			if err_msg != "" && strings.Contains(err_msg, "has not been set up yet") {
+				i = i + 2
+			} else {
+				i = i + 30
+			}
 			continue
 		} else if code == 429.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 429", input_model.HTTPMethod, input_model.URL)
@@ -76,6 +85,11 @@ func sendRequests(c *FortiSDKClient, input_model *InputModel) (map[string]interf
 			continue
 		} else if code == 500.0 {
 			log.Printf("[%v] [RETRY] [%v] retry again due to 500", input_model.HTTPMethod, input_model.URL)
+			time.Sleep(time.Second * 2)
+			i = i + 20
+			continue
+		} else if code == 502.0 {
+			log.Printf("[%v] [RETRY] [%v] retry again due to 502", input_model.HTTPMethod, input_model.URL)
 			time.Sleep(time.Second * 2)
 			i = i + 20
 			continue

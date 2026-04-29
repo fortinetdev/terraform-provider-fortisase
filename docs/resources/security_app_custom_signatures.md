@@ -3,12 +3,12 @@
 page_title: "fortisase_security_app_custom_signatures Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Custom Application Signature Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_app_custom_signatures (Resource)
 
-
+Custom Application Signature Resource API V2 for FortiSASE.
 
 ## Example Usage
 

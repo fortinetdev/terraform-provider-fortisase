@@ -3,12 +3,12 @@
 page_title: "fortisase_endpoint_fsso_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
-  
+  FSSO Profile Resource API V2 for FortiSASE.
 ---
 
 # fortisase_endpoint_fsso_profiles (Data Source)
 
-
+FSSO Profile Resource API V2 for FortiSASE.
 
 ## Example Usage
 

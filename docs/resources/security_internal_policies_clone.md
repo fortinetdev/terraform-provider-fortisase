@@ -3,12 +3,12 @@
 page_title: "fortisase_security_internal_policies_clone Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Internal Policy Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_internal_policies_clone (Resource)
 
-
+Internal Policy Resource API V2 for FortiSASE.
 
 ## Example Usage
 

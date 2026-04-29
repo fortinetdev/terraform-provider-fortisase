@@ -3,12 +3,12 @@
 page_title: "fortisase_security_cert_remote_certs Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Certificate Resource API for FortiSASE
 ---
 
 # fortisase_security_cert_remote_certs (Resource)
 
-
+Certificate Resource API for FortiSASE
 
 ## Example Usage
 

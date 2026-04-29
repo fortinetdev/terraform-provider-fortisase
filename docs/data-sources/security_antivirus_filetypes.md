@@ -3,12 +3,12 @@
 page_title: "fortisase_security_antivirus_filetypes Data Source - fortisase"
 subcategory: "Security"
 description: |-
-  
+  AntiVirus File Type Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_antivirus_filetypes (Data Source)
 
-
+AntiVirus File Type Resource API V2 for FortiSASE.
 
 ## Example Usage
 

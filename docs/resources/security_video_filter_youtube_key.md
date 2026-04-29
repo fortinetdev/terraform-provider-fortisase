@@ -3,12 +3,12 @@
 page_title: "fortisase_security_video_filter_youtube_key Resource - fortisase"
 subcategory: "Security"
 description: |-
-  
+  Video Filter Youtube API Key Resource API V2 for FortiSASE.
 ---
 
 # fortisase_security_video_filter_youtube_key (Resource)
 
-
+Video Filter Youtube API Key Resource API V2 for FortiSASE.
 
 ## Example Usage
 

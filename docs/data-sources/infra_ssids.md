@@ -3,12 +3,12 @@
 page_title: "fortisase_infra_ssids Data Source - fortisase"
 subcategory: "Others"
 description: |-
-  
+  FortiAP SSID Resource API V2 for FortiSASE.
 ---
 
 # fortisase_infra_ssids (Data Source)
 
-
+FortiAP SSID Resource API V2 for FortiSASE.
 
 ## Example Usage
 

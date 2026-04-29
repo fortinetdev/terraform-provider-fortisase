@@ -3,12 +3,12 @@
 page_title: "fortisase_usage_security_services Data Source - fortisase"
 subcategory: "Usage"
 description: |-
-  
+  Service Resource API V2 for FortiSASE.
 ---
 
 # fortisase_usage_security_services (Data Source)
 
-
+Service Resource API V2 for FortiSASE.
 
 ## Example Usage
 
