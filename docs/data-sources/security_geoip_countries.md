@@ -4,16 +4,18 @@ page_title: "fortisase_security_geoip_countries Data Source - fortisase"
 subcategory: "Security"
 description: |-
   GeoIP Country Resource API V2 for FortiSASE.
+  fortisase_security_geoip_countries is deprecated. Please use fortisase_security_geoip_country instead.
 ---
 
 # fortisase_security_geoip_countries (Data Source)
 
 GeoIP Country Resource API V2 for FortiSASE.
+fortisase_security_geoip_countries is deprecated. Please use fortisase_security_geoip_country instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_geoip_countries" "example" {
+data "fortisase_security_geoip_country" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_security_geoip_countries" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `country_name` (String)

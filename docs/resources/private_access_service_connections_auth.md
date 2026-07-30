@@ -4,21 +4,23 @@ page_title: "fortisase_private_access_service_connections_auth Resource - fortis
 subcategory: "Others"
 description: |-
   Secure Private Access Resource API for FortiSASE.
+  fortisase_private_access_service_connections_auth is deprecated. Please use fortisase_private_access_service_connection_auth instead.
 ---
 
 # fortisase_private_access_service_connections_auth (Resource)
 
 Secure Private Access Resource API for FortiSASE.
+fortisase_private_access_service_connections_auth is deprecated. Please use fortisase_private_access_service_connection_auth instead.
 
 ## Example Usage
 
 ```terraform
 # Update the authentication method of an existing service connection.
 # Note: If your secure private access resource was originally created with
-#       `fortisase_private_access_service_connections`, you should update that
+#       `fortisase_private_access_service_connection`, you should update that
 #       resource directly instead of using this one.
 
-resource "fortisase_private_access_service_connections_auth" "example" {
+resource "fortisase_private_access_service_connection_auth" "example" {
   service_connection_id = "existing_service_connection_id"
 
   ## Method1: Pre-shared Key

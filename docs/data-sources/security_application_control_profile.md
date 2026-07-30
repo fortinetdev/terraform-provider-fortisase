@@ -23,75 +23,34 @@ data "fortisase_security_application_control_profile" "example" {
 
 ### Required
 
-- `primary_key` (String)
-
-### Optional
-
-- `application_category_controls` (Attributes List) (see [below for nested schema](#nestedatt--application_category_controls))
-- `application_controls` (Attributes List) (see [below for nested schema](#nestedatt--application_controls))
-- `block_non_default_port_applications` (String)
-- `controls` (Attributes List) (see [below for nested schema](#nestedatt--controls))
 - `direction` (String) The direction of the target resource.
 Supported values: internal-profiles, outbound-profiles.
+- `primary_key` (String)
+
+### Read-Only
+
+- `block_non_default_port_applications` (String)
+- `controls` (Attributes List) Generic controls defining actions for applications, filters, and overrides. Array order matters. Entries are evaluated first-to-last. Overrides must be placed ahead of application category controls for correct evaluation. (see [below for nested schema](#nestedatt--controls))
 - `network_protocol_enforcement` (String)
 - `network_protocols` (Attributes List) (see [below for nested schema](#nestedatt--network_protocols))
 - `unknown_application_action` (String)
 
-<a id="nestedatt--application_category_controls"></a>
-### Nested Schema for `application_category_controls`
-
-Optional:
-
-- `action` (String)
-- `category` (Attributes) (see [below for nested schema](#nestedatt--application_category_controls--category))
-
-<a id="nestedatt--application_category_controls--category"></a>
-### Nested Schema for `application_category_controls.category`
-
-Optional:
-
-- `datasource` (String)
-- `primary_key` (String)
-
-
-
-<a id="nestedatt--application_controls"></a>
-### Nested Schema for `application_controls`
-
-Optional:
-
-- `action` (String)
-- `applications` (Attributes List) (see [below for nested schema](#nestedatt--application_controls--applications))
-
-<a id="nestedatt--application_controls--applications"></a>
-### Nested Schema for `application_controls.applications`
-
-Optional:
-
-- `datasource` (String)
-- `primary_key` (String)
-
-
-
 <a id="nestedatt--controls"></a>
 ### Nested Schema for `controls`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `applications` (Attributes List) (see [below for nested schema](#nestedatt--controls--applications))
-- `behavior` (String)
-- `categories` (Attributes List) (see [below for nested schema](#nestedatt--controls--categories))
-- `popularity` (String)
-- `protocols` (String)
-- `risk` (Attributes List) (see [below for nested schema](#nestedatt--controls--risk))
-- `technology` (String)
-- `vendor` (String)
+- `categories` (Attributes List) Set the control action for a given application category. For the 'Proxy' category, the action cannot be set to 'block' if the linked profile group is referenced by a proxy policy. (see [below for nested schema](#nestedatt--controls--categories))
+- `ips_attributes` (Attributes List) (see [below for nested schema](#nestedatt--controls--ips_attributes))
+- `popularity` (Set of Number) Popularity level(s) with 1 being lowest and 5 being highest
+- `risk` (Set of Number) Risk level(s) with 0 being lowest and 4 being highest
 
 <a id="nestedatt--controls--applications"></a>
 ### Nested Schema for `controls.applications`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -100,26 +59,26 @@ Optional:
 <a id="nestedatt--controls--categories"></a>
 ### Nested Schema for `controls.categories`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
 
 
-<a id="nestedatt--controls--risk"></a>
-### Nested Schema for `controls.risk`
+<a id="nestedatt--controls--ips_attributes"></a>
+### Nested Schema for `controls.ips_attributes`
 
-Optional:
+Read-Only:
 
-- `id` (Number) Risk level with 0 being lowest and 4 being highest.
-Value at most 4.
+- `datasource` (String)
+- `primary_key` (String)
 
 
 
 <a id="nestedatt--network_protocols"></a>
 ### Nested Schema for `network_protocols`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `port` (Number)

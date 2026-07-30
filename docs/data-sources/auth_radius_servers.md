@@ -4,16 +4,18 @@ page_title: "fortisase_auth_radius_servers Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
   RADIUS Resource API V2 for FortiSASE.
+  fortisase_auth_radius_servers is deprecated. Please use fortisase_auth_radius_server instead.
 ---
 
 # fortisase_auth_radius_servers (Data Source)
 
 RADIUS Resource API V2 for FortiSASE.
+fortisase_auth_radius_servers is deprecated. Please use fortisase_auth_radius_server instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_auth_radius_servers" "example" {
+data "fortisase_auth_radius_server" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_auth_radius_servers" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `auth_type` (String)
 - `included_in_default_user_group` (Boolean)

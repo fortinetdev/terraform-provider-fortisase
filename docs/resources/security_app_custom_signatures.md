@@ -4,16 +4,18 @@ page_title: "fortisase_security_app_custom_signatures Resource - fortisase"
 subcategory: "Security"
 description: |-
   Custom Application Signature Resource API V2 for FortiSASE.
+  fortisase_security_app_custom_signatures is deprecated. Please use fortisase_security_app_custom_signature instead.
 ---
 
 # fortisase_security_app_custom_signatures (Resource)
 
 Custom Application Signature Resource API V2 for FortiSASE.
+fortisase_security_app_custom_signatures is deprecated. Please use fortisase_security_app_custom_signature instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_app_custom_signatures" "example" {
+resource "fortisase_security_app_custom_signature" "example" {
   primary_key = "example_name"
   # It is recommended to use ' instead of " in the signature string.
   signature = "F-SBID( --attack_id 6483; --name 'Windows.NT.6.1.Web.Surfing'; --default_action drop_session; --service HTTP; --protocol tcp; --app_cat 25; --flow from_client; --pattern !'FCT'; --pattern 'Windows NT 6.1'; --no_case; --context header; --weight 40; )"
@@ -53,5 +55,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_app_custom_signatures.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_app_custom_signature.{{your_resource_name}} {{primary_key}}
 ```

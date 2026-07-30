@@ -1,4 +1,4 @@
-resource "fortisase_auth_users" "user" {
+resource "fortisase_auth_user" "user" {
   primary_key = "user_001@example.com"
   auth_type   = "password"
   status      = "enable"
@@ -6,7 +6,7 @@ resource "fortisase_auth_users" "user" {
   password    = "password"
 }
 
-resource "fortisase_auth_ldap_servers" "ldap_server" {
+resource "fortisase_auth_ldap_server" "ldap_server" {
   primary_key                     = "ldap_server"
   server                          = "1.2.3.4"
   port                            = 1234
@@ -22,19 +22,23 @@ resource "fortisase_auth_ldap_servers" "ldap_server" {
   group_search_base               = "dc=example,dc=com"
 }
 
-resource "fortisase_auth_user_groups" "user_group" {
+resource "fortisase_auth_user_group" "user_group" {
   primary_key = "user_group"
   group_type  = "firewall"
+
+  # Users
   local_users = [
     {
-      primary_key = fortisase_auth_users.user.primary_key
+      primary_key = fortisase_auth_user.user.primary_key
       datasource  = "auth/users"
     }
   ]
+
+  # Remote Groups
   remote_user_groups = [
     {
       server = {
-        primary_key = fortisase_auth_ldap_servers.ldap_server.primary_key
+        primary_key = fortisase_auth_ldap_server.ldap_server.primary_key
         datasource  = "auth/ldap-servers"
       }
       matches = ["group1"]

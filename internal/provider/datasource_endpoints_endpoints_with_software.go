@@ -42,7 +42,6 @@ func (r *datasourceEndpointsEndpointsWithSoftware) Schema(ctx context.Context, r
 		Attributes: map[string]schema.Attribute{
 			"total": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"software_id": schema.Float64Attribute{
 				Validators: []validator.Float64{
@@ -56,52 +55,40 @@ func (r *datasourceEndpointsEndpointsWithSoftware) Schema(ctx context.Context, r
 					Attributes: map[string]schema.Attribute{
 						"client_user_id": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"client_id": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"app_count": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"last_install": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"device_id": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"device_ip": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"device_host": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"device_os": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"user_id": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"user_name": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"user_icon": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -183,7 +170,7 @@ func (m *datasourceEndpointsEndpointsWithSoftwareModel) refreshEndpointsEndpoint
 
 func (data *datasourceEndpointsEndpointsWithSoftwareModel) getURLObjectEndpointsEndpointsWithSoftware(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.SoftwareId.IsNull() {
+	if !data.SoftwareId.IsNull() && !data.SoftwareId.IsUnknown() {
 		result["softwareId"] = data.SoftwareId.ValueFloat64()
 	}
 
@@ -264,12 +251,17 @@ func (s *datasourceEndpointsEndpointsWithSoftwareModel) flattenEndpointsEndpoint
 		return []datasourceEndpointsEndpointsWithSoftwareClientsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument clients is not type of []interface{}.", "")
 		return []datasourceEndpointsEndpointsWithSoftwareClientsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceEndpointsEndpointsWithSoftwareClientsModel{}
 	}
@@ -277,6 +269,9 @@ func (s *datasourceEndpointsEndpointsWithSoftwareModel) flattenEndpointsEndpoint
 	values := make([]datasourceEndpointsEndpointsWithSoftwareClientsModel, len(l))
 	for i, ele := range l {
 		var m datasourceEndpointsEndpointsWithSoftwareClientsModel
+		if i < len(s.Clients) {
+			m = s.Clients[i]
+		}
 		values[i] = *m.flattenEndpointsEndpointsWithSoftwareClients(ctx, ele, diags)
 	}
 

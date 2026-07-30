@@ -25,7 +25,7 @@ data "fortisase_endpoint_profile" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `enabled` (Boolean)
 - `skip_off_net_profile_creation_on_edit` (Boolean)

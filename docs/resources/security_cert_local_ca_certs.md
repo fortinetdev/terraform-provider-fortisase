@@ -4,18 +4,30 @@ page_title: "fortisase_security_cert_local_ca_certs Resource - fortisase"
 subcategory: "Security"
 description: |-
   Certificate Resource API for FortiSASE
+  fortisase_security_cert_local_ca_certs is deprecated. Please use fortisase_security_cert_local_ca_cert instead.
 ---
 
 # fortisase_security_cert_local_ca_certs (Resource)
 
 Certificate Resource API for FortiSASE
+fortisase_security_cert_local_ca_certs is deprecated. Please use fortisase_security_cert_local_ca_cert instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_cert_local_ca_certs" "local_ca_cert" {
-  format           = "regular"
+# Method 1: fortisase_system_certificate is recommended for new configurations.
+resource "fortisase_system_certificate" "ca_certificate" {
+  certificate_type = "ca-certificate"
+  primary_key      = "example_ca_cert"
+  format           = "regular" # "regular" or "pkcs12"
+  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
+  key_file_content = base64encode(file("../path/to/my-ca-key.pem")) # Only required if format is "regular"
+}
+
+# Method 2
+resource "fortisase_security_cert_local_ca_cert" "local_ca_cert" {
   cert_name        = "local_ca_cert"
+  format           = "regular"
   password         = "your_password"
   file_content     = base64encode(file("./path/to/ca_cert.crt"))
   key_file_content = base64encode(file("./path/to/private.key"))
@@ -50,7 +62,7 @@ resource "fortisase_security_cert_local_ca_certs" "local_ca_cert" {
 <a id="nestedatt--issuer"></a>
 ### Nested Schema for `issuer`
 
-Optional:
+Read-Only:
 
 - `c` (String)
 - `cn` (String)
@@ -64,7 +76,7 @@ Optional:
 <a id="nestedatt--usages"></a>
 ### Nested Schema for `usages`
 
-Optional:
+Read-Only:
 
 - `count` (Number)
 - `type` (String)
@@ -76,5 +88,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_cert_local_ca_certs.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_cert_local_ca_cert.{{your_resource_name}} {{primary_key}}
 ```

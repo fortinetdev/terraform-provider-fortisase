@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_exact_data_matches Resource - fortisase"
 subcategory: "Security"
 description: |-
   DLP Exact Data Match Resource API V2 for FortiSASE.
+  fortisase_security_dlp_exact_data_matches is deprecated. Please use fortisase_security_dlp_exact_data_match instead.
 ---
 
 # fortisase_security_dlp_exact_data_matches (Resource)
 
 DLP Exact Data Match Resource API V2 for FortiSASE.
+fortisase_security_dlp_exact_data_matches is deprecated. Please use fortisase_security_dlp_exact_data_match instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_dlp_exact_data_matches" "example" {
+resource "fortisase_security_dlp_exact_data_match" "example" {
   primary_key = "example_name"
 
   external_resource_data = {
@@ -90,5 +92,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_dlp_exact_data_matches.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_dlp_exact_data_match.{{your_resource_name}} {{primary_key}}
 ```

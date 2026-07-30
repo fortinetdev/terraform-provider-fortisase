@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_group_invitation_codes Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Group-Based Invitation Code Resource API V2 for FortiSASE.
+  fortisase_endpoint_group_invitation_codes is deprecated. Please use fortisase_endpoint_group_invitation_code instead.
 ---
 
 # fortisase_endpoint_group_invitation_codes (Resource)
 
 Group-Based Invitation Code Resource API V2 for FortiSASE.
+fortisase_endpoint_group_invitation_codes is deprecated. Please use fortisase_endpoint_group_invitation_code instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_group_invitation_codes" "example" {
+resource "fortisase_endpoint_group_invitation_code" "example" {
   primary_key = "example_name"
   expire_date = "2026-03-08T12:45:30Z"
   group_assignment = {
@@ -65,5 +67,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_group_invitation_codes.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_group_invitation_code.{{your_resource_name}} {{primary_key}}
 ```

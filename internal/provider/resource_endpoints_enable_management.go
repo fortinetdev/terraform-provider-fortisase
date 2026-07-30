@@ -52,7 +52,6 @@ func (r *resourceEndpointsEnableManagement) Schema(ctx context.Context, req reso
 				Validators: []validator.Set{
 					setvalidatorwarning.SizeAtLeast(1),
 				},
-				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 			},
@@ -164,7 +163,7 @@ func (r *resourceEndpointsEnableManagement) Read(ctx context.Context, req resour
 
 func (data *resourceEndpointsEnableManagementModel) getCreateObjectEndpointsEnableManagement(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.DeviceIds.IsNull() {
+	if !data.DeviceIds.IsNull() && !data.DeviceIds.IsUnknown() {
 		result["deviceIds"] = expandSetToStringList(data.DeviceIds)
 	}
 
@@ -173,7 +172,7 @@ func (data *resourceEndpointsEnableManagementModel) getCreateObjectEndpointsEnab
 
 func (data *resourceEndpointsEnableManagementModel) getUpdateObjectEndpointsEnableManagement(ctx context.Context, state resourceEndpointsEnableManagementModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.DeviceIds.IsNull() {
+	if !data.DeviceIds.IsNull() && !data.DeviceIds.IsUnknown() {
 		result["deviceIds"] = expandSetToStringList(data.DeviceIds)
 	}
 

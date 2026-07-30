@@ -62,6 +62,9 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"use_for_edge_devices": schema.BoolAttribute{
 				Computed: true,
@@ -180,14 +183,12 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -212,14 +213,12 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/domain-threat-feeds"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -288,7 +287,7 @@ func (r *resourceSecurityDnsFilterProfile) Create(ctx context.Context, req resou
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -396,6 +395,10 @@ func (r *resourceSecurityDnsFilterProfile) Read(ctx context.Context, req resourc
 
 	read_output, err := c.ReadSecurityDnsFilterProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -474,31 +477,31 @@ func (m *resourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfile(
 
 func (data *resourceSecurityDnsFilterProfileModel) getCreateObjectSecurityDnsFilterProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.UseForEdgeDevices.IsNull() {
+	if !data.UseForEdgeDevices.IsNull() && !data.UseForEdgeDevices.IsUnknown() {
 		result["useForEdgeDevices"] = data.UseForEdgeDevices.ValueBool()
 	}
 
-	if !data.UseFortiguardFilters.IsNull() {
+	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {
 		result["useFortiguardFilters"] = data.UseFortiguardFilters.ValueString()
 	}
 
-	if !data.EnableAllLogs.IsNull() {
+	if !data.EnableAllLogs.IsNull() && !data.EnableAllLogs.IsUnknown() {
 		result["enableAllLogs"] = data.EnableAllLogs.ValueString()
 	}
 
-	if !data.EnableBotnetBlocking.IsNull() {
+	if !data.EnableBotnetBlocking.IsNull() && !data.EnableBotnetBlocking.IsUnknown() {
 		result["enableBotnetBlocking"] = data.EnableBotnetBlocking.ValueString()
 	}
 
-	if !data.EnableSafeSearch.IsNull() {
+	if !data.EnableSafeSearch.IsNull() && !data.EnableSafeSearch.IsUnknown() {
 		result["enableSafeSearch"] = data.EnableSafeSearch.ValueString()
 	}
 
-	if !data.AllowDnsRequestsOnRatingError.IsNull() {
+	if !data.AllowDnsRequestsOnRatingError.IsNull() && !data.AllowDnsRequestsOnRatingError.IsUnknown() {
 		result["allowDnsRequestsOnRatingError"] = data.AllowDnsRequestsOnRatingError.ValueString()
 	}
 
@@ -515,31 +518,31 @@ func (data *resourceSecurityDnsFilterProfileModel) getCreateObjectSecurityDnsFil
 
 func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFilterProfile(ctx context.Context, state resourceSecurityDnsFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.UseForEdgeDevices.IsNull() {
+	if !data.UseForEdgeDevices.IsNull() && !data.UseForEdgeDevices.IsUnknown() {
 		result["useForEdgeDevices"] = data.UseForEdgeDevices.ValueBool()
 	}
 
-	if !data.UseFortiguardFilters.IsNull() {
+	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {
 		result["useFortiguardFilters"] = data.UseFortiguardFilters.ValueString()
 	}
 
-	if !data.EnableAllLogs.IsNull() {
+	if !data.EnableAllLogs.IsNull() && !data.EnableAllLogs.IsUnknown() {
 		result["enableAllLogs"] = data.EnableAllLogs.ValueString()
 	}
 
-	if !data.EnableBotnetBlocking.IsNull() {
+	if !data.EnableBotnetBlocking.IsNull() && !data.EnableBotnetBlocking.IsUnknown() {
 		result["enableBotnetBlocking"] = data.EnableBotnetBlocking.ValueString()
 	}
 
-	if !data.EnableSafeSearch.IsNull() {
+	if !data.EnableSafeSearch.IsNull() && !data.EnableSafeSearch.IsUnknown() {
 		result["enableSafeSearch"] = data.EnableSafeSearch.ValueString()
 	}
 
-	if !data.AllowDnsRequestsOnRatingError.IsNull() {
+	if !data.AllowDnsRequestsOnRatingError.IsNull() && !data.AllowDnsRequestsOnRatingError.IsUnknown() {
 		result["allowDnsRequestsOnRatingError"] = data.AllowDnsRequestsOnRatingError.ValueString()
 	}
 
@@ -564,14 +567,14 @@ func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFil
 
 func (data *resourceSecurityDnsFilterProfileModel) getURLObjectSecurityDnsFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -644,12 +647,17 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 		return []resourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dns_translation_entries is not type of []interface{}.", "")
 		return []resourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
@@ -657,6 +665,9 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 	values := make([]resourceSecurityDnsFilterProfileDnsTranslationEntriesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDnsFilterProfileDnsTranslationEntriesModel
+		if i < len(s.DnsTranslationEntries) {
+			m = s.DnsTranslationEntries[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDnsTranslationEntries(ctx, ele, diags)
 	}
 
@@ -695,12 +706,17 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 		return []resourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument domain_filters is not type of []interface{}.", "")
 		return []resourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
@@ -708,6 +724,9 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 	values := make([]resourceSecurityDnsFilterProfileDomainFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDnsFilterProfileDomainFiltersModel
+		if i < len(s.DomainFilters) {
+			m = s.DomainFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDomainFilters(ctx, ele, diags)
 	}
 
@@ -738,12 +757,17 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileF
 		return []resourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_filters is not type of []interface{}.", "")
 		return []resourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
@@ -751,6 +775,9 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileF
 	values := make([]resourceSecurityDnsFilterProfileFortiguardFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDnsFilterProfileFortiguardFiltersModel
+		if i < len(s.FortiguardFilters) {
+			m = s.FortiguardFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileFortiguardFilters(ctx, ele, diags)
 	}
 
@@ -800,12 +827,17 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 		return []resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument domain_threat_feed_filters is not type of []interface{}.", "")
 		return []resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
@@ -813,6 +845,9 @@ func (s *resourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfileD
 	values := make([]resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel
+		if i < len(s.DomainThreatFeedFilters) {
+			m = s.DomainThreatFeedFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDomainThreatFeedFilters(ctx, ele, diags)
 	}
 
@@ -840,19 +875,19 @@ func (m *resourceSecurityDnsFilterProfileDomainThreatFeedFiltersCategoryModel) f
 
 func (data *resourceSecurityDnsFilterProfileDnsTranslationEntriesModel) expandSecurityDnsFilterProfileDnsTranslationEntries(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Src.IsNull() {
+	if !data.Src.IsNull() && !data.Src.IsUnknown() {
 		result["src"] = data.Src.ValueString()
 	}
 
-	if !data.Dst.IsNull() {
+	if !data.Dst.IsNull() && !data.Dst.IsUnknown() {
 		result["dst"] = data.Dst.ValueString()
 	}
 
-	if !data.Netmask.IsNull() {
+	if !data.Netmask.IsNull() && !data.Netmask.IsUnknown() {
 		result["netmask"] = data.Netmask.ValueString()
 	}
 
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
@@ -869,19 +904,19 @@ func (s *resourceSecurityDnsFilterProfileModel) expandSecurityDnsFilterProfileDn
 
 func (data *resourceSecurityDnsFilterProfileDomainFiltersModel) expandSecurityDnsFilterProfileDomainFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Url.IsNull() {
+	if !data.Url.IsNull() && !data.Url.IsUnknown() {
 		result["url"] = data.Url.ValueString()
 	}
 
-	if !data.Type.IsNull() {
+	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		result["type"] = data.Type.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
+	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
@@ -898,10 +933,11 @@ func (s *resourceSecurityDnsFilterProfileModel) expandSecurityDnsFilterProfileDo
 
 func (data *resourceSecurityDnsFilterProfileFortiguardFiltersModel) expandSecurityDnsFilterProfileFortiguardFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityDnsFilterProfileFortiguardFiltersCategory(ctx, diags)
 	}
@@ -919,11 +955,11 @@ func (s *resourceSecurityDnsFilterProfileModel) expandSecurityDnsFilterProfileFo
 
 func (data *resourceSecurityDnsFilterProfileFortiguardFiltersCategoryModel) expandSecurityDnsFilterProfileFortiguardFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -932,10 +968,11 @@ func (data *resourceSecurityDnsFilterProfileFortiguardFiltersCategoryModel) expa
 
 func (data *resourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel) expandSecurityDnsFilterProfileDomainThreatFeedFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityDnsFilterProfileDomainThreatFeedFiltersCategory(ctx, diags)
 	}
@@ -953,11 +990,11 @@ func (s *resourceSecurityDnsFilterProfileModel) expandSecurityDnsFilterProfileDo
 
 func (data *resourceSecurityDnsFilterProfileDomainThreatFeedFiltersCategoryModel) expandSecurityDnsFilterProfileDomainThreatFeedFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 

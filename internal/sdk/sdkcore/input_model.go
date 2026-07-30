@@ -17,6 +17,7 @@ func hasMethod(v reflect.Value, methodName string) bool {
 // MultValue describes the nested structure in the results
 type InputModel struct {
 	Mkey       interface{}            `json:"mkey"` // mkey may be string or int
+	MkeyName   string                 `json:"mkey_name"`
 	URL        string                 `json:"url"`
 	HTTPMethod string                 `json:"http_method"`
 	HeadParams map[string]interface{} `json:"head_params"`

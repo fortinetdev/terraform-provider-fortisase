@@ -4,16 +4,18 @@ page_title: "fortisase_security_cert_local_ca_certs Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Certificate Resource API for FortiSASE
+  fortisase_security_cert_local_ca_certs is deprecated. Please use fortisase_security_cert_local_ca_cert instead.
 ---
 
 # fortisase_security_cert_local_ca_certs (Data Source)
 
 Certificate Resource API for FortiSASE
+fortisase_security_cert_local_ca_certs is deprecated. Please use fortisase_security_cert_local_ca_cert instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_cert_local_ca_certs" "example" {
+data "fortisase_security_cert_local_ca_cert" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -24,14 +26,6 @@ data "fortisase_security_cert_local_ca_certs" "example" {
 ### Required
 
 - `primary_key` (String)
-
-### Optional
-
-- `cert_name` (String)
-- `file_content` (String)
-- `format` (String)
-- `key_file_content` (String)
-- `password` (String)
 
 ### Read-Only
 
@@ -48,7 +42,7 @@ data "fortisase_security_cert_local_ca_certs" "example" {
 <a id="nestedatt--issuer"></a>
 ### Nested Schema for `issuer`
 
-Optional:
+Read-Only:
 
 - `c` (String)
 - `cn` (String)
@@ -62,7 +56,7 @@ Optional:
 <a id="nestedatt--usages"></a>
 ### Nested Schema for `usages`
 
-Optional:
+Read-Only:
 
 - `count` (Number)
 - `type` (String)

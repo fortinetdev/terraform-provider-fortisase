@@ -25,7 +25,7 @@ data "fortisase_endpoint_ztna_tag_rule" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `comments` (String)
 - `description` (String)
@@ -36,19 +36,11 @@ data "fortisase_endpoint_ztna_tag_rule" "example" {
 <a id="nestedatt--logic"></a>
 ### Nested Schema for `logic`
 
-Optional:
-
-- `android` (String)
-- `ios` (String)
-- `linux` (String)
-- `macos` (String)
-- `windows` (String)
-
 
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`
 
-Optional:
+Read-Only:
 
 - `account` (String)
 - `check_updates_within_days` (Number)
@@ -69,7 +61,7 @@ Optional:
 <a id="nestedatt--rules--condition"></a>
 ### Nested Schema for `rules.condition`
 
-Optional:
+Read-Only:
 
 - `comparator` (String)
 - `is_dword` (Boolean)

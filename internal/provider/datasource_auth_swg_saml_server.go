@@ -27,18 +27,19 @@ type datasourceAuthSwgSamlServer struct {
 
 // datasourceAuthSwgSamlServerModel describes the datasource data model.
 type datasourceAuthSwgSamlServerModel struct {
-	PrimaryKey     types.String                                    `tfsdk:"primary_key"`
-	IdpEntityId    types.String                                    `tfsdk:"idp_entity_id"`
-	IdpSignOnUrl   types.String                                    `tfsdk:"idp_sign_on_url"`
-	IdpLogOutUrl   types.String                                    `tfsdk:"idp_log_out_url"`
-	Username       types.String                                    `tfsdk:"username"`
-	GroupName      types.String                                    `tfsdk:"group_name"`
-	GroupMatch     types.String                                    `tfsdk:"group_match"`
-	SpCert         *datasourceAuthSwgSamlServerSpCertModel         `tfsdk:"sp_cert"`
-	IdpCertificate *datasourceAuthSwgSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
-	DigestMethod   types.String                                    `tfsdk:"digest_method"`
-	ScimEnabled    types.Bool                                      `tfsdk:"scim_enabled"`
-	Scim           *datasourceAuthSwgSamlServerScimModel           `tfsdk:"scim"`
+	PrimaryKey               types.String                                    `tfsdk:"primary_key"`
+	IdpEntityId              types.String                                    `tfsdk:"idp_entity_id"`
+	IdpSignOnUrl             types.String                                    `tfsdk:"idp_sign_on_url"`
+	IdpLogOutUrl             types.String                                    `tfsdk:"idp_log_out_url"`
+	Username                 types.String                                    `tfsdk:"username"`
+	GroupName                types.String                                    `tfsdk:"group_name"`
+	GroupMatch               types.String                                    `tfsdk:"group_match"`
+	SpCert                   *datasourceAuthSwgSamlServerSpCertModel         `tfsdk:"sp_cert"`
+	IdpCertificate           *datasourceAuthSwgSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
+	DigestMethod             types.String                                    `tfsdk:"digest_method"`
+	ScimEnabled              types.Bool                                      `tfsdk:"scim_enabled"`
+	RequireSignedRespAndAsrt types.Bool                                      `tfsdk:"require_signed_resp_and_asrt"`
+	Scim                     *datasourceAuthSwgSamlServerScimModel           `tfsdk:"scim"`
 }
 
 func (r *datasourceAuthSwgSamlServer) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,108 +61,93 @@ func (r *datasourceAuthSwgSamlServer) Schema(ctx context.Context, req datasource
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_sign_on_url": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_log_out_url": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"group_name": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"group_match": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"digest_method": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("sha256", "sha1"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"scim_enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
+			},
+			"require_signed_resp_and_asrt": schema.BoolAttribute{
+				Computed: true,
 			},
 			"sp_cert": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_certificate": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"scim": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"scim_url": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"auth_method": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("token"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"token": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.LengthBetween(1, 128),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -267,6 +253,10 @@ func (m *datasourceAuthSwgSamlServerModel) refreshAuthSwgSamlServer(ctx context.
 
 	if v, ok := o["scimEnabled"]; ok {
 		m.ScimEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["requireSignedRespAndAsrt"]; ok {
+		m.RequireSignedRespAndAsrt = parseBoolValue(v)
 	}
 
 	if v, ok := o["scim"]; ok {

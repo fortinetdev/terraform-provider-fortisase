@@ -4,16 +4,18 @@ page_title: "fortisase_infra_ssids Resource - fortisase"
 subcategory: "Others"
 description: |-
   FortiAP SSID Resource API V2 for FortiSASE.
+  fortisase_infra_ssids is deprecated. Please use fortisase_infra_ssid instead.
 ---
 
 # fortisase_infra_ssids (Resource)
 
 FortiAP SSID Resource API V2 for FortiSASE.
+fortisase_infra_ssids is deprecated. Please use fortisase_infra_ssid instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_infra_ssids" "infra_ssids" {
+resource "fortisase_infra_ssid" "example_ssid" {
   primary_key    = "terraform"
   broadcast_ssid = "enable"
   security_mode  = "wpa2-only-personal"
@@ -70,6 +72,7 @@ Optional:
 Optional:
 
 - `datasource` (String)
+- `primary_key` (String)
 
 ## Import
 
@@ -78,5 +81,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_infra_ssids.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_infra_ssid.{{your_resource_name}} {{primary_key}}
 ```

@@ -4,16 +4,18 @@ page_title: "fortisase_security_app_custom_signatures Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Custom Application Signature Resource API V2 for FortiSASE.
+  fortisase_security_app_custom_signatures is deprecated. Please use fortisase_security_app_custom_signature instead.
 ---
 
 # fortisase_security_app_custom_signatures (Data Source)
 
 Custom Application Signature Resource API V2 for FortiSASE.
+fortisase_security_app_custom_signatures is deprecated. Please use fortisase_security_app_custom_signature instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_app_custom_signatures" "example" {
+data "fortisase_security_app_custom_signature" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_app_custom_signatures" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `behavior` (String)
 - `category` (Number)

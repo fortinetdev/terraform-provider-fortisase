@@ -4,16 +4,18 @@ page_title: "fortisase_security_service_groups Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Service Group Resource API V2 for FortiSASE.
+  fortisase_security_service_groups is deprecated. Please use fortisase_security_service_group instead.
 ---
 
 # fortisase_security_service_groups (Data Source)
 
 Service Group Resource API V2 for FortiSASE.
+fortisase_security_service_groups is deprecated. Please use fortisase_security_service_group instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_service_groups" "example" {
+data "fortisase_security_service_group" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_service_groups" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `members` (Attributes List) (see [below for nested schema](#nestedatt--members))
 - `proxy` (Boolean)
@@ -33,7 +35,7 @@ data "fortisase_security_service_groups" "example" {
 <a id="nestedatt--members"></a>
 ### Nested Schema for `members`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

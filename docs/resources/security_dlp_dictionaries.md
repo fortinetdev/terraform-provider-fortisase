@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_dictionaries Resource - fortisase"
 subcategory: "Security"
 description: |-
   DLP Dictionary Resource API V2 for FortiSASE.
+  fortisase_security_dlp_dictionaries is deprecated. Please use fortisase_security_dlp_dictionary instead.
 ---
 
 # fortisase_security_dlp_dictionaries (Resource)
 
 DLP Dictionary Resource API V2 for FortiSASE.
+fortisase_security_dlp_dictionaries is deprecated. Please use fortisase_security_dlp_dictionary instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_dlp_dictionaries" "dlp_dictionary" {
+resource "fortisase_security_dlp_dictionary" "dlp_dictionary" {
   primary_key         = "dlp_dictionary"
   dictionary_type     = "sensor"
   entries_to_evaluate = "all"
@@ -40,10 +42,10 @@ resource "fortisase_security_dlp_dictionaries" "dlp_dictionary" {
 
 ### Optional
 
-- `dictionary_type` (String)
+- `dictionary_type` (String) This property is used to classify DLP Dictionaries. It is server-generated and cannot be modified.
+Supported values: mip-label, sensor.
 - `entries` (Attributes List) (see [below for nested schema](#nestedatt--entries))
 - `entries_to_evaluate` (String)
-- `sensitivity_label_guid` (String)
 
 ### Read-Only
 
@@ -75,5 +77,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_dlp_dictionaries.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_dlp_dictionary.{{your_resource_name}} {{primary_key}}
 ```

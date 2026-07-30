@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -64,6 +63,9 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"use_fortiguard_filters": schema.StringAttribute{
 				Validators: []validator.String{
@@ -90,7 +92,6 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
-				Default:  stringdefault.StaticString("disable"),
 				Computed: true,
 				Optional: true,
 			},
@@ -120,20 +121,17 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 							Optional: true,
 						},
 						"warning_duration": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -156,20 +154,17 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 							Optional: true,
 						},
 						"warning_duration": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-local-categories"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -192,20 +187,17 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 							Optional: true,
 						},
 						"warning_duration": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/url-threat-feeds"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -316,14 +308,12 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 										},
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -393,7 +383,7 @@ func (r *resourceSecurityWebFilterProfile) Create(ctx context.Context, req resou
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -501,6 +491,10 @@ func (r *resourceSecurityWebFilterProfile) Read(ctx context.Context, req resourc
 
 	read_output, err := c.ReadSecurityWebFilterProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -524,30 +518,6 @@ func (m *resourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfile(
 	var diags diag.Diagnostics
 	if o == nil {
 		return diags
-	}
-
-	if v, ok := o["fortiguardFilters"]; ok {
-		convert_v := m.flattenSecurityWebFilterProfileFortiguardFiltersList(ctx, v, &diags)
-		if m.FortiguardFilters == nil || !isSetSuperset(convert_v, m.FortiguardFilters) {
-			m.FortiguardFilters = convert_v
-		}
-
-	}
-
-	if v, ok := o["fortiguardLocalCategoryFilters"]; ok {
-		convert_v := m.flattenSecurityWebFilterProfileFortiguardLocalCategoryFiltersList(ctx, v, &diags)
-		if m.FortiguardLocalCategoryFilters == nil || !isSetSuperset(convert_v, m.FortiguardLocalCategoryFilters) {
-			m.FortiguardLocalCategoryFilters = convert_v
-		}
-
-	}
-
-	if v, ok := o["fqdnThreatFeedFilters"]; ok {
-		convert_v := m.flattenSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, v, &diags)
-		if m.FqdnThreatFeedFilters == nil || !isSetSuperset(convert_v, m.FqdnThreatFeedFilters) {
-			m.FqdnThreatFeedFilters = convert_v
-		}
-
 	}
 
 	if v, ok := o["useFortiguardFilters"]; ok {
@@ -587,7 +557,7 @@ func (m *resourceSecurityWebFilterProfileModel) refreshSecurityWebFilterProfile(
 
 func (data *resourceSecurityWebFilterProfileModel) getCreateObjectSecurityWebFilterProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -597,23 +567,23 @@ func (data *resourceSecurityWebFilterProfileModel) getCreateObjectSecurityWebFil
 
 	result["fqdnThreatFeedFilters"] = data.expandSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, data.FqdnThreatFeedFilters, diags)
 
-	if !data.UseFortiguardFilters.IsNull() {
+	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {
 		result["useFortiguardFilters"] = data.UseFortiguardFilters.ValueString()
 	}
 
-	if !data.BlockInvalidUrl.IsNull() {
+	if !data.BlockInvalidUrl.IsNull() && !data.BlockInvalidUrl.IsUnknown() {
 		result["blockInvalidUrl"] = data.BlockInvalidUrl.ValueString()
 	}
 
-	if !data.EnforceSafeSearch.IsNull() {
+	if !data.EnforceSafeSearch.IsNull() && !data.EnforceSafeSearch.IsUnknown() {
 		result["enforceSafeSearch"] = data.EnforceSafeSearch.ValueString()
 	}
 
-	if !data.LogSearchedKeywords.IsNull() {
+	if !data.LogSearchedKeywords.IsNull() && !data.LogSearchedKeywords.IsUnknown() {
 		result["logSearchedKeywords"] = data.LogSearchedKeywords.ValueString()
 	}
 
-	if !data.TrafficOnRatingError.IsNull() {
+	if !data.TrafficOnRatingError.IsNull() && !data.TrafficOnRatingError.IsUnknown() {
 		result["trafficOnRatingError"] = data.TrafficOnRatingError.ValueString()
 	}
 
@@ -628,7 +598,7 @@ func (data *resourceSecurityWebFilterProfileModel) getCreateObjectSecurityWebFil
 
 func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFilterProfile(ctx context.Context, state resourceSecurityWebFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -644,23 +614,23 @@ func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFil
 		result["fqdnThreatFeedFilters"] = data.expandSecurityWebFilterProfileFqdnThreatFeedFiltersList(ctx, data.FqdnThreatFeedFilters, diags)
 	}
 
-	if !data.UseFortiguardFilters.IsNull() {
+	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {
 		result["useFortiguardFilters"] = data.UseFortiguardFilters.ValueString()
 	}
 
-	if !data.BlockInvalidUrl.IsNull() {
+	if !data.BlockInvalidUrl.IsNull() && !data.BlockInvalidUrl.IsUnknown() {
 		result["blockInvalidUrl"] = data.BlockInvalidUrl.ValueString()
 	}
 
-	if !data.EnforceSafeSearch.IsNull() {
+	if !data.EnforceSafeSearch.IsNull() && !data.EnforceSafeSearch.IsUnknown() {
 		result["enforceSafeSearch"] = data.EnforceSafeSearch.ValueString()
 	}
 
-	if !data.LogSearchedKeywords.IsNull() {
+	if !data.LogSearchedKeywords.IsNull() && !data.LogSearchedKeywords.IsUnknown() {
 		result["logSearchedKeywords"] = data.LogSearchedKeywords.ValueString()
 	}
 
-	if !data.TrafficOnRatingError.IsNull() {
+	if !data.TrafficOnRatingError.IsNull() && !data.TrafficOnRatingError.IsUnknown() {
 		result["trafficOnRatingError"] = data.TrafficOnRatingError.ValueString()
 	}
 
@@ -681,14 +651,14 @@ func (data *resourceSecurityWebFilterProfileModel) getUpdateObjectSecurityWebFil
 
 func (data *resourceSecurityWebFilterProfileModel) getURLObjectSecurityWebFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -772,10 +742,6 @@ func (m *resourceSecurityWebFilterProfileFortiguardFiltersModel) flattenSecurity
 		m.Category = m.Category.flattenSecurityWebFilterProfileFortiguardFiltersCategory(ctx, v, diags)
 	}
 
-	if v, ok := o["warningDuration"]; ok {
-		m.WarningDuration = parseStringValue(v)
-	}
-
 	return m
 }
 
@@ -784,12 +750,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 		return []resourceSecurityWebFilterProfileFortiguardFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_filters is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileFortiguardFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileFortiguardFiltersModel{}
 	}
@@ -797,6 +768,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 	values := make([]resourceSecurityWebFilterProfileFortiguardFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileFortiguardFiltersModel
+		if i < len(s.FortiguardFilters) {
+			m = s.FortiguardFilters[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileFortiguardFilters(ctx, ele, diags)
 	}
 
@@ -838,10 +812,6 @@ func (m *resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel) fl
 		m.Category = m.Category.flattenSecurityWebFilterProfileFortiguardLocalCategoryFiltersCategory(ctx, v, diags)
 	}
 
-	if v, ok := o["warningDuration"]; ok {
-		m.WarningDuration = parseStringValue(v)
-	}
-
 	return m
 }
 
@@ -850,12 +820,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 		return []resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_local_category_filters is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel{}
 	}
@@ -863,6 +838,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 	values := make([]resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel
+		if i < len(s.FortiguardLocalCategoryFilters) {
+			m = s.FortiguardLocalCategoryFilters[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileFortiguardLocalCategoryFilters(ctx, ele, diags)
 	}
 
@@ -904,10 +882,6 @@ func (m *resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel) flattenSecu
 		m.Category = m.Category.flattenSecurityWebFilterProfileFqdnThreatFeedFiltersCategory(ctx, v, diags)
 	}
 
-	if v, ok := o["warningDuration"]; ok {
-		m.WarningDuration = parseStringValue(v)
-	}
-
 	return m
 }
 
@@ -916,12 +890,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 		return []resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fqdn_threat_feed_filters is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel{}
 	}
@@ -929,6 +908,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileF
 	values := make([]resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel
+		if i < len(s.FqdnThreatFeedFilters) {
+			m = s.FqdnThreatFeedFilters[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileFqdnThreatFeedFilters(ctx, ele, diags)
 	}
 
@@ -994,12 +976,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileC
 		return []resourceSecurityWebFilterProfileContentFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument content_filters is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileContentFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileContentFiltersModel{}
 	}
@@ -1007,6 +994,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileC
 	values := make([]resourceSecurityWebFilterProfileContentFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileContentFiltersModel
+		if i < len(s.ContentFilters) {
+			m = s.ContentFilters[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileContentFilters(ctx, ele, diags)
 	}
 
@@ -1045,12 +1035,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileU
 		return []resourceSecurityWebFilterProfileUrlFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument url_filters is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileUrlFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileUrlFiltersModel{}
 	}
@@ -1058,6 +1053,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileU
 	values := make([]resourceSecurityWebFilterProfileUrlFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileUrlFiltersModel
+		if i < len(s.UrlFilters) {
+			m = s.UrlFilters[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileUrlFilters(ctx, ele, diags)
 	}
 
@@ -1096,12 +1094,17 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileH
 		return []resourceSecurityWebFilterProfileHttpHeadersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument http_headers is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileHttpHeadersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileHttpHeadersModel{}
 	}
@@ -1109,6 +1112,9 @@ func (s *resourceSecurityWebFilterProfileModel) flattenSecurityWebFilterProfileH
 	values := make([]resourceSecurityWebFilterProfileHttpHeadersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileHttpHeadersModel
+		if i < len(s.HttpHeaders) {
+			m = s.HttpHeaders[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileHttpHeaders(ctx, ele, diags)
 	}
 
@@ -1139,12 +1145,17 @@ func (s *resourceSecurityWebFilterProfileHttpHeadersModel) flattenSecurityWebFil
 		return []resourceSecurityWebFilterProfileHttpHeadersDestinationsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument destinations is not type of []interface{}.", "")
 		return []resourceSecurityWebFilterProfileHttpHeadersDestinationsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityWebFilterProfileHttpHeadersDestinationsModel{}
 	}
@@ -1152,6 +1163,9 @@ func (s *resourceSecurityWebFilterProfileHttpHeadersModel) flattenSecurityWebFil
 	values := make([]resourceSecurityWebFilterProfileHttpHeadersDestinationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileHttpHeadersDestinationsModel
+		if i < len(s.Destinations) {
+			m = s.Destinations[i]
+		}
 		values[i] = *m.flattenSecurityWebFilterProfileHttpHeadersDestinations(ctx, ele, diags)
 	}
 
@@ -1160,15 +1174,16 @@ func (s *resourceSecurityWebFilterProfileHttpHeadersModel) flattenSecurityWebFil
 
 func (data *resourceSecurityWebFilterProfileFortiguardFiltersModel) expandSecurityWebFilterProfileFortiguardFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityWebFilterProfileFortiguardFiltersCategory(ctx, diags)
 	}
 
-	if !data.WarningDuration.IsNull() {
+	if !data.WarningDuration.IsNull() && !data.WarningDuration.IsUnknown() {
 		result["warningDuration"] = data.WarningDuration.ValueString()
 	}
 
@@ -1185,11 +1200,11 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileFo
 
 func (data *resourceSecurityWebFilterProfileFortiguardFiltersCategoryModel) expandSecurityWebFilterProfileFortiguardFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -1198,15 +1213,16 @@ func (data *resourceSecurityWebFilterProfileFortiguardFiltersCategoryModel) expa
 
 func (data *resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersModel) expandSecurityWebFilterProfileFortiguardLocalCategoryFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityWebFilterProfileFortiguardLocalCategoryFiltersCategory(ctx, diags)
 	}
 
-	if !data.WarningDuration.IsNull() {
+	if !data.WarningDuration.IsNull() && !data.WarningDuration.IsUnknown() {
 		result["warningDuration"] = data.WarningDuration.ValueString()
 	}
 
@@ -1223,11 +1239,11 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileFo
 
 func (data *resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersCategoryModel) expandSecurityWebFilterProfileFortiguardLocalCategoryFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -1236,15 +1252,16 @@ func (data *resourceSecurityWebFilterProfileFortiguardLocalCategoryFiltersCatego
 
 func (data *resourceSecurityWebFilterProfileFqdnThreatFeedFiltersModel) expandSecurityWebFilterProfileFqdnThreatFeedFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityWebFilterProfileFqdnThreatFeedFiltersCategory(ctx, diags)
 	}
 
-	if !data.WarningDuration.IsNull() {
+	if !data.WarningDuration.IsNull() && !data.WarningDuration.IsUnknown() {
 		result["warningDuration"] = data.WarningDuration.ValueString()
 	}
 
@@ -1261,11 +1278,11 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileFq
 
 func (data *resourceSecurityWebFilterProfileFqdnThreatFeedFiltersCategoryModel) expandSecurityWebFilterProfileFqdnThreatFeedFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -1274,27 +1291,27 @@ func (data *resourceSecurityWebFilterProfileFqdnThreatFeedFiltersCategoryModel) 
 
 func (data *resourceSecurityWebFilterProfileContentFiltersModel) expandSecurityWebFilterProfileContentFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Pattern.IsNull() {
+	if !data.Pattern.IsNull() && !data.Pattern.IsUnknown() {
 		result["pattern"] = data.Pattern.ValueString()
 	}
 
-	if !data.PatternType.IsNull() {
+	if !data.PatternType.IsNull() && !data.PatternType.IsUnknown() {
 		result["patternType"] = data.PatternType.ValueString()
 	}
 
-	if !data.Lang.IsNull() {
+	if !data.Lang.IsNull() && !data.Lang.IsUnknown() {
 		result["lang"] = data.Lang.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Score.IsNull() {
+	if !data.Score.IsNull() && !data.Score.IsUnknown() {
 		result["score"] = data.Score.ValueFloat64()
 	}
 
@@ -1311,19 +1328,19 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileCo
 
 func (data *resourceSecurityWebFilterProfileUrlFiltersModel) expandSecurityWebFilterProfileUrlFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Url.IsNull() {
+	if !data.Url.IsNull() && !data.Url.IsUnknown() {
 		result["url"] = data.Url.ValueString()
 	}
 
-	if !data.Type.IsNull() {
+	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		result["type"] = data.Type.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
@@ -1340,15 +1357,15 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileUr
 
 func (data *resourceSecurityWebFilterProfileHttpHeadersModel) expandSecurityWebFilterProfileHttpHeaders(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Name.IsNull() {
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		result["name"] = data.Name.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Content.IsNull() {
+	if !data.Content.IsNull() && !data.Content.IsUnknown() {
 		result["content"] = data.Content.ValueString()
 	}
 
@@ -1367,11 +1384,11 @@ func (s *resourceSecurityWebFilterProfileModel) expandSecurityWebFilterProfileHt
 
 func (data *resourceSecurityWebFilterProfileHttpHeadersDestinationsModel) expandSecurityWebFilterProfileHttpHeadersDestinations(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 

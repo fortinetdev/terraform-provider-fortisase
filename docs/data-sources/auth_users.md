@@ -4,16 +4,18 @@ page_title: "fortisase_auth_users Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
   User Resource API V2 for FortiSASE.
+  fortisase_auth_users is deprecated. Please use fortisase_auth_user instead.
 ---
 
 # fortisase_auth_users (Data Source)
 
 User Resource API V2 for FortiSASE.
+fortisase_auth_users is deprecated. Please use fortisase_auth_user instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_auth_users" "example" {
+data "fortisase_auth_user" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_auth_users" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `auth_type` (String)
 - `email` (String)
@@ -35,7 +37,7 @@ data "fortisase_auth_users" "example" {
 <a id="nestedatt--ldap_server"></a>
 ### Nested Schema for `ldap_server`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

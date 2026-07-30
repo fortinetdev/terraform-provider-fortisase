@@ -3,36 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/setvalidatorwarning"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// datasourceSecurityFortiguardCategories keeps the deprecated Terraform type available while
+// reusing the canonical data source implementation.
 var _ datasource.DataSource = &datasourceSecurityFortiguardCategories{}
 
 func newDatasourceSecurityFortiguardCategories() datasource.DataSource {
-	return &datasourceSecurityFortiguardCategories{}
+	return &datasourceSecurityFortiguardCategories{
+		datasourceSecurityFortiguardCategory: &datasourceSecurityFortiguardCategory{},
+	}
 }
 
 type datasourceSecurityFortiguardCategories struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// datasourceSecurityFortiguardCategoriesModel describes the datasource data model.
-type datasourceSecurityFortiguardCategoriesModel struct {
-	PrimaryKey       types.String  `tfsdk:"primary_key"`
-	Ftntid           types.Float64 `tfsdk:"ftntid"`
-	Group            types.String  `tfsdk:"group"`
-	Rating           types.String  `tfsdk:"rating"`
-	BlockedInRatings types.Set     `tfsdk:"blocked_in_ratings"`
+	*datasourceSecurityFortiguardCategory
 }
 
 func (r *datasourceSecurityFortiguardCategories) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -40,128 +26,12 @@ func (r *datasourceSecurityFortiguardCategories) Metadata(ctx context.Context, r
 }
 
 func (r *datasourceSecurityFortiguardCategories) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "FortiGuard Category Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"primary_key": schema.StringAttribute{
-				Required: true,
-			},
-			"ftntid": schema.Float64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-			"group": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"rating": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.OneOf("G", "PG-13", "R", "security-risk"),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"blocked_in_ratings": schema.SetAttribute{
-				Validators: []validator.Set{
-					setvalidatorwarning.ValueStringsAre(
-						stringvalidatorwarning.OneOf("G", "PG-13", "R"),
-					),
-				},
-				Computed:    true,
-				Optional:    true,
-				ElementType: types.StringType,
-			},
-		},
-	}
+	r.datasourceSecurityFortiguardCategory.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_security_fortiguard_categories is deprecated. Please use fortisase_security_fortiguard_category instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *datasourceSecurityFortiguardCategories) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_security_fortiguard_categories"
-}
-
-func (r *datasourceSecurityFortiguardCategories) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data datasourceSecurityFortiguardCategoriesModel
-
-	// Read Terraform prior config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.PrimaryKey.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectSecurityFortiguardCategories(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityFortiguardCategories(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityFortiguardCategories(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (m *datasourceSecurityFortiguardCategoriesModel) refreshSecurityFortiguardCategories(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	if v, ok := o["id"]; ok {
-		m.Ftntid = parseFloat64Value(v)
-	}
-
-	if v, ok := o["group"]; ok {
-		m.Group = parseStringValue(v)
-	}
-
-	if v, ok := o["rating"]; ok {
-		m.Rating = parseStringValue(v)
-	}
-
-	if v, ok := o["blockedInRatings"]; ok {
-		m.BlockedInRatings = parseSetValue(ctx, v, types.StringType)
-	}
-
-	return diags
-}
-
-func (data *datasourceSecurityFortiguardCategoriesModel) getURLObjectSecurityFortiguardCategories(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+	r.datasourceSecurityFortiguardCategory.Configure(ctx, req, resp)
+	r.datasourceSecurityFortiguardCategory.resourceName = "fortisase_security_fortiguard_categories"
 }

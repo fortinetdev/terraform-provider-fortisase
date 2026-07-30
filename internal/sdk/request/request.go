@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -22,6 +23,29 @@ type Request struct {
 	Path         string
 	Params       interface{}
 	Data         *bytes.Buffer
+}
+
+const (
+	defaultFortiSASEAPIURL  = "https://portal.prod.fortisase.com"
+	defaultFortiSASEAuthURL = "https://customerapiauth.fortinet.com"
+)
+
+// FortiSASEAPIURL returns the FortiSASE API base URL from the environment.
+func FortiSASEAPIURL() string {
+	return envURL("FORTISASE_API_URL", defaultFortiSASEAPIURL)
+}
+
+// FortiSASEAuthURL returns the FortiSASE authentication base URL from the environment.
+func FortiSASEAuthURL() string {
+	return envURL("FORTISASE_AUTH_URL", defaultFortiSASEAuthURL)
+}
+
+func envURL(name, defaultURL string) string {
+	value := strings.TrimSpace(os.Getenv(name))
+	if value == "" {
+		return defaultURL
+	}
+	return strings.TrimRight(value, "/")
 }
 
 // New creates reqeust object with http method, path, params and data,
@@ -97,75 +121,67 @@ func (r *Request) Send() error {
 }
 
 func (r *Request) buildURL() string {
-	u := "https://portal.prod.fortisase.com"
+	u := FortiSASEAPIURL()
 	u += r.Path
 
 	return u
 }
 
-// Login FortiSASE using username and password in token mode, and return Cookies.
-// If errors are encountered, it returns the error.
-func (r *Request) GenToken() (string, string, error) {
-	// todo
-	// generate access token and refresh token
-
-	var err error
-	var access_token string
-	var refresh_token string
-
-	data := make(map[string]interface{})
-	data["username"] = r.Config.Auth.Username
-	data["password"] = r.Config.Auth.Password
-	data["client_id"] = "FortiSASE"
-	data["grant_type"] = "password"
+// GenToken logs in to FortiSASE with a username and password and returns tokens.
+func GenToken(cfg config.Config) (string, string, error) {
+	data := map[string]string{
+		"username":   cfg.Auth.Username,
+		"password":   cfg.Auth.Password,
+		"client_id":  "FortiSASE",
+		"grant_type": "password",
+	}
 
 	locJSON, err := json.Marshal(data)
 	if err != nil {
 		log.Printf("[ERROR] Encoding body data failed.")
-		return access_token, refresh_token, err
+		return "", "", err
 	}
 
 	bodyBytes := bytes.NewBuffer(locJSON)
-
-	req, _ := http.NewRequest("POST", "", bodyBytes)
-	req.Header.Set("Content-Type", "application/json")
-	req.URL, err = url.Parse("https://customerapiauth.fortinet.com/api/v1/oauth/token/")
+	tokenURL := fmt.Sprintf("%s/api/v1/oauth/token/", FortiSASEAuthURL())
+	req, err := http.NewRequest(http.MethodPost, tokenURL, bodyBytes)
 	if err != nil {
-		err = fmt.Errorf("Could not parse URL: %s", err)
-		return access_token, refresh_token, err
+		return "", "", fmt.Errorf("could not create token request: %w", err)
 	}
+	req.Header.Set("Content-Type", "application/json")
 
-	rsp, err := r.Config.HTTPCon.Do(req)
+	rsp, err := cfg.HTTPCon.Do(req)
 	if err != nil {
-		if strings.Contains(err.Error(), "x509: ") {
-			err = fmt.Errorf("HTTP request error: %v", err)
-			return access_token, refresh_token, err
-		}
+		return "", "", fmt.Errorf("token request failed: %w", err)
 	}
 
 	if rsp == nil {
-		err = fmt.Errorf("Host is unreachable. HTTP response is nil.")
-		return access_token, refresh_token, err
+		return "", "", fmt.Errorf("host is unreachable: HTTP response is nil")
 	}
+	defer rsp.Body.Close()
 
 	body, err := io.ReadAll(rsp.Body)
-	rsp.Body.Close()
-
-	if err != nil || body == nil {
-		err = fmt.Errorf("cannot get response body, %s", err)
-		return access_token, refresh_token, err
-	}
-	var result map[string]interface{}
-	json.Unmarshal([]byte(string(body)), &result)
-
-	if at, ok := result["access_token"]; ok {
-		access_token = at.(string)
-		refresh_token = result["refresh_token"].(string)
-	} else {
-		err = fmt.Errorf("Login failed: %S.", result["status_message"])
+	if err != nil {
+		return "", "", fmt.Errorf("cannot read token response body: %w", err)
 	}
 
-	return access_token, refresh_token, err
+	var result struct {
+		AccessToken   string `json:"access_token"`
+		RefreshToken  string `json:"refresh_token"`
+		StatusMessage string `json:"status_message"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", "", fmt.Errorf("cannot decode token response: %w", err)
+	}
+
+	if result.AccessToken == "" || result.RefreshToken == "" {
+		if result.StatusMessage == "" {
+			result.StatusMessage = "token response does not contain access_token and refresh_token"
+		}
+		return "", "", fmt.Errorf("login failed: %s", result.StatusMessage)
+	}
+
+	return result.AccessToken, result.RefreshToken, nil
 }
 
 // Logout current token based authentication.

@@ -19,6 +19,7 @@ func (c *FortiSDKClient) UpdateAuthFssoAgents(input_model *InputModel) (output m
 func (c *FortiSDKClient) ReadAuthFssoAgents(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/fsso-agents/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -51,6 +52,7 @@ func (c *FortiSDKClient) UpdateAuthLdapServers(input_model *InputModel) (output 
 func (c *FortiSDKClient) ReadAuthLdapServers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/ldap-servers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -83,6 +85,7 @@ func (c *FortiSDKClient) UpdateAuthRadiusServers(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadAuthRadiusServers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/radius-servers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -115,6 +118,7 @@ func (c *FortiSDKClient) UpdateAuthSslvpnSamlServer(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadAuthSslvpnSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/sslvpn-saml-server"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -131,6 +135,7 @@ func (c *FortiSDKClient) UpdateAuthSwgSamlServer(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadAuthSwgSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/swg-saml-server"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -147,6 +152,7 @@ func (c *FortiSDKClient) UpdateAuthUserGroups(input_model *InputModel) (output m
 func (c *FortiSDKClient) ReadAuthUserGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/user-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -179,6 +185,7 @@ func (c *FortiSDKClient) UpdateAuthUsers(input_model *InputModel) (output map[st
 func (c *FortiSDKClient) ReadAuthUsers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/users/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -211,6 +218,7 @@ func (c *FortiSDKClient) UpdateAuthVpnSamlServer(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadAuthVpnSamlServer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/auth/vpn-saml-server"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -227,6 +235,7 @@ func (c *FortiSDKClient) UpdateBrowserProvision(input_model *InputModel) (output
 func (c *FortiSDKClient) ReadBrowserProvision(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/browser/provision"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -243,6 +252,7 @@ func (c *FortiSDKClient) UpdateDemCustomSaasApps(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadDemCustomSaasApps(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/dem/custom-saas-apps/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -275,6 +285,7 @@ func (c *FortiSDKClient) UpdateDemSpaApplications(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadDemSpaApplications(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/dem/spa-applications/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -307,6 +318,7 @@ func (c *FortiSDKClient) UpdateEndpointConnectionProfiles(input_model *InputMode
 func (c *FortiSDKClient) ReadEndpointConnectionProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/connection-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -323,6 +335,7 @@ func (c *FortiSDKClient) UpdateEndpointFssoProfiles(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadEndpointFssoProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/fsso-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -339,6 +352,7 @@ func (c *FortiSDKClient) UpdateEndpointGroupAdUserProfiles(input_model *InputMod
 func (c *FortiSDKClient) ReadEndpointGroupAdUserProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/group-ad-user-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -347,6 +361,7 @@ func (c *FortiSDKClient) ReadEndpointGroupAdUserProfiles(input_model *InputModel
 func (c *FortiSDKClient) ReadEndpointGroupInvitationCodes(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/group-invitation-codes/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -368,6 +383,23 @@ func (c *FortiSDKClient) CreateEndpointGroupInvitationCodes(input_model *InputMo
 	output, err = sendRequests(c, input_model)
 	return
 }
+func (c *FortiSDKClient) UpdateEndpointMdmIntegration(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/endpoint/mdm-integration"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadEndpointMdmIntegration(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/endpoint/mdm-integration"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
 func (c *FortiSDKClient) UpdateEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "PUT"
 	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
@@ -379,6 +411,7 @@ func (c *FortiSDKClient) UpdateEndpointOnNetRules(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadEndpointOnNetRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/on-net-rules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -411,6 +444,7 @@ func (c *FortiSDKClient) UpdateEndpointPolicies(input_model *InputModel) (output
 func (c *FortiSDKClient) ReadEndpointPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -451,6 +485,7 @@ func (c *FortiSDKClient) UpdateEndpointProfile(input_model *InputModel) (output 
 func (c *FortiSDKClient) ReadEndpointProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -491,6 +526,7 @@ func (c *FortiSDKClient) UpdateEndpointProtectionProfiles(input_model *InputMode
 func (c *FortiSDKClient) ReadEndpointProtectionProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/protection-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -507,6 +543,7 @@ func (c *FortiSDKClient) UpdateEndpointSandboxProfiles(input_model *InputModel) 
 func (c *FortiSDKClient) ReadEndpointSandboxProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/sandbox-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -523,6 +560,7 @@ func (c *FortiSDKClient) UpdateEndpointSettingProfiles(input_model *InputModel) 
 func (c *FortiSDKClient) ReadEndpointSettingProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/setting-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -539,6 +577,7 @@ func (c *FortiSDKClient) UpdateEndpointZtnaProfiles(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadEndpointZtnaProfiles(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/ztna-profiles/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -555,6 +594,7 @@ func (c *FortiSDKClient) UpdateEndpointZtnaRules(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadEndpointZtnaRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/ztna-rules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -587,6 +627,7 @@ func (c *FortiSDKClient) UpdateEndpointZtnaTagRule(input_model *InputModel) (out
 func (c *FortiSDKClient) ReadEndpointZtnaTagRule(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/ztna-tag-rules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -611,6 +652,7 @@ func (c *FortiSDKClient) CreateEndpointZtnaTagRule(input_model *InputModel) (out
 func (c *FortiSDKClient) ReadEndpointZtnaTags(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/endpoint/ztna-tags/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -651,6 +693,7 @@ func (c *FortiSDKClient) CreateEndpointsAccessProxyDisconnect(input_model *Input
 func (c *FortiSDKClient) ReadEndpointsClientUserDetails(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/client-user-details/{clientUserId}"
+	input_model.MkeyName = "clientUserId"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -659,6 +702,7 @@ func (c *FortiSDKClient) ReadEndpointsClientUserDetails(input_model *InputModel)
 func (c *FortiSDKClient) ReadEndpointsDetails(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/details/{deviceId}"
+	input_model.MkeyName = "deviceId"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -675,6 +719,7 @@ func (c *FortiSDKClient) CreateEndpointsDisableManagement(input_model *InputMode
 func (c *FortiSDKClient) ReadEndpointsDonut(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/donut/{donutType}"
+	input_model.MkeyName = "donutType"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -691,6 +736,7 @@ func (c *FortiSDKClient) CreateEndpointsEnableManagement(input_model *InputModel
 func (c *FortiSDKClient) ReadEndpointsEndpointsWithSoftware(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/endpoints-with-software/{softwareId}"
+	input_model.MkeyName = "softwareId"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -699,6 +745,7 @@ func (c *FortiSDKClient) ReadEndpointsEndpointsWithSoftware(input_model *InputMo
 func (c *FortiSDKClient) ReadEndpointsGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -707,6 +754,7 @@ func (c *FortiSDKClient) ReadEndpointsGroups(input_model *InputModel) (output ma
 func (c *FortiSDKClient) ReadEndpointsSoftwareOnClientUser(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/software-on-client-user/{clientUserId}"
+	input_model.MkeyName = "clientUserId"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -715,6 +763,7 @@ func (c *FortiSDKClient) ReadEndpointsSoftwareOnClientUser(input_model *InputMod
 func (c *FortiSDKClient) ReadEndpointsSoftwareOnEndpoint(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/software-on-endpoint/{deviceId}"
+	input_model.MkeyName = "deviceId"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -723,6 +772,7 @@ func (c *FortiSDKClient) ReadEndpointsSoftwareOnEndpoint(input_model *InputModel
 func (c *FortiSDKClient) ReadInfraDataTransfer(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/infra/data-transfer"
+	input_model.MkeyName = ""
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -731,6 +781,7 @@ func (c *FortiSDKClient) ReadInfraDataTransfer(input_model *InputModel) (output 
 func (c *FortiSDKClient) ReadInfraExtenders(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/extenders/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -739,6 +790,7 @@ func (c *FortiSDKClient) ReadInfraExtenders(input_model *InputModel) (output map
 func (c *FortiSDKClient) ReadInfraFortigates(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/fortigates/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -755,6 +807,7 @@ func (c *FortiSDKClient) UpdateInfraIpamSetting(input_model *InputModel) (output
 func (c *FortiSDKClient) ReadInfraIpamSetting(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/ipam-settings"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -771,6 +824,7 @@ func (c *FortiSDKClient) UpdateInfraSecureWebGatewaySupplementaryData(input_mode
 func (c *FortiSDKClient) ReadInfraSecureWebGatewaySupplementaryData(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/secure-web-gateway-supplementary-data"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -787,6 +841,7 @@ func (c *FortiSDKClient) UpdateInfraSsids(input_model *InputModel) (output map[s
 func (c *FortiSDKClient) ReadInfraSsids(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/infra/ssids/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -811,6 +866,7 @@ func (c *FortiSDKClient) CreateInfraSsids(input_model *InputModel) (output map[s
 func (c *FortiSDKClient) ReadNetworkBasicInternetServices(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/basic-internet-services/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -827,6 +883,7 @@ func (c *FortiSDKClient) UpdateNetworkDnsRules(input_model *InputModel) (output 
 func (c *FortiSDKClient) ReadNetworkDnsRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/dns-rules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -859,6 +916,7 @@ func (c *FortiSDKClient) UpdateNetworkHostGroups(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadNetworkHostGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/host-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -891,6 +949,7 @@ func (c *FortiSDKClient) UpdateNetworkHosts(input_model *InputModel) (output map
 func (c *FortiSDKClient) ReadNetworkHosts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/hosts/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -923,6 +982,7 @@ func (c *FortiSDKClient) UpdateNetworkImplicitDnsRules(input_model *InputModel) 
 func (c *FortiSDKClient) ReadNetworkImplicitDnsRules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/implicit-dns-rules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -931,6 +991,7 @@ func (c *FortiSDKClient) ReadNetworkImplicitDnsRules(input_model *InputModel) (o
 func (c *FortiSDKClient) ReadNetworkWildcardFqdnCustoms(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/network/wildcard-fqdn-customs/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -947,6 +1008,7 @@ func (c *FortiSDKClient) UpdatePrivateAccessNetworkConfiguration(input_model *In
 func (c *FortiSDKClient) ReadPrivateAccessNetworkConfiguration(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/private-access/network-configuration"
+	input_model.MkeyName = ""
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -979,6 +1041,7 @@ func (c *FortiSDKClient) UpdatePrivateAccessServiceConnections(input_model *Inpu
 func (c *FortiSDKClient) ReadPrivateAccessServiceConnections(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/private-access/service-connections/{service-connection-id}"
+	input_model.MkeyName = "service-connection-id"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1019,6 +1082,7 @@ func (c *FortiSDKClient) CreatePrivateAccessServiceConnectionsRegionCost(input_m
 func (c *FortiSDKClient) ReadSecurityAntivirusFiletypes(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/antivirus-filetypes/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1035,6 +1099,7 @@ func (c *FortiSDKClient) UpdateSecurityAntivirusProfile(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityAntivirusProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/antivirus-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1051,6 +1116,7 @@ func (c *FortiSDKClient) UpdateSecurityAppCustomSignatures(input_model *InputMod
 func (c *FortiSDKClient) ReadSecurityAppCustomSignatures(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/app-custom-signatures/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1075,6 +1141,7 @@ func (c *FortiSDKClient) CreateSecurityAppCustomSignatures(input_model *InputMod
 func (c *FortiSDKClient) ReadSecurityApplicationCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/application-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1091,6 +1158,7 @@ func (c *FortiSDKClient) UpdateSecurityApplicationControlProfile(input_model *In
 func (c *FortiSDKClient) ReadSecurityApplicationControlProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/application-control-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1099,6 +1167,7 @@ func (c *FortiSDKClient) ReadSecurityApplicationControlProfile(input_model *Inpu
 func (c *FortiSDKClient) ReadSecurityApplications(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/applications/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1107,6 +1176,7 @@ func (c *FortiSDKClient) ReadSecurityApplications(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadSecurityBotnetDomainsStat(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/security/botnet-domains/stat"
+	input_model.MkeyName = ""
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1115,6 +1185,7 @@ func (c *FortiSDKClient) ReadSecurityBotnetDomainsStat(input_model *InputModel) 
 func (c *FortiSDKClient) ReadSecurityCertLocalCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/cert/local-ca-certs/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1139,6 +1210,7 @@ func (c *FortiSDKClient) CreateSecurityCertLocalCaCerts(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityCertLocalCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/cert/local-certs/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1163,6 +1235,7 @@ func (c *FortiSDKClient) CreateSecurityCertLocalCerts(input_model *InputModel) (
 func (c *FortiSDKClient) ReadSecurityCertRemoteCaCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/cert/remote-ca-certs/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1187,6 +1260,7 @@ func (c *FortiSDKClient) CreateSecurityCertRemoteCaCerts(input_model *InputModel
 func (c *FortiSDKClient) ReadSecurityCertRemoteCerts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/cert/remote-certs/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1211,6 +1285,7 @@ func (c *FortiSDKClient) CreateSecurityCertRemoteCerts(input_model *InputModel) 
 func (c *FortiSDKClient) ReadSecurityDlpDataTypes(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-data-types/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1227,6 +1302,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpDictionaries(input_model *InputModel) 
 func (c *FortiSDKClient) ReadSecurityDlpDictionaries(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-dictionaries/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1259,6 +1335,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpExactDataMatches(input_model *InputMod
 func (c *FortiSDKClient) ReadSecurityDlpExactDataMatches(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-exact-data-matches/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1291,6 +1368,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpFilePatterns(input_model *InputModel) 
 func (c *FortiSDKClient) ReadSecurityDlpFilePatterns(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-file-patterns/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1323,6 +1401,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpFingerprintDatabases(input_model *Inpu
 func (c *FortiSDKClient) ReadSecurityDlpFingerprintDatabases(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-fingerprint-databases/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1355,6 +1434,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpProfile(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadSecurityDlpProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1371,6 +1451,7 @@ func (c *FortiSDKClient) UpdateSecurityDlpSensors(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadSecurityDlpSensors(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dlp-sensors/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1403,6 +1484,7 @@ func (c *FortiSDKClient) UpdateSecurityDnsFilterProfile(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityDnsFilterProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/dns-filter-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1419,6 +1501,7 @@ func (c *FortiSDKClient) UpdateSecurityDomainThreatFeeds(input_model *InputModel
 func (c *FortiSDKClient) ReadSecurityDomainThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/domain-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1451,6 +1534,7 @@ func (c *FortiSDKClient) UpdateSecurityEndpointToEndpointPolicies(input_model *I
 func (c *FortiSDKClient) ReadSecurityEndpointToEndpointPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/endpoint-to-endpoint-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1491,6 +1575,7 @@ func (c *FortiSDKClient) UpdateSecurityFileFilterProfile(input_model *InputModel
 func (c *FortiSDKClient) ReadSecurityFileFilterProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/file-filter-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1499,6 +1584,7 @@ func (c *FortiSDKClient) ReadSecurityFileFilterProfile(input_model *InputModel) 
 func (c *FortiSDKClient) ReadSecurityFortiguardCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/fortiguard-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1515,6 +1601,7 @@ func (c *FortiSDKClient) UpdateSecurityFortiguardLocalCategories(input_model *In
 func (c *FortiSDKClient) ReadSecurityFortiguardLocalCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/fortiguard-local-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1539,9 +1626,60 @@ func (c *FortiSDKClient) CreateSecurityFortiguardLocalCategories(input_model *In
 func (c *FortiSDKClient) ReadSecurityGeoipCountries(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/geoip-countries/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateSecurityHtmlTemplate(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/html-templates/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityHtmlTemplate(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/html-templates/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateSecurityHtmlTemplateImage(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/html-template-images/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityHtmlTemplateImage(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/html-template-images/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityHtmlTemplateImage(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/html-template-images/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityHtmlTemplateImage(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/html-template-images"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
 	return
 }
 func (c *FortiSDKClient) UpdateSecurityInternalPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
@@ -1555,6 +1693,7 @@ func (c *FortiSDKClient) UpdateSecurityInternalPolicies(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityInternalPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/internal-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1584,6 +1723,47 @@ func (c *FortiSDKClient) CreateSecurityInternalPoliciesClone(input_model *InputM
 	output, err = sendRequests(c, input_model)
 	return
 }
+func (c *FortiSDKClient) UpdateSecurityInternalProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/internal-proxy-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityInternalProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/internal-proxy-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityInternalProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/internal-proxy-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityInternalProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/internal-proxy-policies"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityInternalProxyPolicyClone(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/internal-proxy-policies/{based_on}/clone"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
 func (c *FortiSDKClient) UpdateSecurityInternalReversePolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "PUT"
 	input_model.URL = "/resource-api/v2/security/internal-reverse-policies/{primaryKey}"
@@ -1595,6 +1775,7 @@ func (c *FortiSDKClient) UpdateSecurityInternalReversePolicies(input_model *Inpu
 func (c *FortiSDKClient) ReadSecurityInternalReversePolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/internal-reverse-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1635,6 +1816,7 @@ func (c *FortiSDKClient) UpdateSecurityIpThreatFeeds(input_model *InputModel) (o
 func (c *FortiSDKClient) ReadSecurityIpThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/ip-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1667,6 +1849,7 @@ func (c *FortiSDKClient) UpdateSecurityIpsCustomSignatures(input_model *InputMod
 func (c *FortiSDKClient) ReadSecurityIpsCustomSignatures(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/ips-custom-signatures/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1699,6 +1882,7 @@ func (c *FortiSDKClient) UpdateSecurityIpsProfile(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadSecurityIpsProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/ips-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1715,6 +1899,7 @@ func (c *FortiSDKClient) UpdateSecurityOnetimeSchedules(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityOnetimeSchedules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/onetime-schedules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1747,6 +1932,7 @@ func (c *FortiSDKClient) UpdateSecurityOutboundPolicies(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityOutboundPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/outbound-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1776,6 +1962,80 @@ func (c *FortiSDKClient) CreateSecurityOutboundPoliciesClone(input_model *InputM
 	output, err = sendRequests(c, input_model)
 	return
 }
+func (c *FortiSDKClient) UpdateSecurityOutboundProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/outbound-proxy-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityOutboundProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/outbound-proxy-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityOutboundProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/outbound-proxy-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityOutboundProxyPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/outbound-proxy-policies"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityOutboundProxyPolicyClone(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/outbound-proxy-policies/{based_on}/clone"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateSecurityPerIpTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/per-ip-traffic-shapers/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityPerIpTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/per-ip-traffic-shapers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityPerIpTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/per-ip-traffic-shapers/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityPerIpTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/per-ip-traffic-shapers"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
 func (c *FortiSDKClient) UpdateSecurityPkiUsers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "PUT"
 	input_model.URL = "/resource-api/v1/security/pki-users/{primaryKey}"
@@ -1787,6 +2047,7 @@ func (c *FortiSDKClient) UpdateSecurityPkiUsers(input_model *InputModel) (output
 func (c *FortiSDKClient) ReadSecurityPkiUsers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v1/security/pki-users/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1819,6 +2080,7 @@ func (c *FortiSDKClient) UpdateSecurityProfileGroup(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadSecurityProfileGroup(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/profile-group/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1859,6 +2121,7 @@ func (c *FortiSDKClient) UpdateSecurityRecurringSchedules(input_model *InputMode
 func (c *FortiSDKClient) ReadSecurityRecurringSchedules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/recurring-schedules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1891,6 +2154,7 @@ func (c *FortiSDKClient) UpdateSecurityScheduleGroups(input_model *InputModel) (
 func (c *FortiSDKClient) ReadSecurityScheduleGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/schedule-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1915,6 +2179,7 @@ func (c *FortiSDKClient) CreateSecurityScheduleGroups(input_model *InputModel) (
 func (c *FortiSDKClient) ReadSecurityServiceCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/service-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1931,6 +2196,7 @@ func (c *FortiSDKClient) UpdateSecurityServiceGroups(input_model *InputModel) (o
 func (c *FortiSDKClient) ReadSecurityServiceGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/service-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1963,6 +2229,7 @@ func (c *FortiSDKClient) UpdateSecurityServices(input_model *InputModel) (output
 func (c *FortiSDKClient) ReadSecurityServices(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/services/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -1995,9 +2262,76 @@ func (c *FortiSDKClient) UpdateSecuritySslSshProfile(input_model *InputModel) (o
 func (c *FortiSDKClient) ReadSecuritySslSshProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/ssl-ssh-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateSecurityTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/traffic-shapers/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/traffic-shapers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/traffic-shapers/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityTrafficShaper(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/traffic-shapers"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) UpdateSecurityTrafficShapingPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "PUT"
+	input_model.URL = "/resource-api/v2/security/traffic-shaping-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) ReadSecurityTrafficShapingPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "GET"
+	input_model.URL = "/resource-api/v2/security/traffic-shaping-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
+	input_model.update()
+
+	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) DeleteSecurityTrafficShapingPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "DELETE"
+	input_model.URL = "/resource-api/v2/security/traffic-shaping-policies/{primaryKey}"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateSecurityTrafficShapingPolicy(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/resource-api/v2/security/traffic-shaping-policies"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
 	return
 }
 func (c *FortiSDKClient) UpdateSecurityUrlThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
@@ -2011,6 +2345,7 @@ func (c *FortiSDKClient) UpdateSecurityUrlThreatFeeds(input_model *InputModel) (
 func (c *FortiSDKClient) ReadSecurityUrlThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/url-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2035,6 +2370,7 @@ func (c *FortiSDKClient) CreateSecurityUrlThreatFeeds(input_model *InputModel) (
 func (c *FortiSDKClient) ReadSecurityVideoFilterFortiguardCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/video-filter-fortiguard-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2051,6 +2387,7 @@ func (c *FortiSDKClient) UpdateSecurityVideoFilterProfile(input_model *InputMode
 func (c *FortiSDKClient) ReadSecurityVideoFilterProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/video-filter-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2067,6 +2404,7 @@ func (c *FortiSDKClient) UpdateSecurityVideoFilterYoutubeKey(input_model *InputM
 func (c *FortiSDKClient) ReadSecurityVideoFilterYoutubeKey(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/video-filter-youtube-key"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2083,6 +2421,7 @@ func (c *FortiSDKClient) UpdateSecurityWebFilterProfile(input_model *InputModel)
 func (c *FortiSDKClient) ReadSecurityWebFilterProfile(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/security/web-filter-profile/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2091,6 +2430,7 @@ func (c *FortiSDKClient) ReadSecurityWebFilterProfile(input_model *InputModel) (
 func (c *FortiSDKClient) ReadUsageAuthFssoAgents(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/auth/fsso-agents/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2099,6 +2439,7 @@ func (c *FortiSDKClient) ReadUsageAuthFssoAgents(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadUsageAuthLdapServers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/auth/ldap-servers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2107,6 +2448,7 @@ func (c *FortiSDKClient) ReadUsageAuthLdapServers(input_model *InputModel) (outp
 func (c *FortiSDKClient) ReadUsageAuthRadiusServers(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/auth/radius-servers/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2115,6 +2457,7 @@ func (c *FortiSDKClient) ReadUsageAuthRadiusServers(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadUsageAuthUserGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/auth/user-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2123,6 +2466,7 @@ func (c *FortiSDKClient) ReadUsageAuthUserGroups(input_model *InputModel) (outpu
 func (c *FortiSDKClient) ReadUsageEndpointZtnaTags(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/endpoint/ztna-tags/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2131,6 +2475,7 @@ func (c *FortiSDKClient) ReadUsageEndpointZtnaTags(input_model *InputModel) (out
 func (c *FortiSDKClient) ReadUsageInfraSsids(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/infra/ssids/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2139,6 +2484,7 @@ func (c *FortiSDKClient) ReadUsageInfraSsids(input_model *InputModel) (output ma
 func (c *FortiSDKClient) ReadUsageNetworkHostGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/network/host-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2147,6 +2493,7 @@ func (c *FortiSDKClient) ReadUsageNetworkHostGroups(input_model *InputModel) (ou
 func (c *FortiSDKClient) ReadUsageNetworkHosts(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/network/hosts/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2155,6 +2502,7 @@ func (c *FortiSDKClient) ReadUsageNetworkHosts(input_model *InputModel) (output 
 func (c *FortiSDKClient) ReadUsageSecurityAppCustomSignatures(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/app-custom-signatures/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2163,6 +2511,7 @@ func (c *FortiSDKClient) ReadUsageSecurityAppCustomSignatures(input_model *Input
 func (c *FortiSDKClient) ReadUsageSecurityDlpDictionaries(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/dlp-dictionaries/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2171,6 +2520,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDlpDictionaries(input_model *InputMode
 func (c *FortiSDKClient) ReadUsageSecurityDlpExactDataMatches(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/dlp-exact-data-matches/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2179,6 +2529,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDlpExactDataMatches(input_model *Input
 func (c *FortiSDKClient) ReadUsageSecurityDlpFilePatterns(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/dlp-file-patterns/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2187,6 +2538,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDlpFilePatterns(input_model *InputMode
 func (c *FortiSDKClient) ReadUsageSecurityDlpFingerprintDatabases(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/dlp-fingerprint-databases/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2195,6 +2547,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDlpFingerprintDatabases(input_model *I
 func (c *FortiSDKClient) ReadUsageSecurityDlpSensors(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/dlp-sensors/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2203,6 +2556,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDlpSensors(input_model *InputModel) (o
 func (c *FortiSDKClient) ReadUsageSecurityDomainThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/domain-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2211,6 +2565,7 @@ func (c *FortiSDKClient) ReadUsageSecurityDomainThreatFeeds(input_model *InputMo
 func (c *FortiSDKClient) ReadUsageSecurityEndpointToEndpointPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/endpoint-to-endpoint-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2219,6 +2574,7 @@ func (c *FortiSDKClient) ReadUsageSecurityEndpointToEndpointPolicies(input_model
 func (c *FortiSDKClient) ReadUsageSecurityFortiguardLocalCategories(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/fortiguard-local-categories/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2227,6 +2583,7 @@ func (c *FortiSDKClient) ReadUsageSecurityFortiguardLocalCategories(input_model 
 func (c *FortiSDKClient) ReadUsageSecurityInternalPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/internal-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2235,6 +2592,7 @@ func (c *FortiSDKClient) ReadUsageSecurityInternalPolicies(input_model *InputMod
 func (c *FortiSDKClient) ReadUsageSecurityInternalReversePolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/internal-reverse-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2243,6 +2601,7 @@ func (c *FortiSDKClient) ReadUsageSecurityInternalReversePolicies(input_model *I
 func (c *FortiSDKClient) ReadUsageSecurityIpThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/ip-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2251,6 +2610,7 @@ func (c *FortiSDKClient) ReadUsageSecurityIpThreatFeeds(input_model *InputModel)
 func (c *FortiSDKClient) ReadUsageSecurityIpsCustomSignatures(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/ips-custom-signatures/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2259,6 +2619,7 @@ func (c *FortiSDKClient) ReadUsageSecurityIpsCustomSignatures(input_model *Input
 func (c *FortiSDKClient) ReadUsageSecurityOnetimeSchedules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/onetime-schedules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2267,6 +2628,7 @@ func (c *FortiSDKClient) ReadUsageSecurityOnetimeSchedules(input_model *InputMod
 func (c *FortiSDKClient) ReadUsageSecurityOutboundPolicies(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/outbound-policies/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2275,6 +2637,7 @@ func (c *FortiSDKClient) ReadUsageSecurityOutboundPolicies(input_model *InputMod
 func (c *FortiSDKClient) ReadUsageSecurityProfileGroup(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/profile-group/{direction}/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2283,6 +2646,7 @@ func (c *FortiSDKClient) ReadUsageSecurityProfileGroup(input_model *InputModel) 
 func (c *FortiSDKClient) ReadUsageSecurityRecurringSchedules(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/recurring-schedules/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2291,6 +2655,7 @@ func (c *FortiSDKClient) ReadUsageSecurityRecurringSchedules(input_model *InputM
 func (c *FortiSDKClient) ReadUsageSecurityScheduleGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/schedule-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2299,6 +2664,7 @@ func (c *FortiSDKClient) ReadUsageSecurityScheduleGroups(input_model *InputModel
 func (c *FortiSDKClient) ReadUsageSecurityServiceGroups(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/service-groups/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2307,6 +2673,7 @@ func (c *FortiSDKClient) ReadUsageSecurityServiceGroups(input_model *InputModel)
 func (c *FortiSDKClient) ReadUsageSecurityServices(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/services/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)
@@ -2315,6 +2682,7 @@ func (c *FortiSDKClient) ReadUsageSecurityServices(input_model *InputModel) (out
 func (c *FortiSDKClient) ReadUsageSecurityUrlThreatFeeds(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/resource-api/v2/usage/security/url-threat-feeds/{primaryKey}"
+	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
 	output, err = read(c, input_model)

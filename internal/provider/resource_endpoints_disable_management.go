@@ -50,16 +50,13 @@ func (r *resourceEndpointsDisableManagement) Schema(ctx context.Context, req res
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"device_id": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"hostname": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 					},
 				},
-				Computed: true,
 				Optional: true,
 			},
 		},
@@ -192,11 +189,11 @@ type resourceEndpointsDisableManagementEndpointsModel struct {
 
 func (data *resourceEndpointsDisableManagementEndpointsModel) expandEndpointsDisableManagementEndpoints(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.DeviceId.IsNull() {
+	if !data.DeviceId.IsNull() && !data.DeviceId.IsUnknown() {
 		result["deviceId"] = data.DeviceId.ValueString()
 	}
 
-	if !data.Hostname.IsNull() {
+	if !data.Hostname.IsNull() && !data.Hostname.IsUnknown() {
 		result["hostname"] = data.Hostname.ValueString()
 	}
 

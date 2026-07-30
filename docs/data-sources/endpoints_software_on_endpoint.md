@@ -26,14 +26,14 @@ data "fortisase_endpoints_software_on_endpoint" "example" {
 - `device_id` (Number) The device ID of the endpoint.
 Value at least 1.
 
-### Optional
+### Read-Only
 
 - `software` (Attributes List) (see [below for nested schema](#nestedatt--software))
 
 <a id="nestedatt--software"></a>
 ### Nested Schema for `software`
 
-Optional:
+Read-Only:
 
 - `icon` (String)
 - `id` (Number)

@@ -41,11 +41,9 @@ func (r *datasourceUsageSecurityFortiguardLocalCategories) Schema(ctx context.Co
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"ftntcount": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"primary_key": schema.StringAttribute{
 				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
@@ -131,7 +129,7 @@ func (m *datasourceUsageSecurityFortiguardLocalCategoriesModel) refreshUsageSecu
 
 func (data *datasourceUsageSecurityFortiguardLocalCategoriesModel) getURLObjectUsageSecurityFortiguardLocalCategories(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

@@ -26,14 +26,14 @@ data "fortisase_endpoints_software_on_client_user" "example" {
 - `client_user_id` (Number) The client user ID of the endpoint client.
 Value at least 1.
 
-### Optional
+### Read-Only
 
 - `software` (Attributes List) (see [below for nested schema](#nestedatt--software))
 
 <a id="nestedatt--software"></a>
 ### Nested Schema for `software`
 
-Optional:
+Read-Only:
 
 - `icon` (String)
 - `id` (Number)

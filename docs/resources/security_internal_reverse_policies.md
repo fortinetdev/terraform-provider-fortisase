@@ -4,17 +4,19 @@ page_title: "fortisase_security_internal_reverse_policies Resource - fortisase"
 subcategory: "Security"
 description: |-
   Internal Reverse Policy Resource API V2 for FortiSASE.
+  fortisase_security_internal_reverse_policies is deprecated. Please use fortisase_security_internal_reverse_policy instead.
 ---
 
 # fortisase_security_internal_reverse_policies (Resource)
 
 Internal Reverse Policy Resource API V2 for FortiSASE.
+fortisase_security_internal_reverse_policies is deprecated. Please use fortisase_security_internal_reverse_policy instead.
 
 ## Example Usage
 
 ```terraform
 # GUI: Security > Policies > Secure private access > From hubs
-resource "fortisase_security_internal_reverse_policies" "example" {
+resource "fortisase_security_internal_reverse_policy" "example" {
   primary_key = "IT Admins: Remote Access by TF"
   enabled     = true
   scope       = "vpn-user"
@@ -140,5 +142,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_internal_reverse_policies.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_internal_reverse_policy.{{your_resource_name}} {{primary_key}}
 ```

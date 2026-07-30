@@ -3,45 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// datasourceAuthFssoAgents keeps the deprecated Terraform type available while
+// reusing the canonical data source implementation.
 var _ datasource.DataSource = &datasourceAuthFssoAgents{}
 
 func newDatasourceAuthFssoAgents() datasource.DataSource {
-	return &datasourceAuthFssoAgents{}
+	return &datasourceAuthFssoAgents{
+		datasourceAuthFssoAgent: &datasourceAuthFssoAgent{},
+	}
 }
 
 type datasourceAuthFssoAgents struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// datasourceAuthFssoAgentsModel describes the datasource data model.
-type datasourceAuthFssoAgentsModel struct {
-	PrimaryKey     types.String `tfsdk:"primary_key"`
-	ActiveServer   types.String `tfsdk:"active_server"`
-	Status         types.String `tfsdk:"status"`
-	Name           types.String `tfsdk:"name"`
-	Server         types.String `tfsdk:"server"`
-	Port           types.String `tfsdk:"port"`
-	Server2        types.String `tfsdk:"server2"`
-	Port2          types.String `tfsdk:"port2"`
-	Server3        types.String `tfsdk:"server3"`
-	Port3          types.String `tfsdk:"port3"`
-	Server4        types.String `tfsdk:"server4"`
-	Port4          types.String `tfsdk:"port4"`
-	Server5        types.String `tfsdk:"server5"`
-	Port5          types.String `tfsdk:"port5"`
-	SslTrustedCert types.String `tfsdk:"ssl_trusted_cert"`
+	*datasourceAuthFssoAgent
 }
 
 func (r *datasourceAuthFssoAgents) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -49,241 +26,12 @@ func (r *datasourceAuthFssoAgents) Metadata(ctx context.Context, req datasource.
 }
 
 func (r *datasourceAuthFssoAgents) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "FSSO Agent Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 35),
-				},
-				Required: true,
-			},
-			"active_server": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"status": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.OneOf("connected", "disconnected"),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"name": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 35),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"server": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(63),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"port": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(5),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"server2": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(63),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"port2": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(5),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"server3": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(63),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"port3": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(5),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"server4": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(63),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"port4": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(5),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"server5": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(63),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"port5": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(5),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"ssl_trusted_cert": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(79),
-				},
-				Computed: true,
-				Optional: true,
-			},
-		},
-	}
+	r.datasourceAuthFssoAgent.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *datasourceAuthFssoAgents) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_auth_fsso_agents"
-}
-
-func (r *datasourceAuthFssoAgents) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data datasourceAuthFssoAgentsModel
-
-	// Read Terraform prior config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.PrimaryKey.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectAuthFssoAgents(ctx, "read", diags))
-
-	read_output, err := c.ReadAuthFssoAgents(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshAuthFssoAgents(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (m *datasourceAuthFssoAgentsModel) refreshAuthFssoAgents(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	if v, ok := o["activeServer"]; ok {
-		m.ActiveServer = parseStringValue(v)
-	}
-
-	if v, ok := o["status"]; ok {
-		m.Status = parseStringValue(v)
-	}
-
-	if v, ok := o["name"]; ok {
-		m.Name = parseStringValue(v)
-	}
-
-	if v, ok := o["server"]; ok {
-		m.Server = parseStringValue(v)
-	}
-
-	if v, ok := o["port"]; ok {
-		m.Port = parseStringValue(v)
-	}
-
-	if v, ok := o["server2"]; ok {
-		m.Server2 = parseStringValue(v)
-	}
-
-	if v, ok := o["port2"]; ok {
-		m.Port2 = parseStringValue(v)
-	}
-
-	if v, ok := o["server3"]; ok {
-		m.Server3 = parseStringValue(v)
-	}
-
-	if v, ok := o["port3"]; ok {
-		m.Port3 = parseStringValue(v)
-	}
-
-	if v, ok := o["server4"]; ok {
-		m.Server4 = parseStringValue(v)
-	}
-
-	if v, ok := o["port4"]; ok {
-		m.Port4 = parseStringValue(v)
-	}
-
-	if v, ok := o["server5"]; ok {
-		m.Server5 = parseStringValue(v)
-	}
-
-	if v, ok := o["port5"]; ok {
-		m.Port5 = parseStringValue(v)
-	}
-
-	if v, ok := o["sslTrustedCert"]; ok {
-		m.SslTrustedCert = parseStringValue(v)
-	}
-
-	return diags
-}
-
-func (data *datasourceAuthFssoAgentsModel) getURLObjectAuthFssoAgents(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+	r.datasourceAuthFssoAgent.Configure(ctx, req, resp)
+	r.datasourceAuthFssoAgent.resourceName = "fortisase_auth_fsso_agents"
 }

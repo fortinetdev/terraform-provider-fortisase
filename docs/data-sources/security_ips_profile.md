@@ -23,15 +23,15 @@ data "fortisase_security_ips_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `botnet_scanning` (String)
 - `comment` (String)
 - `custom_rule_groups` (Attributes List) (see [below for nested schema](#nestedatt--custom_rule_groups))
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `entries` (Attributes List) (see [below for nested schema](#nestedatt--entries))
 - `is_blocking_malicious_url` (Boolean)
 - `is_extended_log_enabled` (Boolean)
@@ -40,7 +40,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--custom_rule_groups"></a>
 ### Nested Schema for `custom_rule_groups`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `signatures` (Attributes List) (see [below for nested schema](#nestedatt--custom_rule_groups--signatures))
@@ -48,7 +48,7 @@ Optional:
 <a id="nestedatt--custom_rule_groups--signatures"></a>
 ### Nested Schema for `custom_rule_groups.signatures`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -58,7 +58,7 @@ Optional:
 <a id="nestedatt--entries"></a>
 ### Nested Schema for `entries`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `application` (String)
@@ -81,7 +81,7 @@ Optional:
 <a id="nestedatt--entries--exempt_ip"></a>
 ### Nested Schema for `entries.exempt_ip`
 
-Optional:
+Read-Only:
 
 - `dst_ip` (String)
 - `id` (Number)
@@ -91,7 +91,7 @@ Optional:
 <a id="nestedatt--entries--rule"></a>
 ### Nested Schema for `entries.rule`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -100,6 +100,6 @@ Optional:
 <a id="nestedatt--entries--vuln_type"></a>
 ### Nested Schema for `entries.vuln_type`
 
-Optional:
+Read-Only:
 
 - `id` (Number)

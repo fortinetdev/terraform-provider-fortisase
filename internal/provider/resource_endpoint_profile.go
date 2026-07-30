@@ -56,6 +56,9 @@ func (r *resourceEndpointProfile) Schema(ctx context.Context, req resource.Schem
 					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"enabled": schema.BoolAttribute{
 				Computed: true,
@@ -112,6 +115,7 @@ func (r *resourceEndpointProfile) Create(ctx context.Context, req resource.Creat
 	if diags.HasError() {
 		return
 	}
+	mkey := data.PrimaryKey.ValueString()
 	output, err := c.CreateEndpointProfile(&input_model)
 	if err != nil {
 		diags.AddError(
@@ -121,7 +125,9 @@ func (r *resourceEndpointProfile) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	if responseMkey, ok := getCreateResponseMkey(output, "primaryKey"); ok {
+		mkey = responseMkey
+	}
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -259,6 +265,10 @@ func (r *resourceEndpointProfile) Read(ctx context.Context, req resource.ReadReq
 
 	read_output, err := c.ReadEndpointProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -276,6 +286,7 @@ func (r *resourceEndpointProfile) Read(ctx context.Context, req resource.ReadReq
 
 func (r *resourceEndpointProfile) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), req.ID)...)
 }
 
 func (m *resourceEndpointProfileModel) refreshEndpointProfile(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
@@ -297,15 +308,15 @@ func (m *resourceEndpointProfileModel) refreshEndpointProfile(ctx context.Contex
 
 func (data *resourceEndpointProfileModel) getCreateObjectEndpointProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
+	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
+	if !data.SkipOffNetProfileCreationOnEdit.IsNull() && !data.SkipOffNetProfileCreationOnEdit.IsUnknown() {
 		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
 	}
 
@@ -314,15 +325,15 @@ func (data *resourceEndpointProfileModel) getCreateObjectEndpointProfile(ctx con
 
 func (data *resourceEndpointProfileModel) getUpdateObjectEndpointProfile(ctx context.Context, state resourceEndpointProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
+	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
+	if !data.SkipOffNetProfileCreationOnEdit.IsNull() && !data.SkipOffNetProfileCreationOnEdit.IsUnknown() {
 		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
 	}
 
@@ -331,7 +342,7 @@ func (data *resourceEndpointProfileModel) getUpdateObjectEndpointProfile(ctx con
 
 func (data *resourceEndpointProfileModel) getURLObjectEndpointProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

@@ -25,87 +25,63 @@ resource "fortisase_security_profile_group" "example" {
 # To configure this resource, please disable proxy configuration. "Network" -> "Proxy configuration"
 resource "fortisase_security_application_control_profile" "application_control_profile" {
   primary_key = fortisase_security_profile_group.example.primary_key # The name of the existing profile group
-
-  # [Application and Filter overrides]
-  # Use filter to monitor/allow/block the applications
   controls = [
     # You can create multiple rules below to apply different actions to the applications
+    # Example 1: Monitor "GAME" and "Social.Media" categories
     {
       action = "monitor" # "monitor", "allow", "block"
-
-      # Applications that match the following filters will have the specified action (“monitor”, “allow”, or “block”) applied.
-
-      # [Filter: applications]
-      ## Apply to all application
+      categories = [
+        {
+          primary_key = "Game"
+          datasource  = "security/application-categories"
+        },
+        {
+          primary_key = "Social.Media"
+          datasource  = "security/application-categories"
+        }
+      ]
       applications = []
-      ## Apply to specific application
-      #   applications = [
-      #     {
-      #       primary_key = "Google.Ads"
-      #       datasource  = "security/applications"
-      #     }
-      #   ]
-
-      # [Filter: categories]
-      ## Apply to all category
+      risk         = []
+      popularity   = [1, 2, 3, 4, 5]
+    },
+    # Example 2: Block specific applications
+    {
+      action     = "block" # "monitor", "allow", "block"
       categories = []
-      ## Apply to specific category
-      # categories = [
-      #   {
-      #     primary_key = "Game"
-      #     datasource  = "security/application-categories"
-      #   }
-      # ]
-
-      # [Filter: risk] Risk level with 0 being lowest and 4 being highest
-      ## Apply to all risk
-      risk = []
-      ## Apply to specific risk
-      # risk       = [{ id = 3 }, { id = 4 }]
-
-      # [Filter: protocols]
-      ## Apply to all protocol
-      protocols = "all"
-      ## Apply to specific protocol, different protocols are separated by spaces
-      # protocols  = "HTTP HTTPS FTP"
-
-      # [Filter: vendor]
-      ## Apply to all vendor
-      vendor = "all"
-      ## Apply to specific vendor, different vendors are separated by spaces
-      # vendor = "Google Meta"
-
-      # [Filter: technology]
-      ## Apply to all technology
-      technology = "all"
-      ## Apply to specific technology
-      # technology = "Browser-Based" # 4 possible values: "Browser-Based", "Client-Server", "Network-Protocol", "Peer-to-Peer"
-
-      # [Filter: behavior]
-      ## Apply to all behavior
-      behavior = "all"
-      ## Apply to specific behavior, different behaviors are separated by spaces
-      # behavior = "Botnet" # 5 possible values: "Botnet", "Cloud", "Evasive", "Excessive-Bandwidth", "Tunneling"
-
-      # [Filter: popularity]
-      ## Apply to all popularity
-      popularity = "1 2 3 4 5"
-      ## Apply to specific popularity, different popularity are separated by spaces
-      # popularity = "1 2 3"
+      applications = [
+        {
+          primary_key = "2ch"
+          datasource  = "security/applications"
+        },
+        {
+          primary_key = "Facebook"
+          datasource  = "security/applications"
+        }
+      ]
+      risk       = []
+      popularity = [1, 2, 3, 4, 5]
+    },
+    # Example 3: Block all risk 4 applications
+    {
+      action       = "block" # "monitor", "allow", "block"
+      categories   = []
+      applications = []
+      risk         = [4]
+      popularity   = [1, 2, 3, 4, 5]
     }
   ]
-  unknown_application_action = "monitor" # "block", "allow", "monitor"
+  unknown_application_action = "allow" # "block", "allow", "monitor"
 
   # [Network protocol enforcement]
   ## Disable Network protocol enforcement
-  network_protocol_enforcement = "disable"
+  # network_protocol_enforcement = "disable"
   ## Enable Network protocol enforcement
-  #   network_protocol_enforcement = "enable"
-  #   network_protocols = [{
-  #     port     = 21
-  #     action   = "monitor" # monitor or block
-  #     services = ["ftp"]   # "dns", "ftp", "http", "https", "imap", "nntp", "pop3", "smtp", "snmp", "ssh", "telnet"
-  #   }]
+  network_protocol_enforcement = "enable"
+  network_protocols = [{
+    port     = 21
+    action   = "monitor" # monitor or block
+    services = ["ftp"]   # "dns", "ftp", "http", "https", "imap", "nntp", "pop3", "smtp", "snmp", "ssh", "telnet"
+  }]
 
   # [Block applications detected on non-default ports]
   block_non_default_port_applications = "disable"
@@ -121,10 +97,8 @@ resource "fortisase_security_application_control_profile" "application_control_p
 
 ### Optional
 
-- `application_category_controls` (Attributes List) (see [below for nested schema](#nestedatt--application_category_controls))
-- `application_controls` (Attributes List) (see [below for nested schema](#nestedatt--application_controls))
 - `block_non_default_port_applications` (String)
-- `controls` (Attributes List) (see [below for nested schema](#nestedatt--controls))
+- `controls` (Attributes List) Generic controls defining actions for applications, filters, and overrides. Array order matters. Entries are evaluated first-to-last. Overrides must be placed ahead of application category controls for correct evaluation. (see [below for nested schema](#nestedatt--controls))
 - `direction` (String) The direction of the target resource.
 Supported values: internal-profiles, outbound-profiles.
 - `network_protocol_enforcement` (String)
@@ -135,42 +109,6 @@ Supported values: internal-profiles, outbound-profiles.
 
 - `id` (String) Identifier, required by Terraform, not configurable.
 
-<a id="nestedatt--application_category_controls"></a>
-### Nested Schema for `application_category_controls`
-
-Optional:
-
-- `action` (String)
-- `category` (Attributes) (see [below for nested schema](#nestedatt--application_category_controls--category))
-
-<a id="nestedatt--application_category_controls--category"></a>
-### Nested Schema for `application_category_controls.category`
-
-Optional:
-
-- `datasource` (String)
-- `primary_key` (String)
-
-
-
-<a id="nestedatt--application_controls"></a>
-### Nested Schema for `application_controls`
-
-Optional:
-
-- `action` (String)
-- `applications` (Attributes List) (see [below for nested schema](#nestedatt--application_controls--applications))
-
-<a id="nestedatt--application_controls--applications"></a>
-### Nested Schema for `application_controls.applications`
-
-Optional:
-
-- `datasource` (String)
-- `primary_key` (String)
-
-
-
 <a id="nestedatt--controls"></a>
 ### Nested Schema for `controls`
 
@@ -178,13 +116,10 @@ Optional:
 
 - `action` (String)
 - `applications` (Attributes List) (see [below for nested schema](#nestedatt--controls--applications))
-- `behavior` (String)
-- `categories` (Attributes List) (see [below for nested schema](#nestedatt--controls--categories))
-- `popularity` (String)
-- `protocols` (String)
-- `risk` (Attributes List) (see [below for nested schema](#nestedatt--controls--risk))
-- `technology` (String)
-- `vendor` (String)
+- `categories` (Attributes List) Set the control action for a given application category. For the 'Proxy' category, the action cannot be set to 'block' if the linked profile group is referenced by a proxy policy. (see [below for nested schema](#nestedatt--controls--categories))
+- `ips_attributes` (Attributes List) (see [below for nested schema](#nestedatt--controls--ips_attributes))
+- `popularity` (Set of Number) Popularity level(s) with 1 being lowest and 5 being highest
+- `risk` (Set of Number) Risk level(s) with 0 being lowest and 4 being highest
 
 <a id="nestedatt--controls--applications"></a>
 ### Nested Schema for `controls.applications`
@@ -204,13 +139,13 @@ Optional:
 - `primary_key` (String)
 
 
-<a id="nestedatt--controls--risk"></a>
-### Nested Schema for `controls.risk`
+<a id="nestedatt--controls--ips_attributes"></a>
+### Nested Schema for `controls.ips_attributes`
 
 Optional:
 
-- `id` (Number) Risk level with 0 being lowest and 4 being highest.
-Value at most 4.
+- `datasource` (String)
+- `primary_key` (String)
 
 
 

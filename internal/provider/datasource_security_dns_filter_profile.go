@@ -54,107 +54,90 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 			},
 			"use_for_edge_devices": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"use_fortiguard_filters": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"enable_all_logs": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"enable_botnet_blocking": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"enable_safe_search": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"allow_dns_requests_on_rating_error": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"dns_translation_entries": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"src": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"dst": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"netmask": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"status": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"domain_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"url": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("simple", "wildcard", "regex"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("allow", "block", "exempt", "monitor"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"enabled": schema.BoolAttribute{
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -164,29 +147,24 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"domain_threat_feed_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -196,29 +174,24 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "disable"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/domain-threat-feeds"),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -332,14 +305,14 @@ func (m *datasourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfil
 
 func (data *datasourceSecurityDnsFilterProfileModel) getURLObjectSecurityDnsFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -412,12 +385,17 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 		return []datasourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dns_translation_entries is not type of []interface{}.", "")
 		return []datasourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDnsFilterProfileDnsTranslationEntriesModel{}
 	}
@@ -425,6 +403,9 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 	values := make([]datasourceSecurityDnsFilterProfileDnsTranslationEntriesModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDnsFilterProfileDnsTranslationEntriesModel
+		if i < len(s.DnsTranslationEntries) {
+			m = s.DnsTranslationEntries[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDnsTranslationEntries(ctx, ele, diags)
 	}
 
@@ -463,12 +444,17 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 		return []datasourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument domain_filters is not type of []interface{}.", "")
 		return []datasourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDnsFilterProfileDomainFiltersModel{}
 	}
@@ -476,6 +462,9 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 	values := make([]datasourceSecurityDnsFilterProfileDomainFiltersModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDnsFilterProfileDomainFiltersModel
+		if i < len(s.DomainFilters) {
+			m = s.DomainFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDomainFilters(ctx, ele, diags)
 	}
 
@@ -506,12 +495,17 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 		return []datasourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_filters is not type of []interface{}.", "")
 		return []datasourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDnsFilterProfileFortiguardFiltersModel{}
 	}
@@ -519,6 +513,9 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 	values := make([]datasourceSecurityDnsFilterProfileFortiguardFiltersModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDnsFilterProfileFortiguardFiltersModel
+		if i < len(s.FortiguardFilters) {
+			m = s.FortiguardFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileFortiguardFilters(ctx, ele, diags)
 	}
 
@@ -568,12 +565,17 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 		return []datasourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument domain_threat_feed_filters is not type of []interface{}.", "")
 		return []datasourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel{}
 	}
@@ -581,6 +583,9 @@ func (s *datasourceSecurityDnsFilterProfileModel) flattenSecurityDnsFilterProfil
 	values := make([]datasourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDnsFilterProfileDomainThreatFeedFiltersModel
+		if i < len(s.DomainThreatFeedFilters) {
+			m = s.DomainThreatFeedFilters[i]
+		}
 		values[i] = *m.flattenSecurityDnsFilterProfileDomainThreatFeedFilters(ctx, ele, diags)
 	}
 

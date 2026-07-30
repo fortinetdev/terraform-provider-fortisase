@@ -47,15 +47,13 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 			},
 			"default_action": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"fortiguard_filters": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -65,29 +63,24 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "default"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/video-filter-fortiguard-categories"),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"channels": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -97,26 +90,22 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"name": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthBetween(1, 32),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"channel_id": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthBetween(1, 64),
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -202,14 +191,14 @@ func (m *datasourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterPr
 
 func (data *datasourceSecurityVideoFilterProfileModel) getURLObjectSecurityVideoFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -256,12 +245,17 @@ func (s *datasourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterPr
 		return []datasourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_filters is not type of []interface{}.", "")
 		return []datasourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
@@ -269,6 +263,9 @@ func (s *datasourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterPr
 	values := make([]datasourceSecurityVideoFilterProfileFortiguardFiltersModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityVideoFilterProfileFortiguardFiltersModel
+		if i < len(s.FortiguardFilters) {
+			m = s.FortiguardFilters[i]
+		}
 		values[i] = *m.flattenSecurityVideoFilterProfileFortiguardFilters(ctx, ele, diags)
 	}
 
@@ -322,12 +319,17 @@ func (s *datasourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterPr
 		return []datasourceSecurityVideoFilterProfileChannelsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument channels is not type of []interface{}.", "")
 		return []datasourceSecurityVideoFilterProfileChannelsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityVideoFilterProfileChannelsModel{}
 	}
@@ -335,6 +337,9 @@ func (s *datasourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterPr
 	values := make([]datasourceSecurityVideoFilterProfileChannelsModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityVideoFilterProfileChannelsModel
+		if i < len(s.Channels) {
+			m = s.Channels[i]
+		}
 		values[i] = *m.flattenSecurityVideoFilterProfileChannels(ctx, ele, diags)
 	}
 

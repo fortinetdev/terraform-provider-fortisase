@@ -4,16 +4,26 @@ page_title: "fortisase_security_cert_remote_ca_certs Resource - fortisase"
 subcategory: "Security"
 description: |-
   Certificate Resource API for FortiSASE.
+  fortisase_security_cert_remote_ca_certs is deprecated. Please use fortisase_security_cert_remote_ca_cert instead.
 ---
 
 # fortisase_security_cert_remote_ca_certs (Resource)
 
 Certificate Resource API for FortiSASE.
+fortisase_security_cert_remote_ca_certs is deprecated. Please use fortisase_security_cert_remote_ca_cert instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_cert_remote_ca_certs" "remote_ca_cert" {
+# Method 1: fortisase_system_certificate is recommended for new configurations.
+resource "fortisase_system_certificate" "remote_ca_certificate" {
+  certificate_type = "remote-ca-certificate"
+  primary_key      = "example_remote_ca_cert"
+  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
+}
+
+# Method 2
+resource "fortisase_security_cert_remote_ca_cert" "remote_ca_cert" {
   cert_name    = "remote_ca_cert_name"
   file_content = base64encode(file("./path/to/certificate.crt"))
 }
@@ -36,6 +46,7 @@ resource "fortisase_security_cert_remote_ca_certs" "remote_ca_cert" {
 - `primary_key` (String)
 - `serial_number` (String)
 - `source` (String)
+- `subject` (Attributes) (see [below for nested schema](#nestedatt--subject))
 - `type` (String)
 - `usages` (Attributes List) (see [below for nested schema](#nestedatt--usages))
 - `valid_from` (String)
@@ -44,7 +55,21 @@ resource "fortisase_security_cert_remote_ca_certs" "remote_ca_cert" {
 <a id="nestedatt--issuer"></a>
 ### Nested Schema for `issuer`
 
-Optional:
+Read-Only:
+
+- `c` (String)
+- `cn` (String)
+- `email_address` (String)
+- `l` (String)
+- `o` (String)
+- `ou` (String)
+- `st` (String)
+
+
+<a id="nestedatt--subject"></a>
+### Nested Schema for `subject`
+
+Read-Only:
 
 - `c` (String)
 - `cn` (String)
@@ -58,7 +83,7 @@ Optional:
 <a id="nestedatt--usages"></a>
 ### Nested Schema for `usages`
 
-Optional:
+Read-Only:
 
 - `count` (Number)
 - `type` (String)
@@ -70,5 +95,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_cert_remote_ca_certs.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_cert_remote_ca_cert.{{your_resource_name}} {{primary_key}}
 ```

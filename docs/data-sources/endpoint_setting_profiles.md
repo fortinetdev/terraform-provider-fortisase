@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_setting_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Settings Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_setting_profiles is deprecated. Please use fortisase_endpoint_setting_profile instead.
 ---
 
 # fortisase_endpoint_setting_profiles (Data Source)
 
 Settings Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_setting_profiles is deprecated. Please use fortisase_endpoint_setting_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_setting_profiles" "example" {
+data "fortisase_endpoint_setting_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,19 +27,21 @@ data "fortisase_endpoint_setting_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `allow_config_backup` (String)
+- `allow_debug_log_generation` (String)
 - `ems_disconnect_password` (String)
 - `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
 - `notify_vpn_issue` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
+- `trigger_vuln_scan_on_software_change` (String)
 - `users_can_disconnect` (String)
 
 <a id="nestedatt--fct_gui"></a>
 ### Nested Schema for `fct_gui`
 
-Optional:
+Read-Only:
 
 - `default_tab` (String)

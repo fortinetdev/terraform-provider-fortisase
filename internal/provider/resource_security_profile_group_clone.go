@@ -54,7 +54,6 @@ func (r *resourceSecurityProfileGroupClone2Edl) Schema(ctx context.Context, req 
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthBetween(1, 79),
 				},
-				Computed: true,
 				Optional: true,
 			},
 			"direction": schema.StringAttribute{
@@ -62,12 +61,10 @@ func (r *resourceSecurityProfileGroupClone2Edl) Schema(ctx context.Context, req 
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
 				Optional:            true,
 			},
 			"based_on": schema.StringAttribute{
 				MarkdownDescription: "The profile group you what to clone.",
-				Computed:            true,
 				Optional:            true,
 			},
 		},
@@ -180,7 +177,7 @@ func (r *resourceSecurityProfileGroupClone2Edl) Read(ctx context.Context, req re
 
 func (data *resourceSecurityProfileGroupClone2EdlModel) getCreateObjectSecurityProfileGroupClone(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -189,7 +186,7 @@ func (data *resourceSecurityProfileGroupClone2EdlModel) getCreateObjectSecurityP
 
 func (data *resourceSecurityProfileGroupClone2EdlModel) getUpdateObjectSecurityProfileGroupClone(ctx context.Context, state resourceSecurityProfileGroupClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -198,14 +195,14 @@ func (data *resourceSecurityProfileGroupClone2EdlModel) getUpdateObjectSecurityP
 
 func (data *resourceSecurityProfileGroupClone2EdlModel) getURLObjectSecurityProfileGroupClone(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.BasedOn.IsNull() {
+	if !data.BasedOn.IsNull() && !data.BasedOn.IsUnknown() {
 		result["based_on"] = data.BasedOn.ValueString()
 	}
 

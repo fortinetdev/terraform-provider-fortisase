@@ -4,16 +4,18 @@ page_title: "fortisase_endpoints_client_user_details Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint management monitor API for FortiSASE.
+  fortisase_endpoints_client_user_details is deprecated. Please use fortisase_endpoints_client_user_detail instead.
 ---
 
 # fortisase_endpoints_client_user_details (Data Source)
 
 Endpoint management monitor API for FortiSASE.
+fortisase_endpoints_client_user_details is deprecated. Please use fortisase_endpoints_client_user_detail instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoints_client_user_details" "example" {
+data "fortisase_endpoints_client_user_detail" "example" {
   client_user_id = "<your_value>"
 }
 ```
@@ -26,7 +28,7 @@ data "fortisase_endpoints_client_user_details" "example" {
 - `client_user_id` (Number) The client user ID of the endpoint.
 Value at least 1.
 
-### Optional
+### Read-Only
 
 - `alias` (String)
 - `av_enabled` (Boolean)
@@ -135,7 +137,7 @@ Value at least 1.
 <a id="nestedatt--conn_details"></a>
 ### Nested Schema for `conn_details`
 
-Optional:
+Read-Only:
 
 - `active` (Boolean)
 - `collapsed` (Boolean)
@@ -149,7 +151,7 @@ Optional:
 <a id="nestedatt--conn_details--connections"></a>
 ### Nested Schema for `conn_details.connections`
 
-Optional:
+Read-Only:
 
 - `gateway` (String)
 - `gateway_mac` (String)
@@ -161,7 +163,7 @@ Optional:
 <a id="nestedatt--forensics"></a>
 ### Nested Schema for `forensics`
 
-Optional:
+Read-Only:
 
 - `completion_time` (String)
 - `fsr_task_id` (Number)
@@ -175,7 +177,7 @@ Optional:
 <a id="nestedatt--hardware_details"></a>
 ### Nested Schema for `hardware_details`
 
-Optional:
+Read-Only:
 
 - `cpu` (String)
 - `hdd` (String)
@@ -188,7 +190,7 @@ Optional:
 <a id="nestedatt--tags"></a>
 ### Nested Schema for `tags`
 
-Optional:
+Read-Only:
 
 - `id` (Number)
 - `name` (String)

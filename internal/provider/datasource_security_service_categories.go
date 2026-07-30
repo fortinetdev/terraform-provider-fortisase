@@ -3,31 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// datasourceSecurityServiceCategories keeps the deprecated Terraform type available while
+// reusing the canonical data source implementation.
 var _ datasource.DataSource = &datasourceSecurityServiceCategories{}
 
 func newDatasourceSecurityServiceCategories() datasource.DataSource {
-	return &datasourceSecurityServiceCategories{}
+	return &datasourceSecurityServiceCategories{
+		datasourceSecurityServiceCategory: &datasourceSecurityServiceCategory{},
+	}
 }
 
 type datasourceSecurityServiceCategories struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// datasourceSecurityServiceCategoriesModel describes the datasource data model.
-type datasourceSecurityServiceCategoriesModel struct {
-	PrimaryKey types.String `tfsdk:"primary_key"`
+	*datasourceSecurityServiceCategory
 }
 
 func (r *datasourceSecurityServiceCategories) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -35,90 +26,12 @@ func (r *datasourceSecurityServiceCategories) Metadata(ctx context.Context, req 
 }
 
 func (r *datasourceSecurityServiceCategories) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Service Category Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 63),
-				},
-				Required: true,
-			},
-		},
-	}
+	r.datasourceSecurityServiceCategory.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_security_service_categories is deprecated. Please use fortisase_security_service_category instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *datasourceSecurityServiceCategories) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_security_service_categories"
-}
-
-func (r *datasourceSecurityServiceCategories) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data datasourceSecurityServiceCategoriesModel
-
-	// Read Terraform prior config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.PrimaryKey.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectSecurityServiceCategories(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityServiceCategories(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityServiceCategories(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (m *datasourceSecurityServiceCategoriesModel) refreshSecurityServiceCategories(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	return diags
-}
-
-func (data *datasourceSecurityServiceCategoriesModel) getURLObjectSecurityServiceCategories(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+	r.datasourceSecurityServiceCategory.Configure(ctx, req, resp)
+	r.datasourceSecurityServiceCategory.resourceName = "fortisase_security_service_categories"
 }

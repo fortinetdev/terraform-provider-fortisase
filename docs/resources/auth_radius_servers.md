@@ -4,16 +4,18 @@ page_title: "fortisase_auth_radius_servers Resource - fortisase"
 subcategory: "Autentication"
 description: |-
   RADIUS Resource API V2 for FortiSASE.
+  fortisase_auth_radius_servers is deprecated. Please use fortisase_auth_radius_server instead.
 ---
 
 # fortisase_auth_radius_servers (Resource)
 
 RADIUS Resource API V2 for FortiSASE.
+fortisase_auth_radius_servers is deprecated. Please use fortisase_auth_radius_server instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_auth_radius_servers" "radius_server" {
+resource "fortisase_auth_radius_server" "radius_server" {
   primary_key                    = "radius_server"
   primary_secret                 = "radius"
   primary_server                 = "2.3.4.5"
@@ -49,5 +51,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_auth_radius_servers.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_auth_radius_server.{{your_resource_name}} {{primary_key}}
 ```

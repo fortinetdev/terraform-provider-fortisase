@@ -60,6 +60,9 @@ func (r *resourceSecurityAntivirusProfile) Schema(ctx context.Context, req resou
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"http": schema.StringAttribute{
 				Validators: []validator.String{
@@ -192,7 +195,7 @@ func (r *resourceSecurityAntivirusProfile) Create(ctx context.Context, req resou
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -300,6 +303,10 @@ func (r *resourceSecurityAntivirusProfile) Read(ctx context.Context, req resourc
 
 	read_output, err := c.ReadSecurityAntivirusProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -358,31 +365,31 @@ func (m *resourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfile(
 
 func (data *resourceSecurityAntivirusProfileModel) getCreateObjectSecurityAntivirusProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Http.IsNull() {
+	if !data.Http.IsNull() && !data.Http.IsUnknown() {
 		result["http"] = data.Http.ValueString()
 	}
 
-	if !data.Smtp.IsNull() {
+	if !data.Smtp.IsNull() && !data.Smtp.IsUnknown() {
 		result["smtp"] = data.Smtp.ValueString()
 	}
 
-	if !data.Pop3.IsNull() {
+	if !data.Pop3.IsNull() && !data.Pop3.IsUnknown() {
 		result["pop3"] = data.Pop3.ValueString()
 	}
 
-	if !data.Imap.IsNull() {
+	if !data.Imap.IsNull() && !data.Imap.IsUnknown() {
 		result["imap"] = data.Imap.ValueString()
 	}
 
-	if !data.Ftp.IsNull() {
+	if !data.Ftp.IsNull() && !data.Ftp.IsUnknown() {
 		result["ftp"] = data.Ftp.ValueString()
 	}
 
-	if !data.Cifs.IsNull() {
+	if !data.Cifs.IsNull() && !data.Cifs.IsUnknown() {
 		result["cifs"] = data.Cifs.ValueString()
 	}
 
@@ -395,31 +402,31 @@ func (data *resourceSecurityAntivirusProfileModel) getCreateObjectSecurityAntivi
 
 func (data *resourceSecurityAntivirusProfileModel) getUpdateObjectSecurityAntivirusProfile(ctx context.Context, state resourceSecurityAntivirusProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Http.IsNull() {
+	if !data.Http.IsNull() && !data.Http.IsUnknown() {
 		result["http"] = data.Http.ValueString()
 	}
 
-	if !data.Smtp.IsNull() {
+	if !data.Smtp.IsNull() && !data.Smtp.IsUnknown() {
 		result["smtp"] = data.Smtp.ValueString()
 	}
 
-	if !data.Pop3.IsNull() {
+	if !data.Pop3.IsNull() && !data.Pop3.IsUnknown() {
 		result["pop3"] = data.Pop3.ValueString()
 	}
 
-	if !data.Imap.IsNull() {
+	if !data.Imap.IsNull() && !data.Imap.IsUnknown() {
 		result["imap"] = data.Imap.ValueString()
 	}
 
-	if !data.Ftp.IsNull() {
+	if !data.Ftp.IsNull() && !data.Ftp.IsUnknown() {
 		result["ftp"] = data.Ftp.ValueString()
 	}
 
-	if !data.Cifs.IsNull() {
+	if !data.Cifs.IsNull() && !data.Cifs.IsUnknown() {
 		result["cifs"] = data.Cifs.ValueString()
 	}
 
@@ -432,14 +439,14 @@ func (data *resourceSecurityAntivirusProfileModel) getUpdateObjectSecurityAntivi
 
 func (data *resourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivirusProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -466,6 +473,8 @@ func (m *resourceSecurityAntivirusProfileCdrModel) flattenSecurityAntivirusProfi
 
 	if v, ok := o["fileTypes"]; ok {
 		m.FileTypes = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.FileTypes = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["allowErrorTransmission"]; ok {
@@ -477,15 +486,15 @@ func (m *resourceSecurityAntivirusProfileCdrModel) flattenSecurityAntivirusProfi
 
 func (data *resourceSecurityAntivirusProfileCdrModel) expandSecurityAntivirusProfileCdr(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Enable.IsNull() {
+	if !data.Enable.IsNull() && !data.Enable.IsUnknown() {
 		result["enable"] = data.Enable.ValueBool()
 	}
 
-	if !data.FileTypes.IsNull() {
+	if !data.FileTypes.IsNull() && !data.FileTypes.IsUnknown() {
 		result["fileTypes"] = expandSetToStringList(data.FileTypes)
 	}
 
-	if !data.AllowErrorTransmission.IsNull() {
+	if !data.AllowErrorTransmission.IsNull() && !data.AllowErrorTransmission.IsUnknown() {
 		result["allowErrorTransmission"] = data.AllowErrorTransmission.ValueBool()
 	}
 

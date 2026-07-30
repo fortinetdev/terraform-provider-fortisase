@@ -48,11 +48,9 @@ func (r *datasourceEndpointProfile) Schema(ctx context.Context, req datasource.S
 			},
 			"enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"skip_off_net_profile_creation_on_edit": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -134,7 +132,7 @@ func (m *datasourceEndpointProfileModel) refreshEndpointProfile(ctx context.Cont
 
 func (data *datasourceEndpointProfileModel) getURLObjectEndpointProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

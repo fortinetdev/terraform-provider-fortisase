@@ -4,16 +4,18 @@ page_title: "fortisase_network_dns_rules Resource - fortisase"
 subcategory: "Network"
 description: |-
   DNS Rule Resource API V2 for FortiSASE.
+  fortisase_network_dns_rules is deprecated. Please use fortisase_network_dns_rule instead.
 ---
 
 # fortisase_network_dns_rules (Resource)
 
 DNS Rule Resource API V2 for FortiSASE.
+fortisase_network_dns_rules is deprecated. Please use fortisase_network_dns_rule instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_network_dns_rules" "example" {
+resource "fortisase_network_dns_rule" "example" {
   # [Primary key]
   primary_key = "UniqueID8324" # Unique String to identify the rule
 
@@ -81,5 +83,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_network_dns_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_network_dns_rule.{{your_resource_name}} {{primary_key}}
 ```

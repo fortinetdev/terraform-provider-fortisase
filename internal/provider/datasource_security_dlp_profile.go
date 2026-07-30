@@ -49,50 +49,43 @@ func (r *datasourceSecurityDlpProfile) Schema(ctx context.Context, req datasourc
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"dlp_rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"datasource_type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("sensors", "mpip-label", "fingerprint", "none"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"severity": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("critical", "informational", "low", "medium", "high"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"dlp_rule_type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("file", "message"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"file_type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("all", "specify"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"protocols": schema.SetAttribute{
 							Validators: []validator.Set{
@@ -101,7 +94,6 @@ func (r *datasourceSecurityDlpProfile) Schema(ctx context.Context, req datasourc
 								),
 							},
 							Computed:    true,
-							Optional:    true,
 							ElementType: types.StringType,
 						},
 						"sensitivities": schema.SetAttribute{
@@ -112,7 +104,6 @@ func (r *datasourceSecurityDlpProfile) Schema(ctx context.Context, req datasourc
 								setvalidatorwarning.SizeAtLeast(1),
 							},
 							Computed:    true,
-							Optional:    true,
 							ElementType: types.StringType,
 						},
 						"dlp_sensors": schema.ListNestedAttribute{
@@ -120,58 +111,48 @@ func (r *datasourceSecurityDlpProfile) Schema(ctx context.Context, req datasourc
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/dlp-sensors"),
 										},
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"sensitivity_label": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/dlp-dictionaries"),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"dlp_file_pattern": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/dlp-file-patterns"),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -249,14 +230,14 @@ func (m *datasourceSecurityDlpProfileModel) refreshSecurityDlpProfile(ctx contex
 
 func (data *datasourceSecurityDlpProfileModel) getURLObjectSecurityDlpProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -326,6 +307,8 @@ func (m *datasourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlp
 
 	if v, ok := o["protocols"]; ok {
 		m.Protocols = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Protocols = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["dlpSensors"]; ok {
@@ -338,6 +321,8 @@ func (m *datasourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlp
 
 	if v, ok := o["sensitivities"]; ok {
 		m.Sensitivities = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Sensitivities = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["dlpFilePattern"]; ok {
@@ -352,12 +337,17 @@ func (s *datasourceSecurityDlpProfileModel) flattenSecurityDlpProfileDlpRulesLis
 		return []datasourceSecurityDlpProfileDlpRulesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dlp_rules is not type of []interface{}.", "")
 		return []datasourceSecurityDlpProfileDlpRulesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDlpProfileDlpRulesModel{}
 	}
@@ -365,6 +355,9 @@ func (s *datasourceSecurityDlpProfileModel) flattenSecurityDlpProfileDlpRulesLis
 	values := make([]datasourceSecurityDlpProfileDlpRulesModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDlpProfileDlpRulesModel
+		if i < len(s.DlpRules) {
+			m = s.DlpRules[i]
+		}
 		values[i] = *m.flattenSecurityDlpProfileDlpRules(ctx, ele, diags)
 	}
 
@@ -395,12 +388,17 @@ func (s *datasourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlp
 		return []datasourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dlp_sensors is not type of []interface{}.", "")
 		return []datasourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
@@ -408,6 +406,9 @@ func (s *datasourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlp
 	values := make([]datasourceSecurityDlpProfileDlpRulesDlpSensorsModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityDlpProfileDlpRulesDlpSensorsModel
+		if i < len(s.DlpSensors) {
+			m = s.DlpSensors[i]
+		}
 		values[i] = *m.flattenSecurityDlpProfileDlpRulesDlpSensors(ctx, ele, diags)
 	}
 

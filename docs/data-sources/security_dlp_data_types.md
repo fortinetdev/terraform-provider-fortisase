@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_data_types Data Source - fortisase"
 subcategory: "Security"
 description: |-
   DLP Data Type Resource API V2 for FortiSASE.
+  fortisase_security_dlp_data_types is deprecated. Please use fortisase_security_dlp_data_type instead.
 ---
 
 # fortisase_security_dlp_data_types (Data Source)
 
 DLP Data Type Resource API V2 for FortiSASE.
+fortisase_security_dlp_data_types is deprecated. Please use fortisase_security_dlp_data_type instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_data_types" "example" {
+data "fortisase_security_dlp_data_type" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_security_dlp_data_types" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `transform` (String)

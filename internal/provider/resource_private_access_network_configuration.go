@@ -305,6 +305,10 @@ func (r *resourcePrivateAccessNetworkConfiguration) Read(ctx context.Context, re
 
 	read_output, err := c.ReadPrivateAccessNetworkConfiguration(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -363,27 +367,27 @@ func (m *resourcePrivateAccessNetworkConfigurationModel) refreshPrivateAccessNet
 
 func (data *resourcePrivateAccessNetworkConfigurationModel) getCreateObjectPrivateAccessNetworkConfiguration(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.BgpRouterIdsSubnet.IsNull() {
+	if !data.BgpRouterIdsSubnet.IsNull() && !data.BgpRouterIdsSubnet.IsUnknown() {
 		result["bgp_router_ids_subnet"] = data.BgpRouterIdsSubnet.ValueString()
 	}
 
-	if !data.AsNumber.IsNull() {
+	if !data.AsNumber.IsNull() && !data.AsNumber.IsUnknown() {
 		result["as_number"] = data.AsNumber.ValueString()
 	}
 
-	if !data.RecursiveNextHop.IsNull() {
+	if !data.RecursiveNextHop.IsNull() && !data.RecursiveNextHop.IsUnknown() {
 		result["recursive_next_hop"] = data.RecursiveNextHop.ValueBool()
 	}
 
-	if !data.SdwanRuleEnable.IsNull() {
+	if !data.SdwanRuleEnable.IsNull() && !data.SdwanRuleEnable.IsUnknown() {
 		result["sdwan_rule_enable"] = data.SdwanRuleEnable.ValueBool()
 	}
 
-	if !data.SdwanHealthCheckVm.IsNull() {
+	if !data.SdwanHealthCheckVm.IsNull() && !data.SdwanHealthCheckVm.IsUnknown() {
 		result["sdwan_health_check_vm"] = data.SdwanHealthCheckVm.ValueString()
 	}
 
-	if !data.BgpDesign.IsNull() {
+	if !data.BgpDesign.IsNull() && !data.BgpDesign.IsUnknown() {
 		result["bgp_design"] = data.BgpDesign.ValueString()
 	}
 
@@ -392,23 +396,23 @@ func (data *resourcePrivateAccessNetworkConfigurationModel) getCreateObjectPriva
 
 func (data *resourcePrivateAccessNetworkConfigurationModel) getUpdateObjectPrivateAccessNetworkConfiguration(ctx context.Context, state resourcePrivateAccessNetworkConfigurationModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.BgpRouterIdsSubnet.IsNull() {
+	if !data.BgpRouterIdsSubnet.IsNull() && !data.BgpRouterIdsSubnet.IsUnknown() {
 		result["bgp_router_ids_subnet"] = data.BgpRouterIdsSubnet.ValueString()
 	}
 
-	if !data.AsNumber.IsNull() {
+	if !data.AsNumber.IsNull() && !data.AsNumber.IsUnknown() {
 		result["as_number"] = data.AsNumber.ValueString()
 	}
 
-	if !data.RecursiveNextHop.IsNull() {
+	if !data.RecursiveNextHop.IsNull() && !data.RecursiveNextHop.IsUnknown() {
 		result["recursive_next_hop"] = data.RecursiveNextHop.ValueBool()
 	}
 
-	if !data.SdwanRuleEnable.IsNull() {
+	if !data.SdwanRuleEnable.IsNull() && !data.SdwanRuleEnable.IsUnknown() {
 		result["sdwan_rule_enable"] = data.SdwanRuleEnable.ValueBool()
 	}
 
-	if !data.SdwanHealthCheckVm.IsNull() {
+	if !data.SdwanHealthCheckVm.IsNull() && !data.SdwanHealthCheckVm.IsUnknown() {
 		result["sdwan_health_check_vm"] = data.SdwanHealthCheckVm.ValueString()
 	}
 

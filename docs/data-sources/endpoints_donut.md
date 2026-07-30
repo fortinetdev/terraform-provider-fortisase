@@ -25,7 +25,7 @@ data "fortisase_endpoints_donut" "example" {
 
 - `donut_type` (String)
 
-### Optional
+### Read-Only
 
 - `name` (String)
 - `token` (String)

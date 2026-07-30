@@ -27,21 +27,22 @@ type datasourceAuthSslvpnSamlServer struct {
 
 // datasourceAuthSslvpnSamlServerModel describes the datasource data model.
 type datasourceAuthSslvpnSamlServerModel struct {
-	PrimaryKey     types.String                                       `tfsdk:"primary_key"`
-	Enabled        types.Bool                                         `tfsdk:"enabled"`
-	IdpEntityId    types.String                                       `tfsdk:"idp_entity_id"`
-	IdpSignOnUrl   types.String                                       `tfsdk:"idp_sign_on_url"`
-	IdpLogOutUrl   types.String                                       `tfsdk:"idp_log_out_url"`
-	Username       types.String                                       `tfsdk:"username"`
-	GroupName      types.String                                       `tfsdk:"group_name"`
-	GroupId        types.String                                       `tfsdk:"group_id"`
-	SpCert         *datasourceAuthSslvpnSamlServerSpCertModel         `tfsdk:"sp_cert"`
-	IdpCertificate *datasourceAuthSslvpnSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
-	DigestMethod   types.String                                       `tfsdk:"digest_method"`
-	EntraIdEnabled types.Bool                                         `tfsdk:"entra_id_enabled"`
-	ScimEnabled    types.Bool                                         `tfsdk:"scim_enabled"`
-	DomainName     types.String                                       `tfsdk:"domain_name"`
-	ApplicationId  types.String                                       `tfsdk:"application_id"`
+	PrimaryKey               types.String                                       `tfsdk:"primary_key"`
+	Enabled                  types.Bool                                         `tfsdk:"enabled"`
+	IdpEntityId              types.String                                       `tfsdk:"idp_entity_id"`
+	IdpSignOnUrl             types.String                                       `tfsdk:"idp_sign_on_url"`
+	IdpLogOutUrl             types.String                                       `tfsdk:"idp_log_out_url"`
+	Username                 types.String                                       `tfsdk:"username"`
+	GroupName                types.String                                       `tfsdk:"group_name"`
+	GroupId                  types.String                                       `tfsdk:"group_id"`
+	SpCert                   *datasourceAuthSslvpnSamlServerSpCertModel         `tfsdk:"sp_cert"`
+	IdpCertificate           *datasourceAuthSslvpnSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
+	DigestMethod             types.String                                       `tfsdk:"digest_method"`
+	EntraIdEnabled           types.Bool                                         `tfsdk:"entra_id_enabled"`
+	ScimEnabled              types.Bool                                         `tfsdk:"scim_enabled"`
+	RequireSignedRespAndAsrt types.Bool                                         `tfsdk:"require_signed_resp_and_asrt"`
+	DomainName               types.String                                       `tfsdk:"domain_name"`
+	ApplicationId            types.String                                       `tfsdk:"application_id"`
 }
 
 func (r *datasourceAuthSslvpnSamlServer) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,109 +61,94 @@ func (r *datasourceAuthSslvpnSamlServer) Schema(ctx context.Context, req datasou
 			},
 			"enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_sign_on_url": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_log_out_url": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"username": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"group_name": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"group_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"digest_method": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("sha256", "sha1"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"entra_id_enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"scim_enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
+			},
+			"require_signed_resp_and_asrt": schema.BoolAttribute{
+				Computed: true,
 			},
 			"domain_name": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"application_id": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"sp_cert": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"idp_certificate": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -276,6 +262,10 @@ func (m *datasourceAuthSslvpnSamlServerModel) refreshAuthSslvpnSamlServer(ctx co
 
 	if v, ok := o["scimEnabled"]; ok {
 		m.ScimEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["requireSignedRespAndAsrt"]; ok {
+		m.RequireSignedRespAndAsrt = parseBoolValue(v)
 	}
 
 	if v, ok := o["domainName"]; ok {

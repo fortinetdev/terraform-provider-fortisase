@@ -75,7 +75,7 @@ func sendRequests(c *FortiSDKClient, input_model *InputModel) (map[string]interf
 			if err_msg != "" && strings.Contains(err_msg, "has not been set up yet") {
 				i = i + 2
 			} else {
-				i = i + 30
+				i = i + 50
 			}
 			continue
 		} else if code == 429.0 {
@@ -142,4 +142,26 @@ func read(c *FortiSDKClient, input_model *InputModel) (map[string]interface{}, e
 		}
 	}
 	return result, err
+}
+
+// SendRequest sends a non-read API request using the SDK's standard request,
+// response conversion, and retry behavior.
+func (c *FortiSDKClient) SendRequest(inputModel *InputModel) (map[string]interface{}, error) {
+	if inputModel == nil {
+		return nil, fmt.Errorf("input model cannot be nil")
+	}
+
+	inputModel.update()
+	return sendRequests(c, inputModel)
+}
+
+// ReadRequest sends a read API request using the SDK's standard request,
+// response conversion, and retry behavior.
+func (c *FortiSDKClient) ReadRequest(inputModel *InputModel) (map[string]interface{}, error) {
+	if inputModel == nil {
+		return nil, fmt.Errorf("input model cannot be nil")
+	}
+
+	inputModel.update()
+	return read(c, inputModel)
 }

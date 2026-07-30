@@ -4,16 +4,18 @@ page_title: "fortisase_security_cert_local_certs Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Certificate Resource API for FortiSASE.
+  fortisase_security_cert_local_certs is deprecated. Please use fortisase_security_cert_local_cert instead.
 ---
 
 # fortisase_security_cert_local_certs (Data Source)
 
 Certificate Resource API for FortiSASE.
+fortisase_security_cert_local_certs is deprecated. Please use fortisase_security_cert_local_cert instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_cert_local_certs" "example" {
+data "fortisase_security_cert_local_cert" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,14 +27,6 @@ data "fortisase_security_cert_local_certs" "example" {
 
 - `primary_key` (String)
 
-### Optional
-
-- `cert_name` (String)
-- `file_content` (String)
-- `format` (String)
-- `key_file_content` (String)
-- `password` (String)
-
 ### Read-Only
 
 - `ftntid` (Number)
@@ -40,6 +34,7 @@ data "fortisase_security_cert_local_certs" "example" {
 - `name` (String)
 - `serial_number` (String)
 - `source` (String)
+- `subject` (Attributes) (see [below for nested schema](#nestedatt--subject))
 - `type` (String)
 - `usages` (Attributes List) (see [below for nested schema](#nestedatt--usages))
 - `valid_from` (String)
@@ -48,7 +43,21 @@ data "fortisase_security_cert_local_certs" "example" {
 <a id="nestedatt--issuer"></a>
 ### Nested Schema for `issuer`
 
-Optional:
+Read-Only:
+
+- `c` (String)
+- `cn` (String)
+- `email_address` (String)
+- `l` (String)
+- `o` (String)
+- `ou` (String)
+- `st` (String)
+
+
+<a id="nestedatt--subject"></a>
+### Nested Schema for `subject`
+
+Read-Only:
 
 - `c` (String)
 - `cn` (String)
@@ -62,7 +71,7 @@ Optional:
 <a id="nestedatt--usages"></a>
 ### Nested Schema for `usages`
 
-Optional:
+Read-Only:
 
 - `count` (Number)
 - `type` (String)

@@ -55,20 +55,16 @@ func (r *resourceEndpointProfileClone2Edl) Schema(ctx context.Context, req resou
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthBetween(1, 128),
 				},
-				Computed: true,
 				Optional: true,
 			},
 			"enabled": schema.BoolAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"skip_off_net_profile_creation_on_edit": schema.BoolAttribute{
-				Computed: true,
 				Optional: true,
 			},
 			"based_on": schema.StringAttribute{
 				MarkdownDescription: "The endpoint profile you what to clone.",
-				Computed:            true,
 				Optional:            true,
 			},
 		},
@@ -181,15 +177,15 @@ func (r *resourceEndpointProfileClone2Edl) Read(ctx context.Context, req resourc
 
 func (data *resourceEndpointProfileClone2EdlModel) getCreateObjectEndpointProfileClone(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
+	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
+	if !data.SkipOffNetProfileCreationOnEdit.IsNull() && !data.SkipOffNetProfileCreationOnEdit.IsUnknown() {
 		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
 	}
 
@@ -198,15 +194,15 @@ func (data *resourceEndpointProfileClone2EdlModel) getCreateObjectEndpointProfil
 
 func (data *resourceEndpointProfileClone2EdlModel) getUpdateObjectEndpointProfileClone(ctx context.Context, state resourceEndpointProfileClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Enabled.IsNull() {
+	if !data.Enabled.IsNull() && !data.Enabled.IsUnknown() {
 		result["enabled"] = data.Enabled.ValueBool()
 	}
 
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
+	if !data.SkipOffNetProfileCreationOnEdit.IsNull() && !data.SkipOffNetProfileCreationOnEdit.IsUnknown() {
 		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
 	}
 
@@ -215,7 +211,7 @@ func (data *resourceEndpointProfileClone2EdlModel) getUpdateObjectEndpointProfil
 
 func (data *resourceEndpointProfileClone2EdlModel) getURLObjectEndpointProfileClone(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.BasedOn.IsNull() {
+	if !data.BasedOn.IsNull() && !data.BasedOn.IsUnknown() {
 		result["based_on"] = data.BasedOn.ValueString()
 	}
 

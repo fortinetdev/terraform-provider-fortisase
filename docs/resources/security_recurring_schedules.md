@@ -4,16 +4,18 @@ page_title: "fortisase_security_recurring_schedules Resource - fortisase"
 subcategory: "Security"
 description: |-
   Recurring Schedule Resource API V2 for FortiSASE.
+  fortisase_security_recurring_schedules is deprecated. Please use fortisase_security_recurring_schedule instead.
 ---
 
 # fortisase_security_recurring_schedules (Resource)
 
 Recurring Schedule Resource API V2 for FortiSASE.
+fortisase_security_recurring_schedules is deprecated. Please use fortisase_security_recurring_schedule instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_recurring_schedules" "example" {
+resource "fortisase_security_recurring_schedule" "example" {
   primary_key = "example_name"
   days = [
     "sunday",
@@ -51,5 +53,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_recurring_schedules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_recurring_schedule.{{your_resource_name}} {{primary_key}}
 ```

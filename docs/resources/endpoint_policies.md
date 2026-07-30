@@ -4,17 +4,19 @@ page_title: "fortisase_endpoint_policies Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint Policy Resource API V2 for FortiSASE.
+  fortisase_endpoint_policies is deprecated. Please use fortisase_endpoint_policy instead.
 ---
 
 # fortisase_endpoint_policies (Resource)
 
 Endpoint Policy Resource API V2 for FortiSASE.
+fortisase_endpoint_policies is deprecated. Please use fortisase_endpoint_policy instead.
 
 ## Example Usage
 
 ```terraform
 # Same behavior as "fortisase_endpoint_profile"
-resource "fortisase_endpoint_policies" "endpoint_profile" {
+resource "fortisase_endpoint_policy" "endpoint_profile" {
   primary_key = "example"
   enabled     = true
 }
@@ -43,5 +45,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_policies.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_policy.{{your_resource_name}} {{primary_key}}
 ```

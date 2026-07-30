@@ -1,3 +1,4 @@
+# GUI: Security -> Security profiles
 resource "fortisase_security_profile_group" "example" {
   primary_key = "example_profile_name" # The name of the new profile group
 

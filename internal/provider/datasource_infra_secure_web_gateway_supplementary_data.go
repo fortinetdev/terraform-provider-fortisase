@@ -48,11 +48,9 @@ func (r *datasourceInfraSecureWebGatewaySupplementaryData) Schema(ctx context.Co
 			},
 			"session_duration_hours": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"end_session_after_mins": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}

@@ -4,16 +4,18 @@ page_title: "fortisase_private_access_service_connections Data Source - fortisas
 subcategory: "Others"
 description: |-
   Secure Private Access Resource API for FortiSASE.
+  fortisase_private_access_service_connections is deprecated. Please use fortisase_private_access_service_connection instead.
 ---
 
 # fortisase_private_access_service_connections (Data Source)
 
 Secure Private Access Resource API for FortiSASE.
+fortisase_private_access_service_connections is deprecated. Please use fortisase_private_access_service_connection instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_private_access_service_connections" "example" {
+data "fortisase_private_access_service_connection" "example" {
   service_connection_id = "<your_value>"
 }
 ```
@@ -25,25 +27,6 @@ data "fortisase_private_access_service_connections" "example" {
 
 - `service_connection_id` (String) the unique uuid for service connection
 
-### Optional
-
-- `alias` (String) alias for serivce connection
-- `auth` (String) IPSEC authentication method.
-Supported values: pki, psk.
-- `backup_links` (Attributes List) (see [below for nested schema](#nestedatt--backup_links))
-- `bgp_peer_ip` (String) BGP Routing Peer IP.
-- `ipsec_cert_name` (String) the name of IPSEC authentication certificate that uploaded to SASE
-- `ipsec_ike_version` (String) IKE version for IPSEC.
-Supported values: 2.
-- `ipsec_peer_name` (String) Peer PKI user name that created on SASE for IPSEC authentication
-- `ipsec_pre_shared_key` (String) IPSEC auth by pre shared key.
-- `ipsec_remote_gw` (String) IPSEC Remote Gateway IP
-- `overlay_network_id` (String) integer id for overlay
-- `region_cost` (Map of Number) Cost value to determine the priority of SASE spokes. Default cost is 5 if not provided through initial api request.
-- `route_map_tag` (String) route map tag
-- `type` (String) BGP Routing Design. Must be same as network configuration.
-Supported values: overlay, loopback.
-
 ### Read-Only
 
 - `common_config` (Attributes) (see [below for nested schema](#nestedatt--common_config))
@@ -54,28 +37,13 @@ Supported values: success, failed, creating, updating, deleting.
 - `ftntid` (String) unique id for service connection
 - `ip_assigned` (Attributes List) (see [below for nested schema](#nestedatt--ip_assigned))
 - `seq_num` (Number) sequential unique number for service connection
-
-<a id="nestedatt--backup_links"></a>
-### Nested Schema for `backup_links`
-
-Optional:
-
-- `alias` (String) alias for serivce connection additional overlay
-- `auth` (String) IPSEC authentication method.
-Supported values: pki, psk.
-- `ipsec_cert_name` (String) the name of IPSEC authentication certificate that uploaded to SASE
-- `ipsec_ike_version` (String) IKE version for IPSEC.
-Supported values: 2.
-- `ipsec_peer_name` (String) Peer PKI user name that created on SASE for IPSEC authentication
-- `ipsec_pre_shared_key` (String) IPSEC auth by pre shared key.
-- `ipsec_remote_gw` (String) IPSEC Remote Gateway IP
-- `overlay_network_id` (String) integer id for overlay
-
+- `type` (String) BGP Routing Design. Must be same as network configuration.
+Supported values: overlay, loopback.
 
 <a id="nestedatt--common_config"></a>
 ### Nested Schema for `common_config`
 
-Optional:
+Read-Only:
 
 - `as_number` (String) Autonomous System Number (ASN).
 - `bgp_design` (String) BGP Routing Design.
@@ -91,7 +59,7 @@ Supported values: success, failed, creating, updating, deleting.
 <a id="nestedatt--config"></a>
 ### Nested Schema for `config`
 
-Optional:
+Read-Only:
 
 - `alias` (String) alias for serivce connection
 - `auth` (String) IPSEC authentication method.
@@ -110,7 +78,7 @@ Supported values: 2.
 <a id="nestedatt--config--backup_links"></a>
 ### Nested Schema for `config.backup_links`
 
-Optional:
+Read-Only:
 
 - `alias` (String) alias for serivce connection additional overlay
 - `auth` (String) IPSEC authentication method.
@@ -128,7 +96,7 @@ Supported values: 2.
 <a id="nestedatt--ip_assigned"></a>
 ### Nested Schema for `ip_assigned`
 
-Optional:
+Read-Only:
 
 - `bgp_router_id` (String) BGP Router ID generated from Router ID Subnets
 - `id` (String) unique id for bgp router id assignment

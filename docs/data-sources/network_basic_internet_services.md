@@ -4,16 +4,18 @@ page_title: "fortisase_network_basic_internet_services Data Source - fortisase"
 subcategory: "Network"
 description: |-
   Internet Service Resource API V2 for FortiSASE.
+  fortisase_network_basic_internet_services is deprecated. Please use fortisase_network_basic_internet_service instead.
 ---
 
 # fortisase_network_basic_internet_services (Data Source)
 
 Internet Service Resource API V2 for FortiSASE.
+fortisase_network_basic_internet_services is deprecated. Please use fortisase_network_basic_internet_service instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_network_basic_internet_services" "example" {
+data "fortisase_network_basic_internet_service" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_network_basic_internet_services" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `direction` (String)
 - `ftntid` (Number)

@@ -25,7 +25,7 @@ data "fortisase_usage_security_onetime_schedules" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `ftntcount` (Number)
 - `type` (String)

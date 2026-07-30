@@ -4,16 +4,18 @@ page_title: "fortisase_endpoints_groups Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint Domain monitor API for FortiSASE.
+  fortisase_endpoints_groups is deprecated. Please use fortisase_endpoints_group instead.
 ---
 
 # fortisase_endpoints_groups (Data Source)
 
 Endpoint Domain monitor API for FortiSASE.
+fortisase_endpoints_groups is deprecated. Please use fortisase_endpoints_group instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoints_groups" "example" {
+data "fortisase_endpoints_group" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -27,15 +29,18 @@ data "fortisase_endpoints_groups" "example" {
 
 ### Optional
 
-- `ad_groups` (Attributes) (see [below for nested schema](#nestedatt--ad_groups))
 - `guid` (String) UID of the group to expand to find child groups.
-- `non_ad_groups` (Attributes) (see [below for nested schema](#nestedatt--non_ad_groups))
 - `offset` (Number) Specifies the starting position of AD groups. Based on this the results will be seperated in AD groups and non AD groups, with AD groups containing a "total" count.
+
+### Read-Only
+
+- `ad_groups` (Attributes) (see [below for nested schema](#nestedatt--ad_groups))
+- `non_ad_groups` (Attributes) (see [below for nested schema](#nestedatt--non_ad_groups))
 
 <a id="nestedatt--ad_groups"></a>
 ### Nested Schema for `ad_groups`
 
-Optional:
+Read-Only:
 
 - `data` (Attributes List) (see [below for nested schema](#nestedatt--ad_groups--data))
 - `total` (Number)
@@ -43,7 +48,7 @@ Optional:
 <a id="nestedatt--ad_groups--data"></a>
 ### Nested Schema for `ad_groups.data`
 
-Optional:
+Read-Only:
 
 - `domain` (Attributes) Reference of the endpoint/domains entry the group belongs to. (see [below for nested schema](#nestedatt--ad_groups--data--domain))
 - `domain_type` (String) Type of the endpint/domains entry the group belongs to.
@@ -59,7 +64,7 @@ Supported values: azure, adfs.
 <a id="nestedatt--ad_groups--data--domain"></a>
 ### Nested Schema for `ad_groups.data.domain`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -70,14 +75,14 @@ Optional:
 <a id="nestedatt--non_ad_groups"></a>
 ### Nested Schema for `non_ad_groups`
 
-Optional:
+Read-Only:
 
 - `data` (Attributes List) (see [below for nested schema](#nestedatt--non_ad_groups--data))
 
 <a id="nestedatt--non_ad_groups--data"></a>
 ### Nested Schema for `non_ad_groups.data`
 
-Optional:
+Read-Only:
 
 - `domain` (Attributes) Reference of the endpoint/domains entry the group belongs to. (see [below for nested schema](#nestedatt--non_ad_groups--data--domain))
 - `domain_type` (String) Type of the endpint/domains entry the group belongs to.
@@ -93,7 +98,7 @@ Supported values: azure, adfs.
 <a id="nestedatt--non_ad_groups--data--domain"></a>
 ### Nested Schema for `non_ad_groups.data.domain`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

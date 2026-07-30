@@ -4,22 +4,25 @@ page_title: "fortisase_endpoint_group_ad_user_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Group & AD Users Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_group_ad_user_profiles is deprecated. Please use fortisase_endpoint_group_ad_user_profile instead.
 ---
 
 # fortisase_endpoint_group_ad_user_profiles (Resource)
 
 Group & AD Users Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_group_ad_user_profiles is deprecated. Please use fortisase_endpoint_group_ad_user_profile instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_policies" "endpoint_profile" {
-  primary_key = "example"
+# GUI: Endpoint management -> Configuration -> Profiles
+resource "fortisase_endpoint_profile" "endpoint_profile" {
+  primary_key = "example_endpoint_profile"
   enabled     = true
 }
 
-resource "fortisase_endpoint_group_ad_user_profiles" "endpoint_group_ad_user_profile" {
-  primary_key = fortisase_endpoint_policies.endpoint_profile.primary_key
+resource "fortisase_endpoint_group_ad_user_profile" "endpoint_group_ad_user_profile" {
+  primary_key = fortisase_fortisase_endpoint_profileendpoint_policy.endpoint_profile.primary_key
 }
 ```
 
@@ -46,5 +49,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_group_ad_user_profiles.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_group_ad_user_profile.{{your_resource_name}} {{primary_key}}
 ```

@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_group_ad_user_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Group & AD Users Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_group_ad_user_profiles is deprecated. Please use fortisase_endpoint_group_ad_user_profile instead.
 ---
 
 # fortisase_endpoint_group_ad_user_profiles (Data Source)
 
 Group & AD Users Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_group_ad_user_profiles is deprecated. Please use fortisase_endpoint_group_ad_user_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_group_ad_user_profiles" "example" {
+data "fortisase_endpoint_group_ad_user_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_group_ad_user_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `ad_user_ids` (Set of Number)
 - `group_ids` (Set of Number)

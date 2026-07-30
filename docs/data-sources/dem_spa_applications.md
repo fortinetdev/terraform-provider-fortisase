@@ -4,16 +4,18 @@ page_title: "fortisase_dem_spa_applications Data Source - fortisase"
 subcategory: "Others"
 description: |-
   DEM SPA Application Resource API V2 for FortiSASE.
+  fortisase_dem_spa_applications is deprecated. Please use fortisase_dem_spa_application instead.
 ---
 
 # fortisase_dem_spa_applications (Data Source)
 
 DEM SPA Application Resource API V2 for FortiSASE.
+fortisase_dem_spa_applications is deprecated. Please use fortisase_dem_spa_application instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_dem_spa_applications" "example" {
+data "fortisase_dem_spa_application" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_dem_spa_applications" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `fail_time` (Number)
 - `interval` (Number)

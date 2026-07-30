@@ -16,6 +16,7 @@ import (
 	forticlient "github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -352,6 +353,18 @@ func expandSetToStringList(varSet types.Set) []string {
 	return result
 }
 
+func expandSetToInt64List(varSet types.Set) []int64 {
+	elements := varSet.Elements()
+
+	result := make([]int64, 0, len(elements))
+	for _, e := range elements {
+		if intVal, ok := e.(types.Int64); ok {
+			result = append(result, intVal.ValueInt64())
+		}
+	}
+	return result
+}
+
 func parseStringValue(v interface{}) basetypes.StringValue {
 	if v == nil {
 		return types.StringNull()
@@ -584,4 +597,180 @@ func getErrorCode(output map[string]interface{}) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+func isNotFoundResponse(response map[string]interface{}) bool {
+	if response == nil {
+		return false
+	}
+	if httpStatus, ok := response["http_status"].(float64); ok {
+		return httpStatus == 404.0
+	}
+	if code, ok := response["code"].(float64); ok {
+		return code == 404.0
+	}
+	return false
+}
+
+type useStateForUnknownOrNullOnCreateModifier struct{}
+
+func (m useStateForUnknownOrNullOnCreateModifier) Description(_ context.Context) string {
+	return "Preserves prior state during updates and keeps omitted create-time API defaults out of the plan."
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) MarkdownDescription(_ context.Context) string {
+	return "Preserves prior state during updates and keeps omitted create-time API defaults out of the plan."
+}
+
+func UseStateForUnknownOrNullOnCreateString() planmodifier.String {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateFloat64() planmodifier.Float64 {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateBool() planmodifier.Bool {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateObject() planmodifier.Object {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateSet() planmodifier.Set {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateList() planmodifier.List {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func UseStateForUnknownOrNullOnCreateMap() planmodifier.Map {
+	return useStateForUnknownOrNullOnCreateModifier{}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyFloat64(ctx context.Context, req planmodifier.Float64Request, resp *planmodifier.Float64Response) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func (m useStateForUnknownOrNullOnCreateModifier) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
+	if !req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.IsNull() && req.StateValue.IsNull() {
+		resp.PlanValue = req.ConfigValue
+		return
+	}
+	if !req.StateValue.IsNull() {
+		resp.PlanValue = req.StateValue
+	}
+}
+
+func getCreateResponseMkey(response map[string]interface{}, mkeyName string) (string, bool) {
+	if response == nil {
+		return "", false
+	}
+
+	keys := []string{"mkey"}
+	if mkeyName != "" && mkeyName != "mkey" {
+		keys = append(keys, mkeyName)
+	}
+
+	for _, key := range keys {
+		switch value := response[key].(type) {
+		case string:
+			if value != "" && value != "<nil>" {
+				return value, true
+			}
+		case json.Number:
+			return value.String(), true
+		case float64:
+			return strconv.FormatFloat(value, 'f', -1, 64), true
+		case float32:
+			return strconv.FormatFloat(float64(value), 'f', -1, 32), true
+		case int:
+			return strconv.Itoa(value), true
+		case int64:
+			return strconv.FormatInt(value, 10), true
+		case uint64:
+			return strconv.FormatUint(value, 10), true
+		}
+	}
+
+	return "", false
 }

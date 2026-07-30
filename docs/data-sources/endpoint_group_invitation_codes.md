@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_group_invitation_codes Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Group-Based Invitation Code Resource API V2 for FortiSASE.
+  fortisase_endpoint_group_invitation_codes is deprecated. Please use fortisase_endpoint_group_invitation_code instead.
 ---
 
 # fortisase_endpoint_group_invitation_codes (Data Source)
 
 Group-Based Invitation Code Resource API V2 for FortiSASE.
+fortisase_endpoint_group_invitation_codes is deprecated. Please use fortisase_endpoint_group_invitation_code instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_group_invitation_codes" "example" {
+data "fortisase_endpoint_group_invitation_code" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_group_invitation_codes" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `expire_date` (String)
 - `group_assignment` (Attributes) (see [below for nested schema](#nestedatt--group_assignment))
@@ -33,7 +35,7 @@ data "fortisase_endpoint_group_invitation_codes" "example" {
 <a id="nestedatt--group_assignment"></a>
 ### Nested Schema for `group_assignment`
 
-Optional:
+Read-Only:
 
 - `enabled` (Boolean)
 - `group` (Attributes) (see [below for nested schema](#nestedatt--group_assignment--group))
@@ -41,7 +43,7 @@ Optional:
 <a id="nestedatt--group_assignment--group"></a>
 ### Nested Schema for `group_assignment.group`
 
-Optional:
+Read-Only:
 
 - `id` (Number)
 - `path` (String)

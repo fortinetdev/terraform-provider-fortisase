@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_on_net_rules Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint on net rule
+  fortisase_endpoint_on_net_rules is deprecated. Please use fortisase_endpoint_on_net_rule instead.
 ---
 
 # fortisase_endpoint_on_net_rules (Data Source)
 
 Endpoint on net rule
+fortisase_endpoint_on_net_rules is deprecated. Please use fortisase_endpoint_on_net_rule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_on_net_rules" "example" {
+data "fortisase_endpoint_on_net_rule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_on_net_rules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `dhcp_server_code` (String)
 - `dhcp_server_ip` (String)
@@ -42,7 +44,7 @@ data "fortisase_endpoint_on_net_rules" "example" {
 <a id="nestedatt--dns_request"></a>
 ### Nested Schema for `dns_request`
 
-Optional:
+Read-Only:
 
 - `hostname` (String)
 - `ip` (String)
@@ -51,7 +53,7 @@ Optional:
 <a id="nestedatt--web_request_https"></a>
 ### Nested Schema for `web_request_https`
 
-Optional:
+Read-Only:
 
 - `hostname` (String)
 - `ip` (String)

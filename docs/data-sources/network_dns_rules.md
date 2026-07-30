@@ -4,16 +4,18 @@ page_title: "fortisase_network_dns_rules Data Source - fortisase"
 subcategory: "Network"
 description: |-
   DNS Rule Resource API V2 for FortiSASE.
+  fortisase_network_dns_rules is deprecated. Please use fortisase_network_dns_rule instead.
 ---
 
 # fortisase_network_dns_rules (Data Source)
 
 DNS Rule Resource API V2 for FortiSASE.
+fortisase_network_dns_rules is deprecated. Please use fortisase_network_dns_rule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_network_dns_rules" "example" {
+data "fortisase_network_dns_rule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_network_dns_rules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `domains` (Set of String)
 - `for_private` (Boolean)
@@ -36,7 +38,7 @@ data "fortisase_network_dns_rules" "example" {
 <a id="nestedatt--pop_dns_override"></a>
 ### Nested Schema for `pop_dns_override`
 
-Optional:
+Read-Only:
 
 - `pop` (String)
 - `primary_dns` (String)

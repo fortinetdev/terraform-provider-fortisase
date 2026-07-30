@@ -6,6 +6,8 @@ terraform.tfplan
 terraform.tfstate
 bin/
 dist/
+/internal_test/
+!/internal_test/fortisase-provider.pdf
 modules-dev/
 /pkg/
 website/.vagrant

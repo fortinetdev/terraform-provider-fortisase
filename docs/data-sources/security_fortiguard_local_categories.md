@@ -4,16 +4,18 @@ page_title: "fortisase_security_fortiguard_local_categories Data Source - fortis
 subcategory: "Security"
 description: |-
   FortiGuard Local Category Resource API V2 for FortiSASE.
+  fortisase_security_fortiguard_local_categories is deprecated. Please use fortisase_security_fortiguard_local_category instead.
 ---
 
 # fortisase_security_fortiguard_local_categories (Data Source)
 
 FortiGuard Local Category Resource API V2 for FortiSASE.
+fortisase_security_fortiguard_local_categories is deprecated. Please use fortisase_security_fortiguard_local_category instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_fortiguard_local_categories" "example" {
+data "fortisase_security_fortiguard_local_category" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_fortiguard_local_categories" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `threat_weight` (String)
 - `urls` (Set of String)

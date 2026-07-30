@@ -4,17 +4,19 @@ page_title: "fortisase_security_internal_policies Resource - fortisase"
 subcategory: "Security"
 description: |-
   Internal Policy Resource API V2 for FortiSASE.
+  fortisase_security_internal_policies is deprecated. Please use fortisase_security_internal_policy instead.
 ---
 
 # fortisase_security_internal_policies (Resource)
 
 Internal Policy Resource API V2 for FortiSASE.
+fortisase_security_internal_policies is deprecated. Please use fortisase_security_internal_policy instead.
 
 ## Example Usage
 
 ```terraform
 # GUI: Security > Policies > Secure private access > To hubs
-resource "fortisase_security_internal_policies" "example" {
+resource "fortisase_security_internal_policy" "example" {
   primary_key = "Secure Private Access: Finance App"
   enabled     = true
   scope       = "vpn-user"
@@ -163,5 +165,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_internal_policies.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_internal_policy.{{your_resource_name}} {{primary_key}}
 ```

@@ -3,221 +3,38 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &resourceEndpointPoliciesClone2Edl{}
+// resourceEndpointPoliciesClone keeps the deprecated Terraform type available while
+// reusing the canonical resource implementation.
+var _ resource.Resource = &resourceEndpointPoliciesClone{}
 
 func newResourceEndpointPoliciesClone() resource.Resource {
-	return &resourceEndpointPoliciesClone2Edl{}
+	return &resourceEndpointPoliciesClone{
+		resourceEndpointPolicyClone2Edl: &resourceEndpointPolicyClone2Edl{},
+	}
 }
 
-type resourceEndpointPoliciesClone2Edl struct {
-	fortiClient  *FortiClient
-	resourceName string
+type resourceEndpointPoliciesClone struct {
+	*resourceEndpointPolicyClone2Edl
 }
 
-// resourceEndpointPoliciesClone2EdlModel describes the resource data model.
-type resourceEndpointPoliciesClone2EdlModel struct {
-	ID                              types.String `tfsdk:"id"`
-	PrimaryKey                      types.String `tfsdk:"primary_key"`
-	Enabled                         types.Bool   `tfsdk:"enabled"`
-	SkipOffNetProfileCreationOnEdit types.Bool   `tfsdk:"skip_off_net_profile_creation_on_edit"`
-	BasedOn                         types.String `tfsdk:"based_on"`
-}
-
-func (r *resourceEndpointPoliciesClone2Edl) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *resourceEndpointPoliciesClone) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_endpoint_policies_clone"
 }
 
-func (r *resourceEndpointPoliciesClone2Edl) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Endpoint Policy Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 128),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"skip_off_net_profile_creation_on_edit": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"based_on": schema.StringAttribute{
-				MarkdownDescription: "The endpoint profile you what to clone.",
-				Computed:            true,
-				Optional:            true,
-			},
-		},
-	}
+func (r *resourceEndpointPoliciesClone) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	r.resourceEndpointPolicyClone2Edl.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_endpoint_policies_clone is deprecated. Please use fortisase_endpoint_policy_clone instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
-func (r *resourceEndpointPoliciesClone2Edl) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_endpoint_policies_clone"
+func (r *resourceEndpointPoliciesClone) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.resourceEndpointPolicyClone2Edl.Configure(ctx, req, resp)
+	r.resourceEndpointPolicyClone2Edl.resourceName = "fortisase_endpoint_policies_clone"
 }
-
-func (r *resourceEndpointPoliciesClone2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data resourceEndpointPoliciesClone2EdlModel
-	diags := &resp.Diagnostics
-
-	// Read Terraform config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.BodyParams = *(data.getCreateObjectEndpointPoliciesClone(ctx, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointPoliciesClone(ctx, "create", diags))
-
-	if diags.HasError() {
-		return
-	}
-	output, err := c.CreateEndpointPoliciesClone(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	mkey := "EndpointPoliciesClone"
-	data.ID = types.StringValue(mkey)
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceEndpointPoliciesClone2Edl) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	diags := &resp.Diagnostics
-
-	// Read Terraform plan data into the model
-	var state resourceEndpointPoliciesClone2EdlModel
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	var data resourceEndpointPoliciesClone2EdlModel
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-	data.ID = state.ID
-
-	mkey := state.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.BodyParams = *(data.getUpdateObjectEndpointPoliciesClone(ctx, state, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointPoliciesClone(ctx, "update", diags))
-
-	if diags.HasError() {
-		return
-	}
-
-	output, err := c.CreateEndpointPoliciesClone(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceEndpointPoliciesClone2Edl) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// No delete operation for this resource
-}
-
-func (r *resourceEndpointPoliciesClone2Edl) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// No read operation for this resource
-}
-
-func (data *resourceEndpointPoliciesClone2EdlModel) getCreateObjectEndpointPoliciesClone(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
-		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
-	}
-
-	return &result
-}
-
-func (data *resourceEndpointPoliciesClone2EdlModel) getUpdateObjectEndpointPoliciesClone(ctx context.Context, state resourceEndpointPoliciesClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
-		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
-	}
-
-	return &result
-}
-
-func (data *resourceEndpointPoliciesClone2EdlModel) getURLObjectEndpointPoliciesClone(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.BasedOn.IsNull() {
-		result["based_on"] = data.BasedOn.ValueString()
-	}
-
-	return &result
+func (r *resourceEndpointPoliciesClone) MoveState(ctx context.Context) []resource.StateMover {
+	return nil
 }

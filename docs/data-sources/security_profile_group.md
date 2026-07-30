@@ -23,14 +23,14 @@ data "fortisase_security_profile_group" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `antivirus_profile` (Attributes) (see [below for nested schema](#nestedatt--antivirus_profile))
 - `application_control_profile` (Attributes) (see [below for nested schema](#nestedatt--application_control_profile))
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `dlp_filter_profile` (Attributes) (see [below for nested schema](#nestedatt--dlp_filter_profile))
 - `dns_filter_profile` (Attributes) (see [below for nested schema](#nestedatt--dns_filter_profile))
 - `file_filter_profile` (Attributes) (see [below for nested schema](#nestedatt--file_filter_profile))
@@ -42,7 +42,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--antivirus_profile"></a>
 ### Nested Schema for `antivirus_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--antivirus_profile--profile))
 - `status` (String)
@@ -50,7 +50,7 @@ Optional:
 <a id="nestedatt--antivirus_profile--profile"></a>
 ### Nested Schema for `antivirus_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -60,7 +60,7 @@ Optional:
 <a id="nestedatt--application_control_profile"></a>
 ### Nested Schema for `application_control_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--application_control_profile--profile))
 - `status` (String)
@@ -68,7 +68,7 @@ Optional:
 <a id="nestedatt--application_control_profile--profile"></a>
 ### Nested Schema for `application_control_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -78,7 +78,7 @@ Optional:
 <a id="nestedatt--dlp_filter_profile"></a>
 ### Nested Schema for `dlp_filter_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--dlp_filter_profile--profile))
 - `status` (String)
@@ -86,7 +86,7 @@ Optional:
 <a id="nestedatt--dlp_filter_profile--profile"></a>
 ### Nested Schema for `dlp_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -96,7 +96,7 @@ Optional:
 <a id="nestedatt--dns_filter_profile"></a>
 ### Nested Schema for `dns_filter_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--dns_filter_profile--profile))
 - `status` (String)
@@ -104,7 +104,7 @@ Optional:
 <a id="nestedatt--dns_filter_profile--profile"></a>
 ### Nested Schema for `dns_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -114,7 +114,7 @@ Optional:
 <a id="nestedatt--file_filter_profile"></a>
 ### Nested Schema for `file_filter_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--file_filter_profile--profile))
 - `status` (String)
@@ -122,7 +122,7 @@ Optional:
 <a id="nestedatt--file_filter_profile--profile"></a>
 ### Nested Schema for `file_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -132,7 +132,7 @@ Optional:
 <a id="nestedatt--intrusion_prevention_profile"></a>
 ### Nested Schema for `intrusion_prevention_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--intrusion_prevention_profile--profile))
 - `status` (String)
@@ -140,7 +140,7 @@ Optional:
 <a id="nestedatt--intrusion_prevention_profile--profile"></a>
 ### Nested Schema for `intrusion_prevention_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -150,7 +150,7 @@ Optional:
 <a id="nestedatt--ssl_ssh_profile"></a>
 ### Nested Schema for `ssl_ssh_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--ssl_ssh_profile--profile))
 - `status` (String)
@@ -158,7 +158,7 @@ Optional:
 <a id="nestedatt--ssl_ssh_profile--profile"></a>
 ### Nested Schema for `ssl_ssh_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -168,7 +168,7 @@ Optional:
 <a id="nestedatt--video_filter_profile"></a>
 ### Nested Schema for `video_filter_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--video_filter_profile--profile))
 - `status` (String)
@@ -176,7 +176,7 @@ Optional:
 <a id="nestedatt--video_filter_profile--profile"></a>
 ### Nested Schema for `video_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -186,7 +186,7 @@ Optional:
 <a id="nestedatt--web_filter_profile"></a>
 ### Nested Schema for `web_filter_profile`
 
-Optional:
+Read-Only:
 
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--web_filter_profile--profile))
 - `status` (String)
@@ -194,7 +194,7 @@ Optional:
 <a id="nestedatt--web_filter_profile--profile"></a>
 ### Nested Schema for `web_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

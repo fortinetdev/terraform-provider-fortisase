@@ -4,16 +4,18 @@ page_title: "fortisase_infra_fortigates Data Source - fortisase"
 subcategory: "Others"
 description: |-
   Edge Device (FortiGate) Resource API V2 for FortiSASE.
+  fortisase_infra_fortigates is deprecated. Please use fortisase_infra_fortigate instead.
 ---
 
 # fortisase_infra_fortigates (Data Source)
 
 Edge Device (FortiGate) Resource API V2 for FortiSASE.
+fortisase_infra_fortigates is deprecated. Please use fortisase_infra_fortigate instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_infra_fortigates" "example" {
+data "fortisase_infra_fortigate" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_infra_fortigates" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `status` (String)

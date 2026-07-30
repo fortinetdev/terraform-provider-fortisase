@@ -55,21 +55,18 @@ func (r *datasourceEndpointZtnaTagRule) Schema(ctx context.Context, req datasour
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"description": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthBetween(1, 512),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"comments": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtMost(1000),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"rules": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -79,93 +76,78 @@ func (r *datasourceEndpointZtnaTagRule) Schema(ctx context.Context, req datasour
 								float64validatorwarning.AtLeast(1),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"os": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("windows", "macos", "linux", "ios", "android"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("ad-groups", "anti-virus", "certificate", "file", "logged-in-domain", "running-process", "registry-key", "os-version", "sandbox-detection", "vulnerable-devices", "windows-security", "user-identity", "ems-management", "security", "ip-range", "on-fabric-status", "fct-version", "security-status", "cve", "crowdstrike-zta-score"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"service": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("Google", "LinkedIn", "Salesforce", "Custom"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"account": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"match_type": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("simple", "regex", "wildcard"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"subject": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"issuer": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"content": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("AV Software is installed and running", "AV Signature is up-to-date", "FortiClient installed and Telemetry connected to EMS", "Sandbox detected malware in last 7 days", "Critical", "High or higher", "Medium or higher", "Low or higher", "Windows Defender is enabled", "Bitlocker Disk Encryption is enabled on all disks", "Bitlocker Disk Encryption is enabled on OS disk", "Exploit Guard is enabled", "Application Guard is enabled", "Windows Firewall is enabled", "Automatic Updates are enabled", "FileVault Disk Encryption is enabled", "On-Fabric", "Passcode Enabled", "Biometrics Protected", "Jail-broken"),
 								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"path": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.LengthAtLeast(1),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"negated": schema.BoolAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"enable_latest_update_check": schema.BoolAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"check_updates_within_days": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.Between(1, 3653),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"comparator": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("=", ">", "<", ">=", "<="),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"condition": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
@@ -174,55 +156,32 @@ func (r *datasourceEndpointZtnaTagRule) Schema(ctx context.Context, req datasour
 										stringvalidatorwarning.LengthBetween(1, 256),
 									},
 									Computed: true,
-									Optional: true,
 								},
 								"is_dword": schema.BoolAttribute{
 									Computed: true,
-									Optional: true,
 								},
 								"comparator": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("=", "!=", ">", ">=", "<", "<="),
 									},
 									Computed: true,
-									Optional: true,
 								},
 								"value": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.LengthBetween(1, 256),
 									},
 									Computed: true,
-									Optional: true,
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"logic": schema.SingleNestedAttribute{
-				Attributes: map[string]schema.Attribute{
-					"windows": schema.StringAttribute{
-						Optional: true,
-					},
-					"macos": schema.StringAttribute{
-						Optional: true,
-					},
-					"linux": schema.StringAttribute{
-						Optional: true,
-					},
-					"ios": schema.StringAttribute{
-						Optional: true,
-					},
-					"android": schema.StringAttribute{
-						Optional: true,
-					},
-				},
+
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -329,7 +288,7 @@ func (m *datasourceEndpointZtnaTagRuleModel) refreshEndpointZtnaTagRule(ctx cont
 
 func (data *datasourceEndpointZtnaTagRuleModel) getURLObjectEndpointZtnaTagRule(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -362,11 +321,6 @@ type datasourceEndpointZtnaTagRuleRulesConditionModel struct {
 }
 
 type datasourceEndpointZtnaTagRuleLogicModel struct {
-	Windows types.String `tfsdk:"windows"`
-	Macos   types.String `tfsdk:"macos"`
-	Linux   types.String `tfsdk:"linux"`
-	Ios     types.String `tfsdk:"ios"`
-	Android types.String `tfsdk:"android"`
 }
 
 func (m *datasourceEndpointZtnaTagRuleRulesModel) flattenEndpointZtnaTagRuleRules(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointZtnaTagRuleRulesModel {
@@ -445,12 +399,17 @@ func (s *datasourceEndpointZtnaTagRuleModel) flattenEndpointZtnaTagRuleRulesList
 		return []datasourceEndpointZtnaTagRuleRulesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument rules is not type of []interface{}.", "")
 		return []datasourceEndpointZtnaTagRuleRulesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceEndpointZtnaTagRuleRulesModel{}
 	}
@@ -458,6 +417,9 @@ func (s *datasourceEndpointZtnaTagRuleModel) flattenEndpointZtnaTagRuleRulesList
 	values := make([]datasourceEndpointZtnaTagRuleRulesModel, len(l))
 	for i, ele := range l {
 		var m datasourceEndpointZtnaTagRuleRulesModel
+		if i < len(s.Rules) {
+			m = s.Rules[i]
+		}
 		values[i] = *m.flattenEndpointZtnaTagRuleRules(ctx, ele, diags)
 	}
 
@@ -497,61 +459,6 @@ func (m *datasourceEndpointZtnaTagRuleLogicModel) flattenEndpointZtnaTagRuleLogi
 	}
 	if m == nil {
 		m = &datasourceEndpointZtnaTagRuleLogicModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["windows"]; ok {
-		parsedV, err := parseJsonString(v, m.Windows)
-		if err != nil {
-			diags.AddWarning(
-				"Argument windows has different value from API response.",
-				fmt.Sprintf("%v", err),
-			)
-		}
-		m.Windows = parsedV
-	}
-
-	if v, ok := o["macos"]; ok {
-		parsedV, err := parseJsonString(v, m.Macos)
-		if err != nil {
-			diags.AddWarning(
-				"Argument macos has different value from API response.",
-				fmt.Sprintf("%v", err),
-			)
-		}
-		m.Macos = parsedV
-	}
-
-	if v, ok := o["linux"]; ok {
-		parsedV, err := parseJsonString(v, m.Linux)
-		if err != nil {
-			diags.AddWarning(
-				"Argument linux has different value from API response.",
-				fmt.Sprintf("%v", err),
-			)
-		}
-		m.Linux = parsedV
-	}
-
-	if v, ok := o["ios"]; ok {
-		parsedV, err := parseJsonString(v, m.Ios)
-		if err != nil {
-			diags.AddWarning(
-				"Argument ios has different value from API response.",
-				fmt.Sprintf("%v", err),
-			)
-		}
-		m.Ios = parsedV
-	}
-
-	if v, ok := o["android"]; ok {
-		parsedV, err := parseJsonString(v, m.Android)
-		if err != nil {
-			diags.AddWarning(
-				"Argument android has different value from API response.",
-				fmt.Sprintf("%v", err),
-			)
-		}
-		m.Android = parsedV
 	}
 
 	return m

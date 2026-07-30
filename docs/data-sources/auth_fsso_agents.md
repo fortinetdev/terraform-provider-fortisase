@@ -4,16 +4,18 @@ page_title: "fortisase_auth_fsso_agents Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
   FSSO Agent Resource API V2 for FortiSASE.
+  fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent instead.
 ---
 
 # fortisase_auth_fsso_agents (Data Source)
 
 FSSO Agent Resource API V2 for FortiSASE.
+fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_auth_fsso_agents" "example" {
+data "fortisase_auth_fsso_agent" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_auth_fsso_agents" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `active_server` (String)
 - `name` (String)

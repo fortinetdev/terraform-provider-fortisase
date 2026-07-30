@@ -4,16 +4,18 @@ page_title: "fortisase_infra_extenders Data Source - fortisase"
 subcategory: "Others"
 description: |-
   Edge Device (Extender) Resource API V2 for FortiSASE.
+  fortisase_infra_extenders is deprecated. Please use fortisase_infra_extender instead.
 ---
 
 # fortisase_infra_extenders (Data Source)
 
 Edge Device (Extender) Resource API V2 for FortiSASE.
+fortisase_infra_extenders is deprecated. Please use fortisase_infra_extender instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_infra_extenders" "example" {
+data "fortisase_infra_extender" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_infra_extenders" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `status` (String)

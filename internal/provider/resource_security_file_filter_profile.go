@@ -55,6 +55,9 @@ func (r *resourceSecurityFileFilterProfile) Schema(ctx context.Context, req reso
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"block_password_protected_files": schema.BoolAttribute{
 				Computed: true,
@@ -72,14 +75,12 @@ func (r *resourceSecurityFileFilterProfile) Schema(ctx context.Context, req reso
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
-							Computed: true,
 							Optional: true,
 						},
 					},
@@ -94,11 +95,9 @@ func (r *resourceSecurityFileFilterProfile) Schema(ctx context.Context, req reso
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
-							Computed: true,
 							Optional: true,
 						},
 						"primary_key": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 					},
@@ -163,7 +162,7 @@ func (r *resourceSecurityFileFilterProfile) Create(ctx context.Context, req reso
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -271,6 +270,10 @@ func (r *resourceSecurityFileFilterProfile) Read(ctx context.Context, req resour
 
 	read_output, err := c.ReadSecurityFileFilterProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -313,7 +316,7 @@ func (m *resourceSecurityFileFilterProfileModel) refreshSecurityFileFilterProfil
 
 func (data *resourceSecurityFileFilterProfileModel) getCreateObjectSecurityFileFilterProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -321,7 +324,7 @@ func (data *resourceSecurityFileFilterProfileModel) getCreateObjectSecurityFileF
 
 	result["monitor"] = data.expandSecurityFileFilterProfileMonitorList(ctx, data.Monitor, diags)
 
-	if !data.BlockPasswordProtectedFiles.IsNull() {
+	if !data.BlockPasswordProtectedFiles.IsNull() && !data.BlockPasswordProtectedFiles.IsUnknown() {
 		result["blockPasswordProtectedFiles"] = data.BlockPasswordProtectedFiles.ValueBool()
 	}
 
@@ -330,7 +333,7 @@ func (data *resourceSecurityFileFilterProfileModel) getCreateObjectSecurityFileF
 
 func (data *resourceSecurityFileFilterProfileModel) getUpdateObjectSecurityFileFilterProfile(ctx context.Context, state resourceSecurityFileFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -342,7 +345,7 @@ func (data *resourceSecurityFileFilterProfileModel) getUpdateObjectSecurityFileF
 		result["monitor"] = data.expandSecurityFileFilterProfileMonitorList(ctx, data.Monitor, diags)
 	}
 
-	if !data.BlockPasswordProtectedFiles.IsNull() {
+	if !data.BlockPasswordProtectedFiles.IsNull() && !data.BlockPasswordProtectedFiles.IsUnknown() {
 		result["blockPasswordProtectedFiles"] = data.BlockPasswordProtectedFiles.ValueBool()
 	}
 
@@ -351,14 +354,14 @@ func (data *resourceSecurityFileFilterProfileModel) getUpdateObjectSecurityFileF
 
 func (data *resourceSecurityFileFilterProfileModel) getURLObjectSecurityFileFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -399,12 +402,17 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 		return []resourceSecurityFileFilterProfileBlockModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument block is not type of []interface{}.", "")
 		return []resourceSecurityFileFilterProfileBlockModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityFileFilterProfileBlockModel{}
 	}
@@ -412,6 +420,9 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 	values := make([]resourceSecurityFileFilterProfileBlockModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityFileFilterProfileBlockModel
+		if i < len(s.Block) {
+			m = s.Block[i]
+		}
 		values[i] = *m.flattenSecurityFileFilterProfileBlock(ctx, ele, diags)
 	}
 
@@ -442,12 +453,17 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 		return []resourceSecurityFileFilterProfileMonitorModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument monitor is not type of []interface{}.", "")
 		return []resourceSecurityFileFilterProfileMonitorModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityFileFilterProfileMonitorModel{}
 	}
@@ -455,6 +471,9 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 	values := make([]resourceSecurityFileFilterProfileMonitorModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityFileFilterProfileMonitorModel
+		if i < len(s.Monitor) {
+			m = s.Monitor[i]
+		}
 		values[i] = *m.flattenSecurityFileFilterProfileMonitor(ctx, ele, diags)
 	}
 
@@ -463,11 +482,11 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 
 func (data *resourceSecurityFileFilterProfileBlockModel) expandSecurityFileFilterProfileBlock(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -484,11 +503,11 @@ func (s *resourceSecurityFileFilterProfileModel) expandSecurityFileFilterProfile
 
 func (data *resourceSecurityFileFilterProfileMonitorModel) expandSecurityFileFilterProfileMonitor(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

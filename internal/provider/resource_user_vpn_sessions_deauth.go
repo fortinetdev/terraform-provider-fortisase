@@ -48,12 +48,10 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Schema(ctx context.Context, req reso
 				},
 			},
 			"usernames": schema.SetAttribute{
-				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 			},
 			"session_ids": schema.SetAttribute{
-				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 			},
@@ -165,11 +163,11 @@ func (r *resourceUserVpnSessionsDeauth2Edl) Read(ctx context.Context, req resour
 
 func (data *resourceUserVpnSessionsDeauth2EdlModel) getCreateObjectUserVpnSessionsDeauth(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Usernames.IsNull() {
+	if !data.Usernames.IsNull() && !data.Usernames.IsUnknown() {
 		result["usernames"] = expandSetToStringList(data.Usernames)
 	}
 
-	if !data.SessionIds.IsNull() {
+	if !data.SessionIds.IsNull() && !data.SessionIds.IsUnknown() {
 		result["sessionIds"] = expandSetToStringList(data.SessionIds)
 	}
 
@@ -178,11 +176,11 @@ func (data *resourceUserVpnSessionsDeauth2EdlModel) getCreateObjectUserVpnSessio
 
 func (data *resourceUserVpnSessionsDeauth2EdlModel) getUpdateObjectUserVpnSessionsDeauth(ctx context.Context, state resourceUserVpnSessionsDeauth2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Usernames.IsNull() {
+	if !data.Usernames.IsNull() && !data.Usernames.IsUnknown() {
 		result["usernames"] = expandSetToStringList(data.Usernames)
 	}
 
-	if !data.SessionIds.IsNull() {
+	if !data.SessionIds.IsNull() && !data.SessionIds.IsUnknown() {
 		result["sessionIds"] = expandSetToStringList(data.SessionIds)
 	}
 

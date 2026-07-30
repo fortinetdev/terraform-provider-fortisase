@@ -4,16 +4,18 @@ page_title: "fortisase_security_recurring_schedules Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Recurring Schedule Resource API V2 for FortiSASE.
+  fortisase_security_recurring_schedules is deprecated. Please use fortisase_security_recurring_schedule instead.
 ---
 
 # fortisase_security_recurring_schedules (Data Source)
 
 Recurring Schedule Resource API V2 for FortiSASE.
+fortisase_security_recurring_schedules is deprecated. Please use fortisase_security_recurring_schedule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_recurring_schedules" "example" {
+data "fortisase_security_recurring_schedule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_recurring_schedules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `days` (Set of String)
 - `end_time` (String)

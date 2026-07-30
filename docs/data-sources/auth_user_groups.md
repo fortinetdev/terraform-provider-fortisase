@@ -4,16 +4,18 @@ page_title: "fortisase_auth_user_groups Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
   User Group Resource API V2 for FortiSASE.
+  fortisase_auth_user_groups is deprecated. Please use fortisase_auth_user_group instead.
 ---
 
 # fortisase_auth_user_groups (Data Source)
 
 User Group Resource API V2 for FortiSASE.
+fortisase_auth_user_groups is deprecated. Please use fortisase_auth_user_group instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_auth_user_groups" "example" {
+data "fortisase_auth_user_group" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,19 +27,16 @@ data "fortisase_auth_user_groups" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `group_type` (String)
-- `local_user` (String)
 - `local_users` (Attributes List) (see [below for nested schema](#nestedatt--local_users))
 - `remote_user_groups` (Attributes List) (see [below for nested schema](#nestedatt--remote_user_groups))
-- `scim_groups` (Attributes List) (see [below for nested schema](#nestedatt--scim_groups))
-- `scim_users` (Attributes List) (see [below for nested schema](#nestedatt--scim_users))
 
 <a id="nestedatt--local_users"></a>
 ### Nested Schema for `local_users`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -46,7 +45,7 @@ Optional:
 <a id="nestedatt--remote_user_groups"></a>
 ### Nested Schema for `remote_user_groups`
 
-Optional:
+Read-Only:
 
 - `matches` (Set of String)
 - `server` (Attributes) (see [below for nested schema](#nestedatt--remote_user_groups--server))
@@ -54,24 +53,7 @@ Optional:
 <a id="nestedatt--remote_user_groups--server"></a>
 ### Nested Schema for `remote_user_groups.server`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
-
-
-
-<a id="nestedatt--scim_groups"></a>
-### Nested Schema for `scim_groups`
-
-Optional:
-
-- `name` (String)
-
-
-<a id="nestedatt--scim_users"></a>
-### Nested Schema for `scim_users`
-
-Optional:
-
-- `name` (String)

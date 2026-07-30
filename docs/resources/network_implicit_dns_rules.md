@@ -4,16 +4,18 @@ page_title: "fortisase_network_implicit_dns_rules Resource - fortisase"
 subcategory: "Network"
 description: |-
   Implicit DNS Rule Resource API V2 for FortiSASE.
+  fortisase_network_implicit_dns_rules is deprecated. Please use fortisase_network_implicit_dns_rule instead.
 ---
 
 # fortisase_network_implicit_dns_rules (Resource)
 
 Implicit DNS Rule Resource API V2 for FortiSASE.
+fortisase_network_implicit_dns_rules is deprecated. Please use fortisase_network_implicit_dns_rule instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_network_implicit_dns_rules" "network_implicit_dns_rule" {
+resource "fortisase_network_implicit_dns_rule" "network_implicit_dns_rule" {
   primary_key = "implicit_all"
   dns_server  = "google"
 }
@@ -45,5 +47,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_network_implicit_dns_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_network_implicit_dns_rule.{{your_resource_name}} {{primary_key}}
 ```

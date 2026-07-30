@@ -4,16 +4,18 @@ page_title: "fortisase_security_pki_users Resource - fortisase"
 subcategory: "Security"
 description: |-
   PKI User Resource API for FortiSASE.
+  fortisase_security_pki_users is deprecated. Please use fortisase_security_pki_user instead.
 ---
 
 # fortisase_security_pki_users (Resource)
 
 PKI User Resource API for FortiSASE.
+fortisase_security_pki_users is deprecated. Please use fortisase_security_pki_user instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_pki_users" "pki_user" {
+resource "fortisase_security_pki_user" "pki_user" {
   primary_key = "example_name"
   ca = {
     name = "Fortinet_CA"
@@ -54,5 +56,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_pki_users.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_pki_user.{{your_resource_name}} {{primary_key}}
 ```

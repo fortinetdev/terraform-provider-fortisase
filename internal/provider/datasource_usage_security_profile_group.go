@@ -44,19 +44,16 @@ func (r *datasourceUsageSecurityProfileGroup) Schema(ctx context.Context, req da
 		Attributes: map[string]schema.Attribute{
 			"type": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"ftntcount": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"primary_key": schema.StringAttribute{
 				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
@@ -142,14 +139,14 @@ func (m *datasourceUsageSecurityProfileGroupModel) refreshUsageSecurityProfileGr
 
 func (data *datasourceUsageSecurityProfileGroupModel) getURLObjectUsageSecurityProfileGroup(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 

@@ -4,16 +4,18 @@ page_title: "fortisase_security_internal_reverse_policies Data Source - fortisas
 subcategory: "Security"
 description: |-
   Internal Reverse Policy Resource API V2 for FortiSASE.
+  fortisase_security_internal_reverse_policies is deprecated. Please use fortisase_security_internal_reverse_policy instead.
 ---
 
 # fortisase_security_internal_reverse_policies (Data Source)
 
 Internal Reverse Policy Resource API V2 for FortiSASE.
+fortisase_security_internal_reverse_policies is deprecated. Please use fortisase_security_internal_reverse_policy instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_internal_reverse_policies" "example" {
+data "fortisase_security_internal_reverse_policy" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_internal_reverse_policies" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `action` (String)
 - `comments` (String)
@@ -41,7 +43,7 @@ data "fortisase_security_internal_reverse_policies" "example" {
 <a id="nestedatt--destinations"></a>
 ### Nested Schema for `destinations`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -50,7 +52,7 @@ Optional:
 <a id="nestedatt--profile_group"></a>
 ### Nested Schema for `profile_group`
 
-Optional:
+Read-Only:
 
 - `force_cert_inspection` (Boolean)
 - `group` (Attributes) (see [below for nested schema](#nestedatt--profile_group--group))
@@ -58,7 +60,7 @@ Optional:
 <a id="nestedatt--profile_group--group"></a>
 ### Nested Schema for `profile_group.group`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -68,7 +70,7 @@ Optional:
 <a id="nestedatt--schedule"></a>
 ### Nested Schema for `schedule`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -77,7 +79,7 @@ Optional:
 <a id="nestedatt--services"></a>
 ### Nested Schema for `services`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -86,7 +88,7 @@ Optional:
 <a id="nestedatt--sources"></a>
 ### Nested Schema for `sources`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

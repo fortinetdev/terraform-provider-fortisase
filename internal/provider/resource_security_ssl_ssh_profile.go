@@ -64,6 +64,9 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"inspection_mode": schema.StringAttribute{
 				Validators: []validator.String{
@@ -159,14 +162,12 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 			"ca_certificate": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
-						Computed: true,
 						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/ca-certificates"),
 						},
-						Computed: true,
 						Optional: true,
 					},
 				},
@@ -177,14 +178,12 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 							},
-							Computed: true,
 							Optional: true,
 						},
 					},
@@ -196,14 +195,12 @@ func (r *resourceSecuritySslSshProfile) Schema(ctx context.Context, req resource
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("security/fortiguard-categories", "security/fortiguard-local-categories"),
 							},
-							Computed: true,
 							Optional: true,
 						},
 					},
@@ -268,7 +265,7 @@ func (r *resourceSecuritySslSshProfile) Create(ctx context.Context, req resource
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -376,6 +373,10 @@ func (r *resourceSecuritySslSshProfile) Read(ctx context.Context, req resource.R
 
 	read_output, err := c.ReadSecuritySslSshProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -450,11 +451,11 @@ func (m *resourceSecuritySslSshProfileModel) refreshSecuritySslSshProfile(ctx co
 
 func (data *resourceSecuritySslSshProfileModel) getCreateObjectSecuritySslSshProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.InspectionMode.IsNull() {
+	if !data.InspectionMode.IsNull() && !data.InspectionMode.IsUnknown() {
 		result["inspectionMode"] = data.InspectionMode.ValueString()
 	}
 
@@ -462,31 +463,32 @@ func (data *resourceSecuritySslSshProfileModel) getCreateObjectSecuritySslSshPro
 		result["profileProtocolOptions"] = data.ProfileProtocolOptions.expandSecuritySslSshProfileProfileProtocolOptions(ctx, diags)
 	}
 
+	result["caCertificate"] = nil
 	if data.CaCertificate != nil && !isZeroStruct(*data.CaCertificate) {
 		result["caCertificate"] = data.CaCertificate.expandSecuritySslSshProfileCaCertificate(ctx, diags)
 	}
 
-	if !data.ExpiredCertificateAction.IsNull() {
+	if !data.ExpiredCertificateAction.IsNull() && !data.ExpiredCertificateAction.IsUnknown() {
 		result["expiredCertificateAction"] = data.ExpiredCertificateAction.ValueString()
 	}
 
-	if !data.RevokedCertificateAction.IsNull() {
+	if !data.RevokedCertificateAction.IsNull() && !data.RevokedCertificateAction.IsUnknown() {
 		result["revokedCertificateAction"] = data.RevokedCertificateAction.ValueString()
 	}
 
-	if !data.TimedOutValidationCertificateAction.IsNull() {
+	if !data.TimedOutValidationCertificateAction.IsNull() && !data.TimedOutValidationCertificateAction.IsUnknown() {
 		result["timedOutValidationCertificateAction"] = data.TimedOutValidationCertificateAction.ValueString()
 	}
 
-	if !data.ValidationFailedCertificateAction.IsNull() {
+	if !data.ValidationFailedCertificateAction.IsNull() && !data.ValidationFailedCertificateAction.IsUnknown() {
 		result["validationFailedCertificateAction"] = data.ValidationFailedCertificateAction.ValueString()
 	}
 
-	if !data.CertProbeFailure.IsNull() {
+	if !data.CertProbeFailure.IsNull() && !data.CertProbeFailure.IsUnknown() {
 		result["certProbeFailure"] = data.CertProbeFailure.ValueString()
 	}
 
-	if !data.Quic.IsNull() {
+	if !data.Quic.IsNull() && !data.Quic.IsUnknown() {
 		result["quic"] = data.Quic.ValueString()
 	}
 
@@ -503,11 +505,11 @@ func (data *resourceSecuritySslSshProfileModel) getCreateObjectSecuritySslSshPro
 
 func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshProfile(ctx context.Context, state resourceSecuritySslSshProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.InspectionMode.IsNull() {
+	if !data.InspectionMode.IsNull() && !data.InspectionMode.IsUnknown() {
 		result["inspectionMode"] = data.InspectionMode.ValueString()
 	}
 
@@ -515,31 +517,32 @@ func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshPro
 		result["profileProtocolOptions"] = data.ProfileProtocolOptions.expandSecuritySslSshProfileProfileProtocolOptions(ctx, diags)
 	}
 
-	if data.CaCertificate != nil {
+	result["caCertificate"] = nil
+	if data.CaCertificate != nil && !isZeroStruct(*data.CaCertificate) {
 		result["caCertificate"] = data.CaCertificate.expandSecuritySslSshProfileCaCertificate(ctx, diags)
 	}
 
-	if !data.ExpiredCertificateAction.IsNull() {
+	if !data.ExpiredCertificateAction.IsNull() && !data.ExpiredCertificateAction.IsUnknown() {
 		result["expiredCertificateAction"] = data.ExpiredCertificateAction.ValueString()
 	}
 
-	if !data.RevokedCertificateAction.IsNull() {
+	if !data.RevokedCertificateAction.IsNull() && !data.RevokedCertificateAction.IsUnknown() {
 		result["revokedCertificateAction"] = data.RevokedCertificateAction.ValueString()
 	}
 
-	if !data.TimedOutValidationCertificateAction.IsNull() {
+	if !data.TimedOutValidationCertificateAction.IsNull() && !data.TimedOutValidationCertificateAction.IsUnknown() {
 		result["timedOutValidationCertificateAction"] = data.TimedOutValidationCertificateAction.ValueString()
 	}
 
-	if !data.ValidationFailedCertificateAction.IsNull() {
+	if !data.ValidationFailedCertificateAction.IsNull() && !data.ValidationFailedCertificateAction.IsUnknown() {
 		result["validationFailedCertificateAction"] = data.ValidationFailedCertificateAction.ValueString()
 	}
 
-	if !data.CertProbeFailure.IsNull() {
+	if !data.CertProbeFailure.IsNull() && !data.CertProbeFailure.IsUnknown() {
 		result["certProbeFailure"] = data.CertProbeFailure.ValueString()
 	}
 
-	if !data.Quic.IsNull() {
+	if !data.Quic.IsNull() && !data.Quic.IsUnknown() {
 		result["quic"] = data.Quic.ValueString()
 	}
 
@@ -556,14 +559,14 @@ func (data *resourceSecuritySslSshProfileModel) getUpdateObjectSecuritySslSshPro
 
 func (data *resourceSecuritySslSshProfileModel) getURLObjectSecuritySslSshProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -662,12 +665,17 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileHostExe
 		return []resourceSecuritySslSshProfileHostExemptionsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument host_exemptions is not type of []interface{}.", "")
 		return []resourceSecuritySslSshProfileHostExemptionsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecuritySslSshProfileHostExemptionsModel{}
 	}
@@ -675,6 +683,9 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileHostExe
 	values := make([]resourceSecuritySslSshProfileHostExemptionsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecuritySslSshProfileHostExemptionsModel
+		if i < len(s.HostExemptions) {
+			m = s.HostExemptions[i]
+		}
 		values[i] = *m.flattenSecuritySslSshProfileHostExemptions(ctx, ele, diags)
 	}
 
@@ -705,12 +716,17 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCate
 		return []resourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument url_category_exemptions is not type of []interface{}.", "")
 		return []resourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
@@ -718,6 +734,9 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCate
 	values := make([]resourceSecuritySslSshProfileUrlCategoryExemptionsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecuritySslSshProfileUrlCategoryExemptionsModel
+		if i < len(s.UrlCategoryExemptions) {
+			m = s.UrlCategoryExemptions[i]
+		}
 		values[i] = *m.flattenSecuritySslSshProfileUrlCategoryExemptions(ctx, ele, diags)
 	}
 
@@ -726,19 +745,19 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCate
 
 func (data *resourceSecuritySslSshProfileProfileProtocolOptionsModel) expandSecuritySslSshProfileProfileProtocolOptions(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.UnknownContentEncoding.IsNull() {
+	if !data.UnknownContentEncoding.IsNull() && !data.UnknownContentEncoding.IsUnknown() {
 		result["unknownContentEncoding"] = data.UnknownContentEncoding.ValueString()
 	}
 
-	if !data.OversizedAction.IsNull() {
+	if !data.OversizedAction.IsNull() && !data.OversizedAction.IsUnknown() {
 		result["oversizedAction"] = data.OversizedAction.ValueString()
 	}
 
-	if !data.CompressedLimit.IsNull() {
+	if !data.CompressedLimit.IsNull() && !data.CompressedLimit.IsUnknown() {
 		result["compressedLimit"] = data.CompressedLimit.ValueFloat64()
 	}
 
-	if !data.UncompressedLimit.IsNull() {
+	if !data.UncompressedLimit.IsNull() && !data.UncompressedLimit.IsUnknown() {
 		result["uncompressedLimit"] = data.UncompressedLimit.ValueFloat64()
 	}
 
@@ -747,11 +766,11 @@ func (data *resourceSecuritySslSshProfileProfileProtocolOptionsModel) expandSecu
 
 func (data *resourceSecuritySslSshProfileCaCertificateModel) expandSecuritySslSshProfileCaCertificate(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -760,11 +779,11 @@ func (data *resourceSecuritySslSshProfileCaCertificateModel) expandSecuritySslSs
 
 func (data *resourceSecuritySslSshProfileHostExemptionsModel) expandSecuritySslSshProfileHostExemptions(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -781,11 +800,11 @@ func (s *resourceSecuritySslSshProfileModel) expandSecuritySslSshProfileHostExem
 
 func (data *resourceSecuritySslSshProfileUrlCategoryExemptionsModel) expandSecuritySslSshProfileUrlCategoryExemptions(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 

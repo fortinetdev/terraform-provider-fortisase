@@ -64,6 +64,9 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 					stringvalidatorwarning.LengthBetween(1, 79),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
@@ -86,14 +89,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/antivirus-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -116,14 +117,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/web-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -146,14 +145,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/video-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -176,14 +173,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/dns-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -206,14 +201,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/application-control-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -236,14 +229,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/file-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -266,14 +257,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/dlp-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -296,14 +285,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/ips-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -326,14 +313,12 @@ func (r *resourceSecurityProfileGroup) Schema(ctx context.Context, req resource.
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/ssl-ssh-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
@@ -390,6 +375,7 @@ func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.
 	if diags.HasError() {
 		return
 	}
+	mkey := data.PrimaryKey.ValueString()
 	output, err := c.CreateSecurityProfileGroup(&input_model)
 	if err != nil {
 		diags.AddError(
@@ -399,7 +385,9 @@ func (r *resourceSecurityProfileGroup) Create(ctx context.Context, req resource.
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	if responseMkey, ok := getCreateResponseMkey(output, "primaryKey"); ok {
+		mkey = responseMkey
+	}
 	data.ID = types.StringValue(mkey)
 	var update_input_model forticlient.InputModel
 	update_input_model.Mkey = mkey
@@ -548,6 +536,10 @@ func (r *resourceSecurityProfileGroup) Read(ctx context.Context, req resource.Re
 
 	read_output, err := c.ReadSecurityProfileGroup(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -614,7 +606,7 @@ func (m *resourceSecurityProfileGroupModel) refreshSecurityProfileGroup(ctx cont
 
 func (data *resourceSecurityProfileGroupModel) getCreateObjectSecurityProfileGroup(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -623,7 +615,7 @@ func (data *resourceSecurityProfileGroupModel) getCreateObjectSecurityProfileGro
 
 func (data *resourceSecurityProfileGroupModel) getUpdateObjectSecurityProfileGroup(ctx context.Context, state resourceSecurityProfileGroupModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -668,11 +660,11 @@ func (data *resourceSecurityProfileGroupModel) getUpdateObjectSecurityProfileGro
 
 func (data *resourceSecurityProfileGroupModel) getURLObjectSecurityProfileGroup(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
@@ -1116,10 +1108,11 @@ func (m *resourceSecurityProfileGroupSslSshProfileProfileModel) flattenSecurityP
 
 func (data *resourceSecurityProfileGroupAntivirusProfileModel) expandSecurityProfileGroupAntivirusProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupAntivirusProfileProfile(ctx, diags)
 	}
@@ -1129,23 +1122,17 @@ func (data *resourceSecurityProfileGroupAntivirusProfileModel) expandSecurityPro
 
 func (data *resourceSecurityProfileGroupAntivirusProfileProfileModel) expandSecurityProfileGroupAntivirusProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupWebFilterProfileModel) expandSecurityProfileGroupWebFilterProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupWebFilterProfileProfile(ctx, diags)
 	}
@@ -1155,23 +1142,17 @@ func (data *resourceSecurityProfileGroupWebFilterProfileModel) expandSecurityPro
 
 func (data *resourceSecurityProfileGroupWebFilterProfileProfileModel) expandSecurityProfileGroupWebFilterProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupVideoFilterProfileModel) expandSecurityProfileGroupVideoFilterProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupVideoFilterProfileProfile(ctx, diags)
 	}
@@ -1181,23 +1162,17 @@ func (data *resourceSecurityProfileGroupVideoFilterProfileModel) expandSecurityP
 
 func (data *resourceSecurityProfileGroupVideoFilterProfileProfileModel) expandSecurityProfileGroupVideoFilterProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupDnsFilterProfileModel) expandSecurityProfileGroupDnsFilterProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupDnsFilterProfileProfile(ctx, diags)
 	}
@@ -1207,23 +1182,17 @@ func (data *resourceSecurityProfileGroupDnsFilterProfileModel) expandSecurityPro
 
 func (data *resourceSecurityProfileGroupDnsFilterProfileProfileModel) expandSecurityProfileGroupDnsFilterProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupApplicationControlProfileModel) expandSecurityProfileGroupApplicationControlProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupApplicationControlProfileProfile(ctx, diags)
 	}
@@ -1233,23 +1202,17 @@ func (data *resourceSecurityProfileGroupApplicationControlProfileModel) expandSe
 
 func (data *resourceSecurityProfileGroupApplicationControlProfileProfileModel) expandSecurityProfileGroupApplicationControlProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupFileFilterProfileModel) expandSecurityProfileGroupFileFilterProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupFileFilterProfileProfile(ctx, diags)
 	}
@@ -1259,23 +1222,17 @@ func (data *resourceSecurityProfileGroupFileFilterProfileModel) expandSecurityPr
 
 func (data *resourceSecurityProfileGroupFileFilterProfileProfileModel) expandSecurityProfileGroupFileFilterProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupDlpFilterProfileModel) expandSecurityProfileGroupDlpFilterProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupDlpFilterProfileProfile(ctx, diags)
 	}
@@ -1285,23 +1242,17 @@ func (data *resourceSecurityProfileGroupDlpFilterProfileModel) expandSecurityPro
 
 func (data *resourceSecurityProfileGroupDlpFilterProfileProfileModel) expandSecurityProfileGroupDlpFilterProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupIntrusionPreventionProfileModel) expandSecurityProfileGroupIntrusionPreventionProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupIntrusionPreventionProfileProfile(ctx, diags)
 	}
@@ -1311,23 +1262,17 @@ func (data *resourceSecurityProfileGroupIntrusionPreventionProfileModel) expandS
 
 func (data *resourceSecurityProfileGroupIntrusionPreventionProfileProfileModel) expandSecurityProfileGroupIntrusionPreventionProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }
 
 func (data *resourceSecurityProfileGroupSslSshProfileModel) expandSecurityProfileGroupSslSshProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
+	result["profile"] = nil
 	if data.Profile != nil && !isZeroStruct(*data.Profile) {
 		result["profile"] = data.Profile.expandSecurityProfileGroupSslSshProfileProfile(ctx, diags)
 	}
@@ -1337,13 +1282,6 @@ func (data *resourceSecurityProfileGroupSslSshProfileModel) expandSecurityProfil
 
 func (data *resourceSecurityProfileGroupSslSshProfileProfileModel) expandSecurityProfileGroupSslSshProfileProfile(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
 
 	return result
 }

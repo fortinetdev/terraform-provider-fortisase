@@ -1,4 +1,44 @@
-## 1.3.0 (Unreleased)
+## 1.4.0 (Unreleased)
+
+## 1.3.0 (July 30, 2026)
+
+FEATURES:
+- **New Resource:** `fortisase_endpoint_mdm_integration`
+- **New Resource:** `fortisase_security_per_ip_traffic_shaper`
+- **New Resource:** `fortisase_security_traffic_shaper`
+- **New Resource:** `fortisase_security_traffic_shaping_policy`
+- **New Resource:** `fortisase_security_html_template`
+- **New Resource:** `fortisase_security_html_template_image`
+- **New Resource:** `fortisase_security_internal_proxy_policy`
+- **New Resource:** `fortisase_security_outbound_proxy_policy`
+- **New Resource:** `fortisase_security_internal_proxy_policy_clone`
+- **New Resource:** `fortisase_security_outbound_proxy_policy_clone`
+- **New Resource:** `fortisase_system_certificate`
+
+- **New Data Source:** `fortisase_endpoint_mdm_integration`
+- **New Data Source:** `fortisase_security_per_ip_traffic_shaper`
+- **New Data Source:** `fortisase_security_traffic_shaper`
+- **New Data Source:** `fortisase_security_traffic_shaping_policy`
+- **New Data Source:** `fortisase_security_html_template`
+- **New Data Source:** `fortisase_security_html_template_image`
+- **New Data Source:** `fortisase_security_internal_proxy_policy`
+- **New Data Source:** `fortisase_security_outbound_proxy_policy`
+
+IMPROVEMENTS:
+- Support the schema of FortiSASE API 26.2.2;
+
+BUG FIXES:
+- resource/fortisase_endpoint_ztna_tag_rule: Fix error related with argument sensitivities.
+- datasource: Mark all non-configurable arguments as read-only.
+
+Breaking Changes:
+- resource/fortisase_security_application_control_profile: This resource has been redesigned due to backend API changes. Please refer to the documentation for the updated configuration and usage.
+
+DEPRECATIONS:
+- resource/fortisase_endpoint_connection_profiles: "connect_to_forti_sase" is deprecated, please use "connect_to_fortisase" instead.
+- resource/fortisase_endpoint_connection_profiles: "available_vp_ns" is deprecated, please use "available_vpns" instead.
+- Resources and data sources using plural naming are deprecated. They will remain supported in future releases for backward compatibility, but users are encouraged to migrate to the corresponding singularly named resources and data sources.
+- The certificate-related resources `fortisase_security_cert_*` are deprecated. Please use fortisase_system_certificate instead.
 
 ## 1.2.0 (April 29, 2026)
 

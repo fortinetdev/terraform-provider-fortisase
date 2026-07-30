@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_fingerprint_databases Data Source - fortisas
 subcategory: "Security"
 description: |-
   DLP Fingerprint Database Resource API V2 for FortiSASE.
+  fortisase_security_dlp_fingerprint_databases is deprecated. Please use fortisase_security_dlp_fingerprint_database instead.
 ---
 
 # fortisase_security_dlp_fingerprint_databases (Data Source)
 
 DLP Fingerprint Database Resource API V2 for FortiSASE.
+fortisase_security_dlp_fingerprint_databases is deprecated. Please use fortisase_security_dlp_fingerprint_database instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_fingerprint_databases" "example" {
+data "fortisase_security_dlp_fingerprint_database" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_dlp_fingerprint_databases" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `authentication` (Attributes) (see [below for nested schema](#nestedatt--authentication))
 - `file_pattern` (String)
@@ -41,7 +43,7 @@ data "fortisase_security_dlp_fingerprint_databases" "example" {
 <a id="nestedatt--authentication"></a>
 ### Nested Schema for `authentication`
 
-Optional:
+Read-Only:
 
 - `password` (String, Sensitive)
 - `username` (String)
@@ -50,7 +52,7 @@ Optional:
 <a id="nestedatt--schedule"></a>
 ### Nested Schema for `schedule`
 
-Optional:
+Read-Only:
 
 - `period` (String)
 - `sync_day_of_the_month` (Number)

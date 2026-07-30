@@ -4,16 +4,18 @@ page_title: "fortisase_network_host_groups Resource - fortisase"
 subcategory: "Network"
 description: |-
   Host Group Resource API V2 for FortiSASE.
+  fortisase_network_host_groups is deprecated. Please use fortisase_network_host_group instead.
 ---
 
 # fortisase_network_host_groups (Resource)
 
 Host Group Resource API V2 for FortiSASE.
+fortisase_network_host_groups is deprecated. Please use fortisase_network_host_group instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_network_host_groups" "network_host_group" {
+resource "fortisase_network_host_group" "network_host_group" {
   primary_key = "network_host_group"
   members = [
     {
@@ -54,5 +56,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_network_host_groups.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_network_host_group.{{your_resource_name}} {{primary_key}}
 ```

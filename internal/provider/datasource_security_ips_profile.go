@@ -54,34 +54,28 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 					stringvalidatorwarning.OneOf("recommended", "critical", "monitor", "custom"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"is_blocking_malicious_url": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"botnet_scanning": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("block", "disable", "monitor"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"is_extended_log_enabled": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"comment": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"custom_rule_groups": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -91,58 +85,47 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"signatures": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/ips-custom-signatures"),
 										},
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"entries": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"location": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"severity": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"protocol": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"os": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"application": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"cve": schema.SetAttribute{
 							Computed:    true,
-							Optional:    true,
 							ElementType: types.StringType,
 						},
 						"status": schema.StringAttribute{
@@ -150,106 +133,88 @@ func (r *datasourceSecurityIpsProfile) Schema(ctx context.Context, req datasourc
 								stringvalidatorwarning.OneOf("enable", "disable", "default"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"log": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"log_packet": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"log_attack_context": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("pass", "block", "default"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"quarantine": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"default_action": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("all", "pass", "block"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"default_status": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("all", "enable", "disable"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"rule": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/ips-rule", "security/ips-custom-signatures"),
 										},
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"vuln_type": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.Float64Attribute{
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"exempt_ip": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"id": schema.Float64Attribute{
 										Computed: true,
-										Optional: true,
 									},
 									"src_ip": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 									"dst_ip": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -351,14 +316,14 @@ func (m *datasourceSecurityIpsProfileModel) refreshSecurityIpsProfile(ctx contex
 
 func (data *datasourceSecurityIpsProfileModel) getURLObjectSecurityIpsProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -434,12 +399,17 @@ func (s *datasourceSecurityIpsProfileModel) flattenSecurityIpsProfileCustomRuleG
 		return []datasourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument custom_rule_groups is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
@@ -447,6 +417,9 @@ func (s *datasourceSecurityIpsProfileModel) flattenSecurityIpsProfileCustomRuleG
 	values := make([]datasourceSecurityIpsProfileCustomRuleGroupsModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileCustomRuleGroupsModel
+		if i < len(s.CustomRuleGroups) {
+			m = s.CustomRuleGroups[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileCustomRuleGroups(ctx, ele, diags)
 	}
 
@@ -477,12 +450,17 @@ func (s *datasourceSecurityIpsProfileCustomRuleGroupsModel) flattenSecurityIpsPr
 		return []datasourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument signatures is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
@@ -490,6 +468,9 @@ func (s *datasourceSecurityIpsProfileCustomRuleGroupsModel) flattenSecurityIpsPr
 	values := make([]datasourceSecurityIpsProfileCustomRuleGroupsSignaturesModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileCustomRuleGroupsSignaturesModel
+		if i < len(s.Signatures) {
+			m = s.Signatures[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileCustomRuleGroupsSignatures(ctx, ele, diags)
 	}
 
@@ -530,6 +511,8 @@ func (m *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 
 	if v, ok := o["cve"]; ok {
 		m.Cve = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Cve = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["status"]; ok {
@@ -580,12 +563,17 @@ func (s *datasourceSecurityIpsProfileModel) flattenSecurityIpsProfileEntriesList
 		return []datasourceSecurityIpsProfileEntriesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument entries is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileEntriesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileEntriesModel{}
 	}
@@ -593,6 +581,9 @@ func (s *datasourceSecurityIpsProfileModel) flattenSecurityIpsProfileEntriesList
 	values := make([]datasourceSecurityIpsProfileEntriesModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileEntriesModel
+		if i < len(s.Entries) {
+			m = s.Entries[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntries(ctx, ele, diags)
 	}
 
@@ -623,12 +614,17 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 		return []datasourceSecurityIpsProfileEntriesRuleModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument rule is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileEntriesRuleModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileEntriesRuleModel{}
 	}
@@ -636,6 +632,9 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 	values := make([]datasourceSecurityIpsProfileEntriesRuleModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileEntriesRuleModel
+		if i < len(s.Rule) {
+			m = s.Rule[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesRule(ctx, ele, diags)
 	}
 
@@ -662,12 +661,17 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 		return []datasourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument vuln_type is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
@@ -675,6 +679,9 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 	values := make([]datasourceSecurityIpsProfileEntriesVulnTypeModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileEntriesVulnTypeModel
+		if i < len(s.VulnType) {
+			m = s.VulnType[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesVulnType(ctx, ele, diags)
 	}
 
@@ -709,12 +716,17 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 		return []datasourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument exempt_ip is not type of []interface{}.", "")
 		return []datasourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
@@ -722,6 +734,9 @@ func (s *datasourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntr
 	values := make([]datasourceSecurityIpsProfileEntriesExemptIpModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityIpsProfileEntriesExemptIpModel
+		if i < len(s.ExemptIp) {
+			m = s.ExemptIp[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesExemptIp(ctx, ele, diags)
 	}
 

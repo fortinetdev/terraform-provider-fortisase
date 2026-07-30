@@ -26,7 +26,7 @@ data "fortisase_endpoints_endpoints_with_software" "example" {
 - `software_id` (Number) The ID property of a specific software.
 Value at least 1.
 
-### Optional
+### Read-Only
 
 - `clients` (Attributes List) (see [below for nested schema](#nestedatt--clients))
 - `total` (Number)
@@ -34,7 +34,7 @@ Value at least 1.
 <a id="nestedatt--clients"></a>
 ### Nested Schema for `clients`
 
-Optional:
+Read-Only:
 
 - `app_count` (Number)
 - `client_id` (Number)

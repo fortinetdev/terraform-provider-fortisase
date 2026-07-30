@@ -4,16 +4,18 @@ page_title: "fortisase_security_pki_users Data Source - fortisase"
 subcategory: "Security"
 description: |-
   PKI User Resource API for FortiSASE.
+  fortisase_security_pki_users is deprecated. Please use fortisase_security_pki_user instead.
 ---
 
 # fortisase_security_pki_users (Data Source)
 
 PKI User Resource API for FortiSASE.
+fortisase_security_pki_users is deprecated. Please use fortisase_security_pki_user instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_pki_users" "example" {
+data "fortisase_security_pki_user" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,20 +27,17 @@ data "fortisase_security_pki_users" "example" {
 
 - `primary_key` (String) Primary Key of PKI User.
 
-### Optional
-
-- `ca` (Attributes) (see [below for nested schema](#nestedatt--ca))
-- `subject` (String)
-
 ### Read-Only
 
+- `ca` (Attributes) (see [below for nested schema](#nestedatt--ca))
 - `is_global_entry` (Boolean)
 - `is_static_object` (Boolean)
 - `references` (Number)
+- `subject` (String)
 
 <a id="nestedatt--ca"></a>
 ### Nested Schema for `ca`
 
-Optional:
+Read-Only:
 
 - `name` (String) CA Cert Name

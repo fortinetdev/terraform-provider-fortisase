@@ -4,16 +4,18 @@ page_title: "fortisase_auth_fsso_agents Resource - fortisase"
 subcategory: "Autentication"
 description: |-
   FSSO Agent Resource API V2 for FortiSASE.
+  fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent instead.
 ---
 
 # fortisase_auth_fsso_agents (Resource)
 
 FSSO Agent Resource API V2 for FortiSASE.
+fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_auth_fsso_agents" "fsso_agents" {
+resource "fortisase_auth_fsso_agent" "fsso_agents" {
   primary_key      = "fsso_agent"
   name             = "fsso_agent"
   server           = "1.2.3.4"
@@ -63,5 +65,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_auth_fsso_agents.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_auth_fsso_agent.{{your_resource_name}} {{primary_key}}
 ```

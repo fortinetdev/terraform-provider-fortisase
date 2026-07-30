@@ -1,0 +1,281 @@
+// Copyright 2020 Fortinet, Inc. All rights reserved.
+package provider
+
+import (
+	"context"
+	"fmt"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Ensure provider defined types fully satisfy framework interfaces.
+var _ datasource.DataSource = &datasourceSecurityDlpSensor{}
+
+func newDatasourceSecurityDlpSensor() datasource.DataSource {
+	return &datasourceSecurityDlpSensor{}
+}
+
+type datasourceSecurityDlpSensor struct {
+	fortiClient  *FortiClient
+	resourceName string
+}
+
+// datasourceSecurityDlpSensorModel describes the datasource data model.
+type datasourceSecurityDlpSensorModel struct {
+	PrimaryKey                  types.String                                         `tfsdk:"primary_key"`
+	EntryMatchesToTriggerSensor types.String                                         `tfsdk:"entry_matches_to_trigger_sensor"`
+	SensorDictionaries          []datasourceSecurityDlpSensorSensorDictionariesModel `tfsdk:"sensor_dictionaries"`
+	Description                 types.String                                         `tfsdk:"description"`
+}
+
+func (r *datasourceSecurityDlpSensor) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_security_dlp_sensor"
+}
+
+func (r *datasourceSecurityDlpSensor) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "DLP Sensor Resource API V2 for FortiSASE.",
+		Attributes: map[string]schema.Attribute{
+			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 64),
+				},
+				Required: true,
+			},
+			"entry_matches_to_trigger_sensor": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("any", "all"),
+				},
+				Computed: true,
+			},
+			"description": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthAtMost(255),
+				},
+				Computed: true,
+			},
+			"sensor_dictionaries": schema.ListNestedAttribute{
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"dictionary_id": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.Between(1, 32),
+							},
+							Computed: true,
+						},
+						"dictionary_matches_to_consider_risk": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(255),
+							},
+							Computed: true,
+						},
+						"status": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+						},
+						"dictionary": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"primary_key": schema.StringAttribute{
+									Computed: true,
+								},
+								"datasource": schema.StringAttribute{
+									Validators: []validator.String{
+										stringvalidatorwarning.OneOf("security/dlp-dictionaries", "security/dlp-exact-data-matches"),
+									},
+									Computed: true,
+								},
+							},
+							Computed: true,
+						},
+					},
+				},
+				Computed: true,
+			},
+		},
+	}
+}
+
+func (r *datasourceSecurityDlpSensor) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*FortiClient)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	r.fortiClient = client
+	r.resourceName = "fortisase_security_dlp_sensor"
+}
+
+func (r *datasourceSecurityDlpSensor) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	diags := &resp.Diagnostics
+	var data datasourceSecurityDlpSensorModel
+
+	// Read Terraform prior config data into the model
+	diags.Append(req.Config.Get(ctx, &data)...)
+
+	if diags.HasError() {
+		return
+	}
+
+	mkey := data.PrimaryKey.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.URLParams = *(data.getURLObjectSecurityDlpSensor(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityDlpSensors(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityDlpSensor(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (m *datasourceSecurityDlpSensorModel) refreshSecurityDlpSensor(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if o == nil {
+		return diags
+	}
+
+	if v, ok := o["entryMatchesToTriggerSensor"]; ok {
+		m.EntryMatchesToTriggerSensor = parseStringValue(v)
+	}
+
+	if v, ok := o["sensorDictionaries"]; ok {
+		m.SensorDictionaries = m.flattenSecurityDlpSensorSensorDictionariesList(ctx, v, &diags)
+	}
+
+	if v, ok := o["description"]; ok {
+		m.Description = parseStringValue(v)
+	}
+
+	return diags
+}
+
+func (data *datasourceSecurityDlpSensorModel) getURLObjectSecurityDlpSensor(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	return &result
+}
+
+type datasourceSecurityDlpSensorSensorDictionariesModel struct {
+	DictionaryId                    types.Float64                                                 `tfsdk:"dictionary_id"`
+	Dictionary                      *datasourceSecurityDlpSensorSensorDictionariesDictionaryModel `tfsdk:"dictionary"`
+	DictionaryMatchesToConsiderRisk types.Float64                                                 `tfsdk:"dictionary_matches_to_consider_risk"`
+	Status                          types.String                                                  `tfsdk:"status"`
+}
+
+type datasourceSecurityDlpSensorSensorDictionariesDictionaryModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
+}
+
+func (m *datasourceSecurityDlpSensorSensorDictionariesModel) flattenSecurityDlpSensorSensorDictionaries(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceSecurityDlpSensorSensorDictionariesModel {
+	if input == nil {
+		return &datasourceSecurityDlpSensorSensorDictionariesModel{}
+	}
+	if m == nil {
+		m = &datasourceSecurityDlpSensorSensorDictionariesModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["dictionaryId"]; ok {
+		m.DictionaryId = parseFloat64Value(v)
+	}
+
+	if v, ok := o["dictionary"]; ok {
+		m.Dictionary = m.Dictionary.flattenSecurityDlpSensorSensorDictionariesDictionary(ctx, v, diags)
+	}
+
+	if v, ok := o["dictionaryMatchesToConsiderRisk"]; ok {
+		m.DictionaryMatchesToConsiderRisk = parseFloat64Value(v)
+	}
+
+	if v, ok := o["status"]; ok {
+		m.Status = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (s *datasourceSecurityDlpSensorModel) flattenSecurityDlpSensorSensorDictionariesList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourceSecurityDlpSensorSensorDictionariesModel {
+	if o == nil {
+		return []datasourceSecurityDlpSensorSensorDictionariesModel{}
+	}
+
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
+		diags.AddError("Argument sensor_dictionaries is not type of []interface{}.", "")
+		return []datasourceSecurityDlpSensorSensorDictionariesModel{}
+	}
+
+	if len(l) == 0 || l[0] == nil {
+		return []datasourceSecurityDlpSensorSensorDictionariesModel{}
+	}
+
+	values := make([]datasourceSecurityDlpSensorSensorDictionariesModel, len(l))
+	for i, ele := range l {
+		var m datasourceSecurityDlpSensorSensorDictionariesModel
+		if i < len(s.SensorDictionaries) {
+			m = s.SensorDictionaries[i]
+		}
+		values[i] = *m.flattenSecurityDlpSensorSensorDictionaries(ctx, ele, diags)
+	}
+
+	return values
+}
+
+func (m *datasourceSecurityDlpSensorSensorDictionariesDictionaryModel) flattenSecurityDlpSensorSensorDictionariesDictionary(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceSecurityDlpSensorSensorDictionariesDictionaryModel {
+	if input == nil {
+		return &datasourceSecurityDlpSensorSensorDictionariesDictionaryModel{}
+	}
+	if m == nil {
+		m = &datasourceSecurityDlpSensorSensorDictionariesDictionaryModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
+	}
+
+	return m
+}

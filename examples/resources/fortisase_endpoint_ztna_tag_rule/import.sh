@@ -1,1 +1,1 @@
-terraform import fortisase_endpoint_ztna_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_ztna_rule.{{your_resource_name}} {{primary_key}}

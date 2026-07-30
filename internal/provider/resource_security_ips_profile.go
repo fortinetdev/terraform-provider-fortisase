@@ -59,6 +59,9 @@ func (r *resourceSecurityIpsProfile) Schema(ctx context.Context, req resource.Sc
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"profile_type": schema.StringAttribute{
 				Validators: []validator.String{
@@ -108,14 +111,12 @@ func (r *resourceSecurityIpsProfile) Schema(ctx context.Context, req resource.Sc
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/ips-custom-signatures"),
 										},
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -210,14 +211,12 @@ func (r *resourceSecurityIpsProfile) Schema(ctx context.Context, req resource.Sc
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/ips-rule", "security/ips-custom-signatures"),
 										},
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -319,7 +318,7 @@ func (r *resourceSecurityIpsProfile) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -427,6 +426,10 @@ func (r *resourceSecurityIpsProfile) Read(ctx context.Context, req resource.Read
 
 	read_output, err := c.ReadSecurityIpsProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -485,11 +488,11 @@ func (m *resourceSecurityIpsProfileModel) refreshSecurityIpsProfile(ctx context.
 
 func (data *resourceSecurityIpsProfileModel) getCreateObjectSecurityIpsProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ProfileType.IsNull() {
+	if !data.ProfileType.IsNull() && !data.ProfileType.IsUnknown() {
 		result["profileType"] = data.ProfileType.ValueString()
 	}
 
@@ -497,19 +500,19 @@ func (data *resourceSecurityIpsProfileModel) getCreateObjectSecurityIpsProfile(c
 		result["customRuleGroups"] = data.expandSecurityIpsProfileCustomRuleGroupsList(ctx, data.CustomRuleGroups, diags)
 	}
 
-	if !data.IsBlockingMaliciousUrl.IsNull() {
+	if !data.IsBlockingMaliciousUrl.IsNull() && !data.IsBlockingMaliciousUrl.IsUnknown() {
 		result["isBlockingMaliciousUrl"] = data.IsBlockingMaliciousUrl.ValueBool()
 	}
 
-	if !data.BotnetScanning.IsNull() {
+	if !data.BotnetScanning.IsNull() && !data.BotnetScanning.IsUnknown() {
 		result["botnetScanning"] = data.BotnetScanning.ValueString()
 	}
 
-	if !data.IsExtendedLogEnabled.IsNull() {
+	if !data.IsExtendedLogEnabled.IsNull() && !data.IsExtendedLogEnabled.IsUnknown() {
 		result["isExtendedLogEnabled"] = data.IsExtendedLogEnabled.ValueBool()
 	}
 
-	if !data.Comment.IsNull() {
+	if !data.Comment.IsNull() && !data.Comment.IsUnknown() {
 		result["comment"] = data.Comment.ValueString()
 	}
 
@@ -520,11 +523,11 @@ func (data *resourceSecurityIpsProfileModel) getCreateObjectSecurityIpsProfile(c
 
 func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(ctx context.Context, state resourceSecurityIpsProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.ProfileType.IsNull() {
+	if !data.ProfileType.IsNull() && !data.ProfileType.IsUnknown() {
 		result["profileType"] = data.ProfileType.ValueString()
 	}
 
@@ -532,19 +535,19 @@ func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(c
 		result["customRuleGroups"] = data.expandSecurityIpsProfileCustomRuleGroupsList(ctx, data.CustomRuleGroups, diags)
 	}
 
-	if !data.IsBlockingMaliciousUrl.IsNull() {
+	if !data.IsBlockingMaliciousUrl.IsNull() && !data.IsBlockingMaliciousUrl.IsUnknown() {
 		result["isBlockingMaliciousUrl"] = data.IsBlockingMaliciousUrl.ValueBool()
 	}
 
-	if !data.BotnetScanning.IsNull() {
+	if !data.BotnetScanning.IsNull() && !data.BotnetScanning.IsUnknown() {
 		result["botnetScanning"] = data.BotnetScanning.ValueString()
 	}
 
-	if !data.IsExtendedLogEnabled.IsNull() {
+	if !data.IsExtendedLogEnabled.IsNull() && !data.IsExtendedLogEnabled.IsUnknown() {
 		result["isExtendedLogEnabled"] = data.IsExtendedLogEnabled.ValueBool()
 	}
 
-	if !data.Comment.IsNull() {
+	if !data.Comment.IsNull() && !data.Comment.IsUnknown() {
 		result["comment"] = data.Comment.ValueString()
 	}
 
@@ -557,14 +560,14 @@ func (data *resourceSecurityIpsProfileModel) getUpdateObjectSecurityIpsProfile(c
 
 func (data *resourceSecurityIpsProfileModel) getURLObjectSecurityIpsProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -640,12 +643,17 @@ func (s *resourceSecurityIpsProfileModel) flattenSecurityIpsProfileCustomRuleGro
 		return []resourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument custom_rule_groups is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileCustomRuleGroupsModel{}
 	}
@@ -653,6 +661,9 @@ func (s *resourceSecurityIpsProfileModel) flattenSecurityIpsProfileCustomRuleGro
 	values := make([]resourceSecurityIpsProfileCustomRuleGroupsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileCustomRuleGroupsModel
+		if i < len(s.CustomRuleGroups) {
+			m = s.CustomRuleGroups[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileCustomRuleGroups(ctx, ele, diags)
 	}
 
@@ -683,12 +694,17 @@ func (s *resourceSecurityIpsProfileCustomRuleGroupsModel) flattenSecurityIpsProf
 		return []resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument signatures is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel{}
 	}
@@ -696,6 +712,9 @@ func (s *resourceSecurityIpsProfileCustomRuleGroupsModel) flattenSecurityIpsProf
 	values := make([]resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel
+		if i < len(s.Signatures) {
+			m = s.Signatures[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileCustomRuleGroupsSignatures(ctx, ele, diags)
 	}
 
@@ -736,6 +755,8 @@ func (m *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 
 	if v, ok := o["cve"]; ok {
 		m.Cve = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Cve = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["status"]; ok {
@@ -786,12 +807,17 @@ func (s *resourceSecurityIpsProfileModel) flattenSecurityIpsProfileEntriesList(c
 		return []resourceSecurityIpsProfileEntriesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument entries is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileEntriesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileEntriesModel{}
 	}
@@ -799,6 +825,9 @@ func (s *resourceSecurityIpsProfileModel) flattenSecurityIpsProfileEntriesList(c
 	values := make([]resourceSecurityIpsProfileEntriesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileEntriesModel
+		if i < len(s.Entries) {
+			m = s.Entries[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntries(ctx, ele, diags)
 	}
 
@@ -829,12 +858,17 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 		return []resourceSecurityIpsProfileEntriesRuleModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument rule is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileEntriesRuleModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileEntriesRuleModel{}
 	}
@@ -842,6 +876,9 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 	values := make([]resourceSecurityIpsProfileEntriesRuleModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileEntriesRuleModel
+		if i < len(s.Rule) {
+			m = s.Rule[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesRule(ctx, ele, diags)
 	}
 
@@ -868,12 +905,17 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 		return []resourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument vuln_type is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileEntriesVulnTypeModel{}
 	}
@@ -881,6 +923,9 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 	values := make([]resourceSecurityIpsProfileEntriesVulnTypeModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileEntriesVulnTypeModel
+		if i < len(s.VulnType) {
+			m = s.VulnType[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesVulnType(ctx, ele, diags)
 	}
 
@@ -915,12 +960,17 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 		return []resourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument exempt_ip is not type of []interface{}.", "")
 		return []resourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityIpsProfileEntriesExemptIpModel{}
 	}
@@ -928,6 +978,9 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 	values := make([]resourceSecurityIpsProfileEntriesExemptIpModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileEntriesExemptIpModel
+		if i < len(s.ExemptIp) {
+			m = s.ExemptIp[i]
+		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesExemptIp(ctx, ele, diags)
 	}
 
@@ -936,7 +989,7 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 
 func (data *resourceSecurityIpsProfileCustomRuleGroupsModel) expandSecurityIpsProfileCustomRuleGroups(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
@@ -955,11 +1008,11 @@ func (s *resourceSecurityIpsProfileModel) expandSecurityIpsProfileCustomRuleGrou
 
 func (data *resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel) expandSecurityIpsProfileCustomRuleGroupsSignatures(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -980,47 +1033,47 @@ func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntr
 		result["rule"] = data.expandSecurityIpsProfileEntriesRuleList(ctx, data.Rule, diags)
 	}
 
-	if !data.Location.IsNull() {
+	if !data.Location.IsNull() && !data.Location.IsUnknown() {
 		result["location"] = data.Location.ValueString()
 	}
 
-	if !data.Severity.IsNull() {
+	if !data.Severity.IsNull() && !data.Severity.IsUnknown() {
 		result["severity"] = data.Severity.ValueString()
 	}
 
-	if !data.Protocol.IsNull() {
+	if !data.Protocol.IsNull() && !data.Protocol.IsUnknown() {
 		result["protocol"] = data.Protocol.ValueString()
 	}
 
-	if !data.Os.IsNull() {
+	if !data.Os.IsNull() && !data.Os.IsUnknown() {
 		result["os"] = data.Os.ValueString()
 	}
 
-	if !data.Application.IsNull() {
+	if !data.Application.IsNull() && !data.Application.IsUnknown() {
 		result["application"] = data.Application.ValueString()
 	}
 
-	if !data.Cve.IsNull() {
+	if !data.Cve.IsNull() && !data.Cve.IsUnknown() {
 		result["cve"] = expandSetToStringList(data.Cve)
 	}
 
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Log.IsNull() {
+	if !data.Log.IsNull() && !data.Log.IsUnknown() {
 		result["log"] = data.Log.ValueString()
 	}
 
-	if !data.LogPacket.IsNull() {
+	if !data.LogPacket.IsNull() && !data.LogPacket.IsUnknown() {
 		result["logPacket"] = data.LogPacket.ValueString()
 	}
 
-	if !data.LogAttackContext.IsNull() {
+	if !data.LogAttackContext.IsNull() && !data.LogAttackContext.IsUnknown() {
 		result["logAttackContext"] = data.LogAttackContext.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
@@ -1028,7 +1081,7 @@ func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntr
 		result["vulnType"] = data.expandSecurityIpsProfileEntriesVulnTypeList(ctx, data.VulnType, diags)
 	}
 
-	if !data.Quarantine.IsNull() {
+	if !data.Quarantine.IsNull() && !data.Quarantine.IsUnknown() {
 		result["quarantine"] = data.Quarantine.ValueString()
 	}
 
@@ -1036,11 +1089,11 @@ func (data *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntr
 		result["exempt-ip"] = data.expandSecurityIpsProfileEntriesExemptIpList(ctx, data.ExemptIp, diags)
 	}
 
-	if !data.DefaultAction.IsNull() {
+	if !data.DefaultAction.IsNull() && !data.DefaultAction.IsUnknown() {
 		result["defaultAction"] = data.DefaultAction.ValueString()
 	}
 
-	if !data.DefaultStatus.IsNull() {
+	if !data.DefaultStatus.IsNull() && !data.DefaultStatus.IsUnknown() {
 		result["defaultStatus"] = data.DefaultStatus.ValueString()
 	}
 
@@ -1057,11 +1110,11 @@ func (s *resourceSecurityIpsProfileModel) expandSecurityIpsProfileEntriesList(ct
 
 func (data *resourceSecurityIpsProfileEntriesRuleModel) expandSecurityIpsProfileEntriesRule(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -1078,7 +1131,7 @@ func (s *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntries
 
 func (data *resourceSecurityIpsProfileEntriesVulnTypeModel) expandSecurityIpsProfileEntriesVulnType(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Id.IsNull() {
+	if !data.Id.IsNull() && !data.Id.IsUnknown() {
 		result["id"] = data.Id.ValueFloat64()
 	}
 
@@ -1095,15 +1148,15 @@ func (s *resourceSecurityIpsProfileEntriesModel) expandSecurityIpsProfileEntries
 
 func (data *resourceSecurityIpsProfileEntriesExemptIpModel) expandSecurityIpsProfileEntriesExemptIp(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Id.IsNull() {
+	if !data.Id.IsNull() && !data.Id.IsUnknown() {
 		result["id"] = data.Id.ValueFloat64()
 	}
 
-	if !data.SrcIp.IsNull() {
+	if !data.SrcIp.IsNull() && !data.SrcIp.IsUnknown() {
 		result["src-ip"] = data.SrcIp.ValueString()
 	}
 
-	if !data.DstIp.IsNull() {
+	if !data.DstIp.IsNull() && !data.DstIp.IsUnknown() {
 		result["dst-ip"] = data.DstIp.ValueString()
 	}
 

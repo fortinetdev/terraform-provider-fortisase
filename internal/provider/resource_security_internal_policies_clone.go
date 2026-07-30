@@ -3,195 +3,38 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &resourceSecurityInternalPoliciesClone2Edl{}
+// resourceSecurityInternalPoliciesClone keeps the deprecated Terraform type available while
+// reusing the canonical resource implementation.
+var _ resource.Resource = &resourceSecurityInternalPoliciesClone{}
 
 func newResourceSecurityInternalPoliciesClone() resource.Resource {
-	return &resourceSecurityInternalPoliciesClone2Edl{}
+	return &resourceSecurityInternalPoliciesClone{
+		resourceSecurityInternalPolicyClone2Edl: &resourceSecurityInternalPolicyClone2Edl{},
+	}
 }
 
-type resourceSecurityInternalPoliciesClone2Edl struct {
-	fortiClient  *FortiClient
-	resourceName string
+type resourceSecurityInternalPoliciesClone struct {
+	*resourceSecurityInternalPolicyClone2Edl
 }
 
-// resourceSecurityInternalPoliciesClone2EdlModel describes the resource data model.
-type resourceSecurityInternalPoliciesClone2EdlModel struct {
-	ID         types.String `tfsdk:"id"`
-	PrimaryKey types.String `tfsdk:"primary_key"`
-	BasedOn    types.String `tfsdk:"based_on"`
-}
-
-func (r *resourceSecurityInternalPoliciesClone2Edl) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *resourceSecurityInternalPoliciesClone) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_security_internal_policies_clone"
 }
 
-func (r *resourceSecurityInternalPoliciesClone2Edl) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Internal Policy Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 35),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"based_on": schema.StringAttribute{
-				MarkdownDescription: "The policy you what to clone.",
-				Computed:            true,
-				Optional:            true,
-			},
-		},
-	}
+func (r *resourceSecurityInternalPoliciesClone) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	r.resourceSecurityInternalPolicyClone2Edl.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_security_internal_policies_clone is deprecated. Please use fortisase_security_internal_policy_clone instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
-func (r *resourceSecurityInternalPoliciesClone2Edl) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_security_internal_policies_clone"
+func (r *resourceSecurityInternalPoliciesClone) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.resourceSecurityInternalPolicyClone2Edl.Configure(ctx, req, resp)
+	r.resourceSecurityInternalPolicyClone2Edl.resourceName = "fortisase_security_internal_policies_clone"
 }
-
-func (r *resourceSecurityInternalPoliciesClone2Edl) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data resourceSecurityInternalPoliciesClone2EdlModel
-	diags := &resp.Diagnostics
-
-	// Read Terraform config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.BodyParams = *(data.getCreateObjectSecurityInternalPoliciesClone(ctx, diags))
-	input_model.URLParams = *(data.getURLObjectSecurityInternalPoliciesClone(ctx, "create", diags))
-
-	if diags.HasError() {
-		return
-	}
-	output, err := c.CreateSecurityInternalPoliciesClone(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	mkey := "SecurityInternalPoliciesClone"
-	data.ID = types.StringValue(mkey)
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceSecurityInternalPoliciesClone2Edl) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	diags := &resp.Diagnostics
-
-	// Read Terraform plan data into the model
-	var state resourceSecurityInternalPoliciesClone2EdlModel
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	var data resourceSecurityInternalPoliciesClone2EdlModel
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-	data.ID = state.ID
-
-	mkey := state.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.BodyParams = *(data.getUpdateObjectSecurityInternalPoliciesClone(ctx, state, diags))
-	input_model.URLParams = *(data.getURLObjectSecurityInternalPoliciesClone(ctx, "update", diags))
-
-	if diags.HasError() {
-		return
-	}
-
-	output, err := c.CreateSecurityInternalPoliciesClone(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceSecurityInternalPoliciesClone2Edl) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// No delete operation for this resource
-}
-
-func (r *resourceSecurityInternalPoliciesClone2Edl) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	// No read operation for this resource
-}
-
-func (data *resourceSecurityInternalPoliciesClone2EdlModel) getCreateObjectSecurityInternalPoliciesClone(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
-}
-
-func (data *resourceSecurityInternalPoliciesClone2EdlModel) getUpdateObjectSecurityInternalPoliciesClone(ctx context.Context, state resourceSecurityInternalPoliciesClone2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
-}
-
-func (data *resourceSecurityInternalPoliciesClone2EdlModel) getURLObjectSecurityInternalPoliciesClone(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.BasedOn.IsNull() {
-		result["based_on"] = data.BasedOn.ValueString()
-	}
-
-	return &result
+func (r *resourceSecurityInternalPoliciesClone) MoveState(ctx context.Context) []resource.StateMover {
+	return nil
 }

@@ -4,16 +4,18 @@ page_title: "fortisase_network_implicit_dns_rules Data Source - fortisase"
 subcategory: "Network"
 description: |-
   Implicit DNS Rule Resource API V2 for FortiSASE.
+  fortisase_network_implicit_dns_rules is deprecated. Please use fortisase_network_implicit_dns_rule instead.
 ---
 
 # fortisase_network_implicit_dns_rules (Data Source)
 
 Implicit DNS Rule Resource API V2 for FortiSASE.
+fortisase_network_implicit_dns_rules is deprecated. Please use fortisase_network_implicit_dns_rule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_network_implicit_dns_rules" "example" {
+data "fortisase_network_implicit_dns_rule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_network_implicit_dns_rules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `dns_server` (String)
 - `dns_server1` (String)

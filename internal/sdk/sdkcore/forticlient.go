@@ -89,8 +89,7 @@ func (c *FortiSDKClient) GenToken() error {
 	} else if c.Config.Auth.RefreshToken != "" {
 		// todo: generate access token by refresh token
 	} else {
-		req := c.NewRequest("POST", "https://customerapiauth.fortinet.com/api/v1/oauth/token/", nil, nil) // todo: may could move the url into the request.GenToken()
-		access_token, refresh_token, err := req.GenToken()
+		access_token, refresh_token, err := request.GenToken(c.Config)
 		if err == nil {
 			c.Config.Auth.AccessToken = access_token
 			c.Config.Auth.RefreshToken = refresh_token
@@ -106,7 +105,7 @@ func (c *FortiSDKClient) GetFSSStatus() error {
 	fssstatus := &FSSStatus{}
 
 	// Get EMS version of FortiSASE
-	base_url := "https://portal.prod.fortisase.com"
+	base_url := request.FortiSASEAPIURL()
 	req := c.NewRequest("GET", fmt.Sprintf("%s/resource-api/v1/admin/config?include_ems_version=true", base_url), nil, nil)
 	ems_version, err := req.GetEMSVersion()
 	if err != nil {

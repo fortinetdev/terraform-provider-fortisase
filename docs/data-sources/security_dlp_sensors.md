@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_sensors Data Source - fortisase"
 subcategory: "Security"
 description: |-
   DLP Sensor Resource API V2 for FortiSASE.
+  fortisase_security_dlp_sensors is deprecated. Please use fortisase_security_dlp_sensor instead.
 ---
 
 # fortisase_security_dlp_sensors (Data Source)
 
 DLP Sensor Resource API V2 for FortiSASE.
+fortisase_security_dlp_sensors is deprecated. Please use fortisase_security_dlp_sensor instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_sensors" "example" {
+data "fortisase_security_dlp_sensor" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_dlp_sensors" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `description` (String)
 - `entry_matches_to_trigger_sensor` (String)
@@ -34,7 +36,7 @@ data "fortisase_security_dlp_sensors" "example" {
 <a id="nestedatt--sensor_dictionaries"></a>
 ### Nested Schema for `sensor_dictionaries`
 
-Optional:
+Read-Only:
 
 - `dictionary` (Attributes) (see [below for nested schema](#nestedatt--sensor_dictionaries--dictionary))
 - `dictionary_id` (Number)
@@ -44,7 +46,7 @@ Optional:
 <a id="nestedatt--sensor_dictionaries--dictionary"></a>
 ### Nested Schema for `sensor_dictionaries.dictionary`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

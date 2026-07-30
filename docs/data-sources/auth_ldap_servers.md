@@ -4,16 +4,18 @@ page_title: "fortisase_auth_ldap_servers Data Source - fortisase"
 subcategory: "Autentication"
 description: |-
   LDAP Resource API V2 for FortiSASE.
+  fortisase_auth_ldap_servers is deprecated. Please use fortisase_auth_ldap_server instead.
 ---
 
 # fortisase_auth_ldap_servers (Data Source)
 
 LDAP Resource API V2 for FortiSASE.
+fortisase_auth_ldap_servers is deprecated. Please use fortisase_auth_ldap_server instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_auth_ldap_servers" "example" {
+data "fortisase_auth_ldap_server" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_auth_ldap_servers" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `advanced_group_matching_enabled` (Boolean)
 - `bind_type` (String)
@@ -50,7 +52,7 @@ data "fortisase_auth_ldap_servers" "example" {
 <a id="nestedatt--certificate"></a>
 ### Nested Schema for `certificate`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -59,7 +61,7 @@ Optional:
 <a id="nestedatt--client_cert"></a>
 ### Nested Schema for `client_cert`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

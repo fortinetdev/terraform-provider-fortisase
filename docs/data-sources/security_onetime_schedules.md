@@ -4,16 +4,18 @@ page_title: "fortisase_security_onetime_schedules Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Onetime Schedule Resource API V2 for FortiSASE.
+  fortisase_security_onetime_schedules is deprecated. Please use fortisase_security_onetime_schedule instead.
 ---
 
 # fortisase_security_onetime_schedules (Data Source)
 
 Onetime Schedule Resource API V2 for FortiSASE.
+fortisase_security_onetime_schedules is deprecated. Please use fortisase_security_onetime_schedule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_onetime_schedules" "example" {
+data "fortisase_security_onetime_schedule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_onetime_schedules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `end_utc` (Number)
 - `expiration_days` (Number)

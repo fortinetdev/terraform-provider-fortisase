@@ -4,16 +4,18 @@ page_title: "fortisase_dem_spa_applications Resource - fortisase"
 subcategory: "Others"
 description: |-
   DEM SPA Application Resource API V2 for FortiSASE.
+  fortisase_dem_spa_applications is deprecated. Please use fortisase_dem_spa_application instead.
 ---
 
 # fortisase_dem_spa_applications (Resource)
 
 DEM SPA Application Resource API V2 for FortiSASE.
+fortisase_dem_spa_applications is deprecated. Please use fortisase_dem_spa_application instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_dem_spa_applications" "spa_application" {
+resource "fortisase_dem_spa_application" "spa_application" {
   primary_key          = "example_name"
   server               = "string"
   latency_threshold    = 10000000
@@ -53,5 +55,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_dem_spa_applications.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_dem_spa_application.{{your_resource_name}} {{primary_key}}
 ```

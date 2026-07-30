@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,21 +31,22 @@ type resourceAuthVpnSamlServer struct {
 
 // resourceAuthVpnSamlServerModel describes the resource data model.
 type resourceAuthVpnSamlServerModel struct {
-	ID             types.String                                  `tfsdk:"id"`
-	PrimaryKey     types.String                                  `tfsdk:"primary_key"`
-	IdpEntityId    types.String                                  `tfsdk:"idp_entity_id"`
-	IdpSignOnUrl   types.String                                  `tfsdk:"idp_sign_on_url"`
-	IdpLogOutUrl   types.String                                  `tfsdk:"idp_log_out_url"`
-	Username       types.String                                  `tfsdk:"username"`
-	GroupName      types.String                                  `tfsdk:"group_name"`
-	GroupId        types.String                                  `tfsdk:"group_id"`
-	SpCert         *resourceAuthVpnSamlServerSpCertModel         `tfsdk:"sp_cert"`
-	IdpCertificate *resourceAuthVpnSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
-	DigestMethod   types.String                                  `tfsdk:"digest_method"`
-	EntraIdEnabled types.Bool                                    `tfsdk:"entra_id_enabled"`
-	ScimEnabled    types.Bool                                    `tfsdk:"scim_enabled"`
-	DomainName     types.String                                  `tfsdk:"domain_name"`
-	ApplicationId  types.String                                  `tfsdk:"application_id"`
+	ID                       types.String                                  `tfsdk:"id"`
+	PrimaryKey               types.String                                  `tfsdk:"primary_key"`
+	IdpEntityId              types.String                                  `tfsdk:"idp_entity_id"`
+	IdpSignOnUrl             types.String                                  `tfsdk:"idp_sign_on_url"`
+	IdpLogOutUrl             types.String                                  `tfsdk:"idp_log_out_url"`
+	Username                 types.String                                  `tfsdk:"username"`
+	GroupName                types.String                                  `tfsdk:"group_name"`
+	GroupId                  types.String                                  `tfsdk:"group_id"`
+	SpCert                   *resourceAuthVpnSamlServerSpCertModel         `tfsdk:"sp_cert"`
+	IdpCertificate           *resourceAuthVpnSamlServerIdpCertificateModel `tfsdk:"idp_certificate"`
+	DigestMethod             types.String                                  `tfsdk:"digest_method"`
+	EntraIdEnabled           types.Bool                                    `tfsdk:"entra_id_enabled"`
+	ScimEnabled              types.Bool                                    `tfsdk:"scim_enabled"`
+	RequireSignedRespAndAsrt types.Bool                                    `tfsdk:"require_signed_resp_and_asrt"`
+	DomainName               types.String                                  `tfsdk:"domain_name"`
+	ApplicationId            types.String                                  `tfsdk:"application_id"`
 }
 
 func (r *resourceAuthVpnSamlServer) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -68,9 +68,11 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("$sase-global"),
 				},
-				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"idp_entity_id": schema.StringAttribute{
 				Validators: []validator.String{
@@ -126,6 +128,10 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 				Computed: true,
 				Optional: true,
 			},
+			"require_signed_resp_and_asrt": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+			},
 			"domain_name": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.LengthAtLeast(1),
@@ -143,14 +149,12 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			"sp_cert": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
-						Computed: true,
 						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/local-certificates"),
 						},
-						Computed: true,
 						Optional: true,
 					},
 				},
@@ -160,14 +164,12 @@ func (r *resourceAuthVpnSamlServer) Schema(ctx context.Context, req resource.Sch
 			"idp_certificate": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
-						Computed: true,
 						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/remote-certificates"),
 						},
-						Computed: true,
 						Optional: true,
 					},
 				},
@@ -461,6 +463,10 @@ func (r *resourceAuthVpnSamlServer) Read(ctx context.Context, req resource.ReadR
 
 	read_output, err := c.ReadAuthVpnSamlServer(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -534,6 +540,10 @@ func (m *resourceAuthVpnSamlServerModel) refreshAuthVpnSamlServer(ctx context.Co
 		m.ScimEnabled = parseBoolValue(v)
 	}
 
+	if v, ok := o["requireSignedRespAndAsrt"]; ok {
+		m.RequireSignedRespAndAsrt = parseBoolValue(v)
+	}
+
 	if v, ok := o["domainName"]; ok {
 		m.DomainName = parseStringValue(v)
 	}
@@ -547,59 +557,65 @@ func (m *resourceAuthVpnSamlServerModel) refreshAuthVpnSamlServer(ctx context.Co
 
 func (data *resourceAuthVpnSamlServerModel) getCreateObjectAuthVpnSamlServer(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.IdpEntityId.IsNull() {
+	if !data.IdpEntityId.IsNull() && !data.IdpEntityId.IsUnknown() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
 
-	if !data.IdpSignOnUrl.IsNull() {
+	if !data.IdpSignOnUrl.IsNull() && !data.IdpSignOnUrl.IsUnknown() {
 		result["idpSignOnUrl"] = data.IdpSignOnUrl.ValueString()
 	}
 
-	if !data.IdpLogOutUrl.IsNull() {
+	if !data.IdpLogOutUrl.IsNull() && !data.IdpLogOutUrl.IsUnknown() {
 		result["idpLogOutUrl"] = data.IdpLogOutUrl.ValueString()
 	}
 
-	if !data.Username.IsNull() {
+	if !data.Username.IsNull() && !data.Username.IsUnknown() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.GroupName.IsNull() {
+	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 		result["groupName"] = data.GroupName.ValueString()
 	}
 
-	if !data.GroupId.IsNull() {
+	if !data.GroupId.IsNull() && !data.GroupId.IsUnknown() {
 		result["groupId"] = data.GroupId.ValueString()
 	}
 
+	result["spCert"] = nil
 	if data.SpCert != nil && !isZeroStruct(*data.SpCert) {
 		result["spCert"] = data.SpCert.expandAuthVpnSamlServerSpCert(ctx, diags)
 	}
 
+	result["idpCertificate"] = nil
 	if data.IdpCertificate != nil && !isZeroStruct(*data.IdpCertificate) {
 		result["idpCertificate"] = data.IdpCertificate.expandAuthVpnSamlServerIdpCertificate(ctx, diags)
 	}
 
-	if !data.DigestMethod.IsNull() {
+	if !data.DigestMethod.IsNull() && !data.DigestMethod.IsUnknown() {
 		result["digestMethod"] = data.DigestMethod.ValueString()
 	}
 
-	if !data.EntraIdEnabled.IsNull() {
+	if !data.EntraIdEnabled.IsNull() && !data.EntraIdEnabled.IsUnknown() {
 		result["entraIdEnabled"] = data.EntraIdEnabled.ValueBool()
 	}
 
-	if !data.ScimEnabled.IsNull() {
+	if !data.ScimEnabled.IsNull() && !data.ScimEnabled.IsUnknown() {
 		result["scimEnabled"] = data.ScimEnabled.ValueBool()
 	}
 
-	if !data.DomainName.IsNull() {
+	if !data.RequireSignedRespAndAsrt.IsNull() && !data.RequireSignedRespAndAsrt.IsUnknown() {
+		result["requireSignedRespAndAsrt"] = data.RequireSignedRespAndAsrt.ValueBool()
+	}
+
+	if !data.DomainName.IsNull() && !data.DomainName.IsUnknown() {
 		result["domainName"] = data.DomainName.ValueString()
 	}
 
-	if !data.ApplicationId.IsNull() {
+	if !data.ApplicationId.IsNull() && !data.ApplicationId.IsUnknown() {
 		result["applicationId"] = data.ApplicationId.ValueString()
 	}
 
@@ -608,59 +624,65 @@ func (data *resourceAuthVpnSamlServerModel) getCreateObjectAuthVpnSamlServer(ctx
 
 func (data *resourceAuthVpnSamlServerModel) getUpdateObjectAuthVpnSamlServer(ctx context.Context, state resourceAuthVpnSamlServerModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.IdpEntityId.IsNull() {
+	if !data.IdpEntityId.IsNull() && !data.IdpEntityId.IsUnknown() {
 		result["idpEntityId"] = data.IdpEntityId.ValueString()
 	}
 
-	if !data.IdpSignOnUrl.IsNull() {
+	if !data.IdpSignOnUrl.IsNull() && !data.IdpSignOnUrl.IsUnknown() {
 		result["idpSignOnUrl"] = data.IdpSignOnUrl.ValueString()
 	}
 
-	if !data.IdpLogOutUrl.IsNull() {
+	if !data.IdpLogOutUrl.IsNull() && !data.IdpLogOutUrl.IsUnknown() {
 		result["idpLogOutUrl"] = data.IdpLogOutUrl.ValueString()
 	}
 
-	if !data.Username.IsNull() {
+	if !data.Username.IsNull() && !data.Username.IsUnknown() {
 		result["username"] = data.Username.ValueString()
 	}
 
-	if !data.GroupName.IsNull() {
+	if !data.GroupName.IsNull() && !data.GroupName.IsUnknown() {
 		result["groupName"] = data.GroupName.ValueString()
 	}
 
-	if !data.GroupId.IsNull() {
+	if !data.GroupId.IsNull() && !data.GroupId.IsUnknown() {
 		result["groupId"] = data.GroupId.ValueString()
 	}
 
-	if data.SpCert != nil {
+	result["spCert"] = nil
+	if data.SpCert != nil && !isZeroStruct(*data.SpCert) {
 		result["spCert"] = data.SpCert.expandAuthVpnSamlServerSpCert(ctx, diags)
 	}
 
-	if data.IdpCertificate != nil {
+	result["idpCertificate"] = nil
+	if data.IdpCertificate != nil && !isZeroStruct(*data.IdpCertificate) {
 		result["idpCertificate"] = data.IdpCertificate.expandAuthVpnSamlServerIdpCertificate(ctx, diags)
 	}
 
-	if !data.DigestMethod.IsNull() {
+	if !data.DigestMethod.IsNull() && !data.DigestMethod.IsUnknown() {
 		result["digestMethod"] = data.DigestMethod.ValueString()
 	}
 
-	if !data.EntraIdEnabled.IsNull() {
+	if !data.EntraIdEnabled.IsNull() && !data.EntraIdEnabled.IsUnknown() {
 		result["entraIdEnabled"] = data.EntraIdEnabled.ValueBool()
 	}
 
-	if !data.ScimEnabled.IsNull() {
+	if !data.ScimEnabled.IsNull() && !data.ScimEnabled.IsUnknown() {
 		result["scimEnabled"] = data.ScimEnabled.ValueBool()
 	}
 
-	if !data.DomainName.IsNull() {
+	if !data.RequireSignedRespAndAsrt.IsNull() && !data.RequireSignedRespAndAsrt.IsUnknown() {
+		result["requireSignedRespAndAsrt"] = data.RequireSignedRespAndAsrt.ValueBool()
+	}
+
+	if !data.DomainName.IsNull() && !data.DomainName.IsUnknown() {
 		result["domainName"] = data.DomainName.ValueString()
 	}
 
-	if !data.ApplicationId.IsNull() {
+	if !data.ApplicationId.IsNull() && !data.ApplicationId.IsUnknown() {
 		result["applicationId"] = data.ApplicationId.ValueString()
 	}
 
@@ -717,11 +739,11 @@ func (m *resourceAuthVpnSamlServerIdpCertificateModel) flattenAuthVpnSamlServerI
 
 func (data *resourceAuthVpnSamlServerSpCertModel) expandAuthVpnSamlServerSpCert(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -730,11 +752,11 @@ func (data *resourceAuthVpnSamlServerSpCertModel) expandAuthVpnSamlServerSpCert(
 
 func (data *resourceAuthVpnSamlServerIdpCertificateModel) expandAuthVpnSamlServerIdpCertificate(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 

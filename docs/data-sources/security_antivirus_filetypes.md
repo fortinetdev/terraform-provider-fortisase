@@ -4,16 +4,18 @@ page_title: "fortisase_security_antivirus_filetypes Data Source - fortisase"
 subcategory: "Security"
 description: |-
   AntiVirus File Type Resource API V2 for FortiSASE.
+  fortisase_security_antivirus_filetypes is deprecated. Please use fortisase_security_antivirus_filetype instead.
 ---
 
 # fortisase_security_antivirus_filetypes (Data Source)
 
 AntiVirus File Type Resource API V2 for FortiSASE.
+fortisase_security_antivirus_filetypes is deprecated. Please use fortisase_security_antivirus_filetype instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_antivirus_filetypes" "example" {
+data "fortisase_security_antivirus_filetype" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_security_antivirus_filetypes" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `is_password_protected` (Boolean)

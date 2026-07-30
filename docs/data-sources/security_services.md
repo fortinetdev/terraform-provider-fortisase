@@ -4,16 +4,18 @@ page_title: "fortisase_security_services Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Service Resource API V2 for FortiSASE.
+  fortisase_security_services is deprecated. Please use fortisase_security_service instead.
 ---
 
 # fortisase_security_services (Data Source)
 
 Service Resource API V2 for FortiSASE.
+fortisase_security_services is deprecated. Please use fortisase_security_service instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_services" "example" {
+data "fortisase_security_service" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,9 +27,10 @@ data "fortisase_security_services" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `category` (String)
+- `icmp_type` (Number)
 - `protocol` (String)
 - `protocol_number` (Number)
 - `proxy` (Boolean)
@@ -35,14 +38,10 @@ data "fortisase_security_services" "example" {
 - `tcp_portrange` (Attributes List) (see [below for nested schema](#nestedatt--tcp_portrange))
 - `udp_portrange` (Attributes List) (see [below for nested schema](#nestedatt--udp_portrange))
 
-### Read-Only
-
-- `icmp_type` (Number)
-
 <a id="nestedatt--sctp_portrange"></a>
 ### Nested Schema for `sctp_portrange`
 
-Optional:
+Read-Only:
 
 - `destination` (Attributes) (see [below for nested schema](#nestedatt--sctp_portrange--destination))
 - `source` (Attributes) (see [below for nested schema](#nestedatt--sctp_portrange--source))
@@ -50,7 +49,7 @@ Optional:
 <a id="nestedatt--sctp_portrange--destination"></a>
 ### Nested Schema for `sctp_portrange.destination`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)
@@ -59,7 +58,7 @@ Optional:
 <a id="nestedatt--sctp_portrange--source"></a>
 ### Nested Schema for `sctp_portrange.source`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)
@@ -69,7 +68,7 @@ Optional:
 <a id="nestedatt--tcp_portrange"></a>
 ### Nested Schema for `tcp_portrange`
 
-Optional:
+Read-Only:
 
 - `destination` (Attributes) (see [below for nested schema](#nestedatt--tcp_portrange--destination))
 - `source` (Attributes) (see [below for nested schema](#nestedatt--tcp_portrange--source))
@@ -77,7 +76,7 @@ Optional:
 <a id="nestedatt--tcp_portrange--destination"></a>
 ### Nested Schema for `tcp_portrange.destination`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)
@@ -86,7 +85,7 @@ Optional:
 <a id="nestedatt--tcp_portrange--source"></a>
 ### Nested Schema for `tcp_portrange.source`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)
@@ -96,7 +95,7 @@ Optional:
 <a id="nestedatt--udp_portrange"></a>
 ### Nested Schema for `udp_portrange`
 
-Optional:
+Read-Only:
 
 - `destination` (Attributes) (see [below for nested schema](#nestedatt--udp_portrange--destination))
 - `source` (Attributes) (see [below for nested schema](#nestedatt--udp_portrange--source))
@@ -104,7 +103,7 @@ Optional:
 <a id="nestedatt--udp_portrange--destination"></a>
 ### Nested Schema for `udp_portrange.destination`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)
@@ -113,7 +112,7 @@ Optional:
 <a id="nestedatt--udp_portrange--source"></a>
 ### Nested Schema for `udp_portrange.source`
 
-Optional:
+Read-Only:
 
 - `high` (Number)
 - `low` (Number)

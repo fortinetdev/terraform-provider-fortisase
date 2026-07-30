@@ -50,28 +50,23 @@ func (r *datasourceInfraIpamSetting) Schema(ctx context.Context, req datasource.
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"subnet": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"excluded_subnets": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"subnet": schema.StringAttribute{
 										Computed: true,
-										Optional: true,
 									},
 								},
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -184,12 +179,17 @@ func (s *datasourceInfraIpamSettingModel) flattenInfraIpamSettingPoolsList(ctx c
 		return []datasourceInfraIpamSettingPoolsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument pools is not type of []interface{}.", "")
 		return []datasourceInfraIpamSettingPoolsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceInfraIpamSettingPoolsModel{}
 	}
@@ -197,6 +197,9 @@ func (s *datasourceInfraIpamSettingModel) flattenInfraIpamSettingPoolsList(ctx c
 	values := make([]datasourceInfraIpamSettingPoolsModel, len(l))
 	for i, ele := range l {
 		var m datasourceInfraIpamSettingPoolsModel
+		if i < len(s.Pools) {
+			m = s.Pools[i]
+		}
 		values[i] = *m.flattenInfraIpamSettingPools(ctx, ele, diags)
 	}
 
@@ -223,12 +226,17 @@ func (s *datasourceInfraIpamSettingPoolsModel) flattenInfraIpamSettingPoolsExclu
 		return []datasourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument excluded_subnets is not type of []interface{}.", "")
 		return []datasourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
@@ -236,6 +244,9 @@ func (s *datasourceInfraIpamSettingPoolsModel) flattenInfraIpamSettingPoolsExclu
 	values := make([]datasourceInfraIpamSettingPoolsExcludedSubnetsModel, len(l))
 	for i, ele := range l {
 		var m datasourceInfraIpamSettingPoolsExcludedSubnetsModel
+		if i < len(s.ExcludedSubnets) {
+			m = s.ExcludedSubnets[i]
+		}
 		values[i] = *m.flattenInfraIpamSettingPoolsExcludedSubnets(ctx, ele, diags)
 	}
 

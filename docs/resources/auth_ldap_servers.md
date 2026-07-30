@@ -4,16 +4,18 @@ page_title: "fortisase_auth_ldap_servers Resource - fortisase"
 subcategory: "Autentication"
 description: |-
   LDAP Resource API V2 for FortiSASE.
+  fortisase_auth_ldap_servers is deprecated. Please use fortisase_auth_ldap_server instead.
 ---
 
 # fortisase_auth_ldap_servers (Resource)
 
 LDAP Resource API V2 for FortiSASE.
+fortisase_auth_ldap_servers is deprecated. Please use fortisase_auth_ldap_server instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_auth_ldap_servers" "ldap_server" {
+resource "fortisase_auth_ldap_server" "ldap_server" {
   primary_key                     = "ldap_server"
   server                          = "1.2.3.4"
   port                            = 1234
@@ -92,5 +94,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_auth_ldap_servers.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_auth_ldap_server.{{your_resource_name}} {{primary_key}}
 ```

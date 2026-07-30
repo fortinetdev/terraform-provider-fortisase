@@ -47,34 +47,29 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 			},
 			"block_password_protected_files": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"block": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"monitor": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -84,16 +79,13 @@ func (r *datasourceSecurityFileFilterProfile) Schema(ctx context.Context, req da
 								stringvalidatorwarning.OneOf("security/antivirus-filetypes"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 						"primary_key": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -179,14 +171,14 @@ func (m *datasourceSecurityFileFilterProfileModel) refreshSecurityFileFilterProf
 
 func (data *datasourceSecurityFileFilterProfileModel) getURLObjectSecurityFileFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -227,12 +219,17 @@ func (s *datasourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProf
 		return []datasourceSecurityFileFilterProfileBlockModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument block is not type of []interface{}.", "")
 		return []datasourceSecurityFileFilterProfileBlockModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityFileFilterProfileBlockModel{}
 	}
@@ -240,6 +237,9 @@ func (s *datasourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProf
 	values := make([]datasourceSecurityFileFilterProfileBlockModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityFileFilterProfileBlockModel
+		if i < len(s.Block) {
+			m = s.Block[i]
+		}
 		values[i] = *m.flattenSecurityFileFilterProfileBlock(ctx, ele, diags)
 	}
 
@@ -270,12 +270,17 @@ func (s *datasourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProf
 		return []datasourceSecurityFileFilterProfileMonitorModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument monitor is not type of []interface{}.", "")
 		return []datasourceSecurityFileFilterProfileMonitorModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecurityFileFilterProfileMonitorModel{}
 	}
@@ -283,6 +288,9 @@ func (s *datasourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProf
 	values := make([]datasourceSecurityFileFilterProfileMonitorModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecurityFileFilterProfileMonitorModel
+		if i < len(s.Monitor) {
+			m = s.Monitor[i]
+		}
 		values[i] = *m.flattenSecurityFileFilterProfileMonitor(ctx, ele, diags)
 	}
 

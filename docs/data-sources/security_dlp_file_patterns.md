@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_file_patterns Data Source - fortisase"
 subcategory: "Security"
 description: |-
   DLP File Pattern Resource API V2 for FortiSASE.
+  fortisase_security_dlp_file_patterns is deprecated. Please use fortisase_security_dlp_file_pattern instead.
 ---
 
 # fortisase_security_dlp_file_patterns (Data Source)
 
 DLP File Pattern Resource API V2 for FortiSASE.
+fortisase_security_dlp_file_patterns is deprecated. Please use fortisase_security_dlp_file_pattern instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_file_patterns" "example" {
+data "fortisase_security_dlp_file_pattern" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_dlp_file_patterns" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `entries` (Attributes List) (see [below for nested schema](#nestedatt--entries))
 - `tag` (String)
@@ -33,7 +35,7 @@ data "fortisase_security_dlp_file_patterns" "example" {
 <a id="nestedatt--entries"></a>
 ### Nested Schema for `entries`
 
-Optional:
+Read-Only:
 
 - `file_type` (String)
 - `filter_type` (String)

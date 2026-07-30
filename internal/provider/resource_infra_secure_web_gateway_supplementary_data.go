@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -56,9 +55,11 @@ func (r *resourceInfraSecureWebGatewaySupplementaryData) Schema(ctx context.Cont
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("$sase-global"),
 				},
-				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"session_duration_hours": schema.Float64Attribute{
 				Computed: true,
@@ -124,7 +125,7 @@ func (r *resourceInfraSecureWebGatewaySupplementaryData) Create(ctx context.Cont
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -228,6 +229,10 @@ func (r *resourceInfraSecureWebGatewaySupplementaryData) Read(ctx context.Contex
 
 	read_output, err := c.ReadInfraSecureWebGatewaySupplementaryData(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -270,15 +275,15 @@ func (m *resourceInfraSecureWebGatewaySupplementaryDataModel) refreshInfraSecure
 
 func (data *resourceInfraSecureWebGatewaySupplementaryDataModel) getCreateObjectInfraSecureWebGatewaySupplementaryData(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.SessionDurationHours.IsNull() {
+	if !data.SessionDurationHours.IsNull() && !data.SessionDurationHours.IsUnknown() {
 		result["sessionDurationHours"] = data.SessionDurationHours.ValueFloat64()
 	}
 
-	if !data.EndSessionAfterMins.IsNull() {
+	if !data.EndSessionAfterMins.IsNull() && !data.EndSessionAfterMins.IsUnknown() {
 		result["endSessionAfterMins"] = data.EndSessionAfterMins.ValueFloat64()
 	}
 
@@ -287,15 +292,15 @@ func (data *resourceInfraSecureWebGatewaySupplementaryDataModel) getCreateObject
 
 func (data *resourceInfraSecureWebGatewaySupplementaryDataModel) getUpdateObjectInfraSecureWebGatewaySupplementaryData(ctx context.Context, state resourceInfraSecureWebGatewaySupplementaryDataModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.SessionDurationHours.IsNull() {
+	if !data.SessionDurationHours.IsNull() && !data.SessionDurationHours.IsUnknown() {
 		result["sessionDurationHours"] = data.SessionDurationHours.ValueFloat64()
 	}
 
-	if !data.EndSessionAfterMins.IsNull() {
+	if !data.EndSessionAfterMins.IsNull() && !data.EndSessionAfterMins.IsUnknown() {
 		result["endSessionAfterMins"] = data.EndSessionAfterMins.ValueFloat64()
 	}
 

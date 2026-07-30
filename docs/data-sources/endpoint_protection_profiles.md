@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_protection_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Protection Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_protection_profiles is deprecated. Please use fortisase_endpoint_protection_profile instead.
 ---
 
 # fortisase_endpoint_protection_profiles (Data Source)
 
 Protection Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_protection_profiles is deprecated. Please use fortisase_endpoint_protection_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_protection_profiles" "example" {
+data "fortisase_endpoint_protection_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_protection_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `antiransomware` (String)
 - `antivirus` (String)
@@ -40,21 +42,40 @@ data "fortisase_endpoint_protection_profiles" "example" {
 - `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
 - `scheduled_antivirus_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_antivirus_scan))
 - `scheduled_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_scan))
+- `show_vulnerability_popup` (String)
 - `vulnerability_scan` (String)
 
 <a id="nestedatt--exclusions"></a>
 ### Nested Schema for `exclusions`
 
-Optional:
+Read-Only:
+
+- `antiransomware` (Attributes) (see [below for nested schema](#nestedatt--exclusions--antiransomware))
+- `antivirus` (Attributes) (see [below for nested schema](#nestedatt--exclusions--antivirus))
+
+<a id="nestedatt--exclusions--antiransomware"></a>
+### Nested Schema for `exclusions.antiransomware`
+
+Read-Only:
 
 - `files` (Set of String)
 - `folders` (Set of String)
 
 
+<a id="nestedatt--exclusions--antivirus"></a>
+### Nested Schema for `exclusions.antivirus`
+
+Read-Only:
+
+- `files` (Set of String)
+- `folders` (Set of String)
+
+
+
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `class` (String)
@@ -69,7 +90,7 @@ Optional:
 <a id="nestedatt--scheduled_antivirus_scan"></a>
 ### Nested Schema for `scheduled_antivirus_scan`
 
-Optional:
+Read-Only:
 
 - `day` (Number)
 - `repeat` (String)
@@ -80,7 +101,7 @@ Optional:
 <a id="nestedatt--scheduled_scan"></a>
 ### Nested Schema for `scheduled_scan`
 
-Optional:
+Read-Only:
 
 - `day` (Number)
 - `repeat` (String)

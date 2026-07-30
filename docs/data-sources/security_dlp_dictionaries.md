@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_dictionaries Data Source - fortisase"
 subcategory: "Security"
 description: |-
   DLP Dictionary Resource API V2 for FortiSASE.
+  fortisase_security_dlp_dictionaries is deprecated. Please use fortisase_security_dlp_dictionary instead.
 ---
 
 # fortisase_security_dlp_dictionaries (Data Source)
 
 DLP Dictionary Resource API V2 for FortiSASE.
+fortisase_security_dlp_dictionaries is deprecated. Please use fortisase_security_dlp_dictionary instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_dictionaries" "example" {
+data "fortisase_security_dlp_dictionary" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,17 +27,17 @@ data "fortisase_security_dlp_dictionaries" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
-- `dictionary_type` (String)
+- `dictionary_type` (String) This property is used to classify DLP Dictionaries. It is server-generated and cannot be modified.
+Supported values: mip-label, sensor.
 - `entries` (Attributes List) (see [below for nested schema](#nestedatt--entries))
 - `entries_to_evaluate` (String)
-- `sensitivity_label_guid` (String)
 
 <a id="nestedatt--entries"></a>
 ### Nested Schema for `entries`
 
-Optional:
+Read-Only:
 
 - `case_sensitive` (String)
 - `dlp_data_type` (Attributes) (see [below for nested schema](#nestedatt--entries--dlp_data_type))
@@ -46,7 +48,7 @@ Optional:
 <a id="nestedatt--entries--dlp_data_type"></a>
 ### Nested Schema for `entries.dlp_data_type`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

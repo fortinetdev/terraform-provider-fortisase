@@ -25,14 +25,14 @@ data "fortisase_infra_ipam_setting" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `pools` (Attributes List) (see [below for nested schema](#nestedatt--pools))
 
 <a id="nestedatt--pools"></a>
 ### Nested Schema for `pools`
 
-Optional:
+Read-Only:
 
 - `excluded_subnets` (Attributes List) (see [below for nested schema](#nestedatt--pools--excluded_subnets))
 - `name` (String)
@@ -41,6 +41,6 @@ Optional:
 <a id="nestedatt--pools--excluded_subnets"></a>
 ### Nested Schema for `pools.excluded_subnets`
 
-Optional:
+Read-Only:
 
 - `subnet` (String)

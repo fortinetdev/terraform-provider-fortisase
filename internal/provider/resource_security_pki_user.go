@@ -1,0 +1,418 @@
+// Copyright 2020 Fortinet, Inc. All rights reserved.
+package provider
+
+import (
+	"context"
+	"fmt"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Ensure provider defined types fully satisfy framework interfaces.
+var _ resource.Resource = &resourceSecurityPkiUser{}
+var _ resource.ResourceWithMoveState = &resourceSecurityPkiUser{}
+
+func newResourceSecurityPkiUser() resource.Resource {
+	return &resourceSecurityPkiUser{}
+}
+
+type resourceSecurityPkiUser struct {
+	fortiClient  *FortiClient
+	resourceName string
+}
+
+// resourceSecurityPkiUserModel describes the resource data model.
+type resourceSecurityPkiUserModel struct {
+	ID             types.String                    `tfsdk:"id"`
+	PrimaryKey     types.String                    `tfsdk:"primary_key"`
+	Subject        types.String                    `tfsdk:"subject"`
+	Ca             *resourceSecurityPkiUserCaModel `tfsdk:"ca"`
+	IsStaticObject types.Bool                      `tfsdk:"is_static_object"`
+	References     types.Float64                   `tfsdk:"references"`
+	IsGlobalEntry  types.Bool                      `tfsdk:"is_global_entry"`
+}
+
+func (r *resourceSecurityPkiUser) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_security_pki_user"
+}
+
+func (r *resourceSecurityPkiUser) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "PKI User Resource API for FortiSASE.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"primary_key": schema.StringAttribute{
+				MarkdownDescription: "Primary Key of PKI User.",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"subject": schema.StringAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"is_static_object": schema.BoolAttribute{
+				Computed: true,
+			},
+			"references": schema.Float64Attribute{
+				Computed: true,
+			},
+			"is_global_entry": schema.BoolAttribute{
+				Computed: true,
+			},
+			"ca": schema.SingleNestedAttribute{
+				Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "CA Cert Name",
+						Computed:            true,
+						Optional:            true,
+					},
+				},
+				Computed: true,
+				Optional: true,
+			},
+		},
+	}
+}
+
+func (r *resourceSecurityPkiUser) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*FortiClient)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	r.fortiClient = client
+	r.resourceName = "fortisase_security_pki_user"
+}
+func (r *resourceSecurityPkiUser) MoveState(ctx context.Context) []resource.StateMover {
+	schemaResponse := &resource.SchemaResponse{}
+	r.Schema(ctx, resource.SchemaRequest{}, schemaResponse)
+	sourceSchema := &schemaResponse.Schema
+
+	return []resource.StateMover{
+		{
+			SourceSchema: sourceSchema,
+			StateMover: func(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+				if req.SourceTypeName != "fortisase_security_pki_users" || req.SourceSchemaVersion != 0 {
+					return
+				}
+
+				var sourceState resourceSecurityPkiUserModel
+				resp.Diagnostics.Append(req.SourceState.Get(ctx, &sourceState)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				resp.Diagnostics.Append(resp.TargetState.Set(ctx, &sourceState)...)
+			},
+		},
+	}
+}
+
+func (r *resourceSecurityPkiUser) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data resourceSecurityPkiUserModel
+	diags := &resp.Diagnostics
+
+	// Read Terraform config data into the model
+	diags.Append(req.Config.Get(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.BodyParams = *(data.getCreateObjectSecurityPkiUser(ctx, diags))
+	input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "create", diags))
+
+	if diags.HasError() {
+		return
+	}
+	mkey := data.PrimaryKey.ValueString()
+	output, err := c.CreateSecurityPkiUsers(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+
+	if responseMkey, ok := getCreateResponseMkey(output, "primaryKey"); ok {
+		mkey = responseMkey
+	}
+	data.ID = types.StringValue(mkey)
+	var read_input_model forticlient.InputModel
+	read_input_model.Mkey = mkey
+	read_input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityPkiUsers(&read_input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityPkiUser(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityPkiUser) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	diags := &resp.Diagnostics
+
+	// Read Terraform plan data into the model
+	var state resourceSecurityPkiUserModel
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
+		return
+	}
+
+	var data resourceSecurityPkiUserModel
+	diags.Append(req.Config.Get(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	data.ID = state.ID
+
+	mkey := state.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.BodyParams = *(data.getUpdateObjectSecurityPkiUser(ctx, state, diags))
+	input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "update", diags))
+
+	if diags.HasError() {
+		return
+	}
+
+	output, err := c.UpdateSecurityPkiUsers(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+	var read_input_model forticlient.InputModel
+	read_input_model.Mkey = mkey
+	read_input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityPkiUsers(&read_input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityPkiUser(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityPkiUser) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	diags := &resp.Diagnostics
+	var data resourceSecurityPkiUserModel
+
+	// Read Terraform prior state data into the model
+	diags.Append(req.State.Get(ctx, &data)...)
+
+	if diags.HasError() {
+		return
+	}
+
+	mkey := data.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "delete", diags))
+
+	output, err := c.DeleteSecurityPkiUsers(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+}
+
+func (r *resourceSecurityPkiUser) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	diags := &resp.Diagnostics
+	var data resourceSecurityPkiUserModel
+
+	// Read Terraform prior state data into the model
+	diags.Append(req.State.Get(ctx, &data)...)
+
+	if diags.HasError() {
+		return
+	}
+
+	mkey := data.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.URLParams = *(data.getURLObjectSecurityPkiUser(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityPkiUsers(&input_model)
+	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityPkiUser(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityPkiUser) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), req.ID)...)
+}
+
+func (m *resourceSecurityPkiUserModel) refreshSecurityPkiUser(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if o == nil {
+		return diags
+	}
+
+	if v, ok := o["subject"]; ok {
+		m.Subject = parseStringValue(v)
+	}
+
+	if v, ok := o["ca"]; ok {
+		m.Ca = m.Ca.flattenSecurityPkiUserCa(ctx, v, &diags)
+	}
+
+	if v, ok := o["isStaticObject"]; ok {
+		m.IsStaticObject = parseBoolValue(v)
+	}
+
+	if v, ok := o["references"]; ok {
+		m.References = parseFloat64Value(v)
+	}
+
+	if v, ok := o["isGlobalEntry"]; ok {
+		m.IsGlobalEntry = parseBoolValue(v)
+	}
+
+	return diags
+}
+
+func (data *resourceSecurityPkiUserModel) getCreateObjectSecurityPkiUser(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Subject.IsNull() && !data.Subject.IsUnknown() {
+		result["subject"] = data.Subject.ValueString()
+	}
+
+	if data.Ca != nil && !isZeroStruct(*data.Ca) {
+		result["ca"] = data.Ca.expandSecurityPkiUserCa(ctx, diags)
+	}
+
+	return &result
+}
+
+func (data *resourceSecurityPkiUserModel) getUpdateObjectSecurityPkiUser(ctx context.Context, state resourceSecurityPkiUserModel, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Subject.IsNull() && !data.Subject.IsUnknown() {
+		result["subject"] = data.Subject.ValueString()
+	}
+
+	if data.Ca != nil {
+		result["ca"] = data.Ca.expandSecurityPkiUserCa(ctx, diags)
+	}
+
+	return &result
+}
+
+func (data *resourceSecurityPkiUserModel) getURLObjectSecurityPkiUser(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	return &result
+}
+
+type resourceSecurityPkiUserCaModel struct {
+	Name types.String `tfsdk:"name"`
+}
+
+func (m *resourceSecurityPkiUserCaModel) flattenSecurityPkiUserCa(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityPkiUserCaModel {
+	if input == nil {
+		return &resourceSecurityPkiUserCaModel{}
+	}
+	if m == nil {
+		m = &resourceSecurityPkiUserCaModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["name"]; ok {
+		m.Name = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (data *resourceSecurityPkiUserCaModel) expandSecurityPkiUserCa(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
+		result["name"] = data.Name.ValueString()
+	}
+
+	return result
+}

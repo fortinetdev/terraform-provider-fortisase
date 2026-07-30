@@ -4,16 +4,18 @@ page_title: "fortisase_security_url_threat_feeds Resource - fortisase"
 subcategory: "Security"
 description: |-
   URL Threat Feed Resource API V2 for FortiSASE.
+  fortisase_security_url_threat_feeds is deprecated. Please use fortisase_security_url_threat_feed instead.
 ---
 
 # fortisase_security_url_threat_feeds (Resource)
 
 URL Threat Feed Resource API V2 for FortiSASE.
+fortisase_security_url_threat_feeds is deprecated. Please use fortisase_security_url_threat_feed instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_url_threat_feeds" "url_threat_feeds" {
+resource "fortisase_security_url_threat_feed" "url_threat_feeds" {
   primary_key          = "url_threat_feeds"
   refresh_rate         = 10
   status               = "enable"
@@ -52,5 +54,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_url_threat_feeds.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_url_threat_feed.{{your_resource_name}} {{primary_key}}
 ```

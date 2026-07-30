@@ -4,17 +4,19 @@ page_title: "fortisase_security_endpoint_to_endpoint_policies Resource - fortisa
 subcategory: "Security"
 description: |-
   Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
+  fortisase_security_endpoint_to_endpoint_policies is deprecated. Please use fortisase_security_endpoint_to_endpoint_policy instead.
 ---
 
 # fortisase_security_endpoint_to_endpoint_policies (Resource)
 
 Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
+fortisase_security_endpoint_to_endpoint_policies is deprecated. Please use fortisase_security_endpoint_to_endpoint_policy instead.
 
 ## Example Usage
 
 ```terraform
 # GUI: Security > Policies > Secure private access > Same PoP client-to-client
-resource "fortisase_security_endpoint_to_endpoint_policies" "example" {
+resource "fortisase_security_endpoint_to_endpoint_policy" "example" {
   primary_key = "example"
   enabled     = true
   services = [
@@ -129,5 +131,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_endpoint_to_endpoint_policies.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_endpoint_to_endpoint_policy.{{your_resource_name}} {{primary_key}}
 ```

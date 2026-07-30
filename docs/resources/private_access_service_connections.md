@@ -4,11 +4,13 @@ page_title: "fortisase_private_access_service_connections Resource - fortisase"
 subcategory: "Others"
 description: |-
   Secure Private Access Resource API for FortiSASE.
+  fortisase_private_access_service_connections is deprecated. Please use fortisase_private_access_service_connection instead.
 ---
 
 # fortisase_private_access_service_connections (Resource)
 
 Secure Private Access Resource API for FortiSASE.
+fortisase_private_access_service_connections is deprecated. Please use fortisase_private_access_service_connection instead.
 
 ## Example Usage
 
@@ -23,7 +25,7 @@ resource "fortisase_private_access_network_configuration" "example" {
 }
 
 # Secure private access. fortisase_private_access_network_configuration must be created first.
-resource "fortisase_private_access_service_connections" "example" {
+resource "fortisase_private_access_service_connection" "example" {
   type = fortisase_private_access_network_configuration.example.bgp_design # overlay or loopback
 
   # [Name]
@@ -38,7 +40,7 @@ resource "fortisase_private_access_service_connections" "example" {
   ipsec_pre_shared_key = "example_shared_key" # Pre-shared key must be at least 6 characters long
   ## Method2: Certificate-Based Authentication
   # auth              = "pki"
-  # ipsec_cert_name   = "existing_cert_name" # GUI: "System" -> "Certificates" -> "Import" -> "Local Certificate"; Terraform: fortisase_security_cert_local_certs -> cert_name
+  # ipsec_cert_name   = "existing_cert_name" # GUI: "System" -> "Certificates" -> "Import" -> "Local Certificate"; Terraform: fortisase_security_cert_local_cert -> cert_name
   # ipsec_peer_name   = "existing_pki_name"  # GUI: "Access & authentication" -> "PKI"; Terraform: resource_security_pki_users -> primary_key
 
   # [ADVPN Route Tag]
@@ -126,7 +128,7 @@ Supported values: 2.
 <a id="nestedatt--common_config"></a>
 ### Nested Schema for `common_config`
 
-Optional:
+Read-Only:
 
 - `as_number` (String) Autonomous System Number (ASN).
 - `bgp_design` (String) BGP Routing Design.
@@ -142,7 +144,7 @@ Supported values: success, failed, creating, updating, deleting.
 <a id="nestedatt--config"></a>
 ### Nested Schema for `config`
 
-Optional:
+Read-Only:
 
 - `alias` (String) alias for serivce connection
 - `auth` (String) IPSEC authentication method.
@@ -161,7 +163,7 @@ Supported values: 2.
 <a id="nestedatt--config--backup_links"></a>
 ### Nested Schema for `config.backup_links`
 
-Optional:
+Read-Only:
 
 - `alias` (String) alias for serivce connection additional overlay
 - `auth` (String) IPSEC authentication method.
@@ -179,7 +181,7 @@ Supported values: 2.
 <a id="nestedatt--ip_assigned"></a>
 ### Nested Schema for `ip_assigned`
 
-Optional:
+Read-Only:
 
 - `bgp_router_id` (String) BGP Router ID generated from Router ID Subnets
 - `id` (String) unique id for bgp router id assignment
@@ -194,5 +196,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_private_access_service_connections.{{your_resource_name}} {{service_connection_id}}
+terraform import fortisase_private_access_service_connection.{{your_resource_name}} {{service_connection_id}}
 ```

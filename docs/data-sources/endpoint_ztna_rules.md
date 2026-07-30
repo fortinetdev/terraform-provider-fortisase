@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_ztna_rules Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+  fortisase_endpoint_ztna_rules is deprecated. Please use fortisase_endpoint_ztna_rule instead.
 ---
 
 # fortisase_endpoint_ztna_rules (Data Source)
 
 ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+fortisase_endpoint_ztna_rules is deprecated. Please use fortisase_endpoint_ztna_rule instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_ztna_rules" "example" {
+data "fortisase_endpoint_ztna_rule" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_ztna_rules" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `comments` (String)
 - `logic` (Attributes) The property 'logic' is required when 'rules' are modified; otherwise, 'logic' will be set to a default value. This resource is restricted to EMS version: 7.2. (see [below for nested schema](#nestedatt--logic))
@@ -36,7 +38,7 @@ data "fortisase_endpoint_ztna_rules" "example" {
 <a id="nestedatt--logic"></a>
 ### Nested Schema for `logic`
 
-Optional:
+Read-Only:
 
 - `android` (String)
 - `ios` (String)
@@ -48,7 +50,7 @@ Optional:
 <a id="nestedatt--rules"></a>
 ### Nested Schema for `rules`
 
-Optional:
+Read-Only:
 
 - `account` (String)
 - `check_updates_within_days` (Number)
@@ -69,7 +71,7 @@ Optional:
 <a id="nestedatt--rules--condition"></a>
 ### Nested Schema for `rules.condition`
 
-Optional:
+Read-Only:
 
 - `comparator` (String)
 - `is_dword` (Boolean)
@@ -81,7 +83,7 @@ Optional:
 <a id="nestedatt--tag"></a>
 ### Nested Schema for `tag`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

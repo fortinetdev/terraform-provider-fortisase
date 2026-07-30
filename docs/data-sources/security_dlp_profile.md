@@ -23,18 +23,18 @@ data "fortisase_security_dlp_profile" "example" {
 
 ### Required
 
-- `primary_key` (String)
-
-### Optional
-
 - `direction` (String) The direction of the target resource.
 Supported values: internal-profiles, outbound-profiles.
+- `primary_key` (String)
+
+### Read-Only
+
 - `dlp_rules` (Attributes List) (see [below for nested schema](#nestedatt--dlp_rules))
 
 <a id="nestedatt--dlp_rules"></a>
 ### Nested Schema for `dlp_rules`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `datasource_type` (String)
@@ -51,7 +51,7 @@ Optional:
 <a id="nestedatt--dlp_rules--dlp_file_pattern"></a>
 ### Nested Schema for `dlp_rules.dlp_file_pattern`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -60,7 +60,7 @@ Optional:
 <a id="nestedatt--dlp_rules--dlp_sensors"></a>
 ### Nested Schema for `dlp_rules.dlp_sensors`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -69,7 +69,7 @@ Optional:
 <a id="nestedatt--dlp_rules--sensitivity_label"></a>
 ### Nested Schema for `dlp_rules.sensitivity_label`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

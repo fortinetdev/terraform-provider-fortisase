@@ -4,17 +4,19 @@ page_title: "fortisase_endpoint_on_net_rules Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint on net rule
+  fortisase_endpoint_on_net_rules is deprecated. Please use fortisase_endpoint_on_net_rule instead.
 ---
 
 # fortisase_endpoint_on_net_rules (Resource)
 
 Endpoint on net rule
+fortisase_endpoint_on_net_rules is deprecated. Please use fortisase_endpoint_on_net_rule instead.
 
 ## Example Usage
 
 ```terraform
 # Note: For string arguments, use ; to separate multiple addresses.
-resource "fortisase_endpoint_on_net_rules" "example" {
+resource "fortisase_endpoint_on_net_rule" "example" {
   primary_key = "example_name"
 
   # Specify one or more of the following rules, and delete the ones that are not applicable:
@@ -112,5 +114,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_on_net_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_on_net_rule.{{your_resource_name}} {{primary_key}}
 ```

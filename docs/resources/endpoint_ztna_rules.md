@@ -4,22 +4,24 @@ page_title: "fortisase_endpoint_ztna_rules Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+  fortisase_endpoint_ztna_rules is deprecated. Please use fortisase_endpoint_ztna_rule instead.
 ---
 
 # fortisase_endpoint_ztna_rules (Resource)
 
 ZTNA Rule Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+fortisase_endpoint_ztna_rules is deprecated. Please use fortisase_endpoint_ztna_rule instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_ztna_tags" "ztna_tag" {
+resource "fortisase_endpoint_ztna_tag" "ztna_tag" {
   name        = "Compliant"
   primary_key = "Compliant"
 }
 
 # This resource is only available for EMS 7.2
-resource "fortisase_endpoint_ztna_rules" "ztna_rule" {
+resource "fortisase_endpoint_ztna_rule" "ztna_rule" {
   primary_key = "Compliant Endpoints"
   status      = "enable"
   comments    = ""
@@ -96,7 +98,7 @@ resource "fortisase_endpoint_ztna_rules" "ztna_rule" {
   }
   tag = {
     datasource  = "endpoint/ztna-tags"
-    primary_key = fortisase_endpoint_ztna_tags.ztna_tag.primary_key
+    primary_key = fortisase_endpoint_ztna_tag.ztna_tag.primary_key
   }
 }
 ```
@@ -180,5 +182,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_ztna_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_ztna_rule.{{your_resource_name}} {{primary_key}}
 ```

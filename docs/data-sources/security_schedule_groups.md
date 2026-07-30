@@ -4,16 +4,18 @@ page_title: "fortisase_security_schedule_groups Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Schedule Group Resource API V2 for FortiSASE.
+  fortisase_security_schedule_groups is deprecated. Please use fortisase_security_schedule_group instead.
 ---
 
 # fortisase_security_schedule_groups (Data Source)
 
 Schedule Group Resource API V2 for FortiSASE.
+fortisase_security_schedule_groups is deprecated. Please use fortisase_security_schedule_group instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_schedule_groups" "example" {
+data "fortisase_security_schedule_group" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,14 +27,14 @@ data "fortisase_security_schedule_groups" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `members` (Attributes List) (see [below for nested schema](#nestedatt--members))
 
 <a id="nestedatt--members"></a>
 ### Nested Schema for `members`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

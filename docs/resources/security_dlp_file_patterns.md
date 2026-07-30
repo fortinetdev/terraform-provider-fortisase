@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_file_patterns Resource - fortisase"
 subcategory: "Security"
 description: |-
   DLP File Pattern Resource API V2 for FortiSASE.
+  fortisase_security_dlp_file_patterns is deprecated. Please use fortisase_security_dlp_file_pattern instead.
 ---
 
 # fortisase_security_dlp_file_patterns (Resource)
 
 DLP File Pattern Resource API V2 for FortiSASE.
+fortisase_security_dlp_file_patterns is deprecated. Please use fortisase_security_dlp_file_pattern instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_dlp_file_patterns" "dlp_file_pattern" {
+resource "fortisase_security_dlp_file_pattern" "dlp_file_pattern" {
   # Please don't set "primary_key", the value of this variable is only known after the resource is created.
   tag = "test"
   entries = [
@@ -55,5 +57,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_dlp_file_patterns.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_dlp_file_pattern.{{your_resource_name}} {{primary_key}}
 ```

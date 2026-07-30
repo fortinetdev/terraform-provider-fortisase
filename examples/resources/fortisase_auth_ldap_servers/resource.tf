@@ -1,4 +1,4 @@
-resource "fortisase_auth_ldap_servers" "ldap_server" {
+resource "fortisase_auth_ldap_server" "ldap_server" {
   primary_key                     = "ldap_server"
   server                          = "1.2.3.4"
   port                            = 1234

@@ -4,16 +4,18 @@ page_title: "fortisase_security_service_groups Resource - fortisase"
 subcategory: "Security"
 description: |-
   Service Group Resource API V2 for FortiSASE.
+  fortisase_security_service_groups is deprecated. Please use fortisase_security_service_group instead.
 ---
 
 # fortisase_security_service_groups (Resource)
 
 Service Group Resource API V2 for FortiSASE.
+fortisase_security_service_groups is deprecated. Please use fortisase_security_service_group instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_service_groups" "service_group" {
+resource "fortisase_security_service_group" "service_group" {
   primary_key = "service_group_name"
   proxy       = false
   members = [
@@ -56,5 +58,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_service_groups.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_service_group.{{your_resource_name}} {{primary_key}}
 ```

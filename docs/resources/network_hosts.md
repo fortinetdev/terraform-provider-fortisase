@@ -4,16 +4,18 @@ page_title: "fortisase_network_hosts Resource - fortisase"
 subcategory: "Network"
 description: |-
   Host Resource API V2 for FortiSASE.
+  fortisase_network_hosts is deprecated. Please use fortisase_network_host instead.
 ---
 
 # fortisase_network_hosts (Resource)
 
 Host Resource API V2 for FortiSASE.
+fortisase_network_hosts is deprecated. Please use fortisase_network_host instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_network_hosts" "network_host" {
+resource "fortisase_network_host" "network_host" {
   primary_key = "network_host_example"
   type        = "ipmask"
   location    = "internal"
@@ -49,5 +51,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_network_hosts.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_network_host.{{your_resource_name}} {{primary_key}}
 ```

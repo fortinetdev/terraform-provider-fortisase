@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_ztna_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   ZTNA Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_ztna_profiles is deprecated. Please use fortisase_endpoint_ztna_profile instead.
 ---
 
 # fortisase_endpoint_ztna_profiles (Data Source)
 
 ZTNA Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_ztna_profiles is deprecated. Please use fortisase_endpoint_ztna_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_ztna_profiles" "example" {
+data "fortisase_endpoint_ztna_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_ztna_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `allow_automatic_sign_on` (String)
 - `connection_rules` (Attributes List) (see [below for nested schema](#nestedatt--connection_rules))
@@ -35,7 +37,7 @@ data "fortisase_endpoint_ztna_profiles" "example" {
 <a id="nestedatt--connection_rules"></a>
 ### Nested Schema for `connection_rules`
 
-Optional:
+Read-Only:
 
 - `address` (String)
 - `encryption` (String)
@@ -49,7 +51,7 @@ Optional:
 <a id="nestedatt--connection_rules--gateways"></a>
 ### Nested Schema for `connection_rules.gateways`
 
-Optional:
+Read-Only:
 
 - `alias` (String)
 - `id` (Number)
@@ -62,7 +64,7 @@ Optional:
 <a id="nestedatt--entra_id"></a>
 ### Nested Schema for `entra_id`
 
-Optional:
+Read-Only:
 
 - `application_id` (String)
 - `domain_name` (String)

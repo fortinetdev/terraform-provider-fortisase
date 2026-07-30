@@ -55,56 +55,48 @@ func (r *datasourceSecurityAntivirusProfile) Schema(ctx context.Context, req dat
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"smtp": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"pop3": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"imap": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"ftp": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"cifs": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"cdr": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"enable": schema.BoolAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"file_types": schema.SetAttribute{
 						Validators: []validator.Set{
@@ -113,16 +105,13 @@ func (r *datasourceSecurityAntivirusProfile) Schema(ctx context.Context, req dat
 							),
 						},
 						Computed:    true,
-						Optional:    true,
 						ElementType: types.StringType,
 					},
 					"allow_error_transmission": schema.BoolAttribute{
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -224,14 +213,14 @@ func (m *datasourceSecurityAntivirusProfileModel) refreshSecurityAntivirusProfil
 
 func (data *datasourceSecurityAntivirusProfileModel) getURLObjectSecurityAntivirusProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -258,6 +247,8 @@ func (m *datasourceSecurityAntivirusProfileCdrModel) flattenSecurityAntivirusPro
 
 	if v, ok := o["fileTypes"]; ok {
 		m.FileTypes = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.FileTypes = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["allowErrorTransmission"]; ok {

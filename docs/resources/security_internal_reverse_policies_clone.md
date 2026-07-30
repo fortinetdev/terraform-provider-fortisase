@@ -4,17 +4,19 @@ page_title: "fortisase_security_internal_reverse_policies_clone Resource - forti
 subcategory: "Security"
 description: |-
   Internal Reverse Policy Resource API V2 for FortiSASE.
+  fortisase_security_internal_reverse_policies_clone is deprecated. Please use fortisase_security_internal_reverse_policy_clone instead.
 ---
 
 # fortisase_security_internal_reverse_policies_clone (Resource)
 
 Internal Reverse Policy Resource API V2 for FortiSASE.
+fortisase_security_internal_reverse_policies_clone is deprecated. Please use fortisase_security_internal_reverse_policy_clone instead.
 
 ## Example Usage
 
 ```terraform
 # Note: Destroy this resource won't delete the cloned policy.
-resource "fortisase_security_internal_reverse_policies_clone" "clone_example" {
+resource "fortisase_security_internal_reverse_policy_clone" "clone_example" {
   based_on    = "existing_policy_name" # The policy to clone from
   primary_key = "new_policy_name"      # The name of the new policy
 }

@@ -4,17 +4,19 @@ page_title: "fortisase_endpoint_policies Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint Policy Resource API V2 for FortiSASE.
+  fortisase_endpoint_policies is deprecated. Please use fortisase_endpoint_policy instead.
 ---
 
 # fortisase_endpoint_policies (Data Source)
 
 Endpoint Policy Resource API V2 for FortiSASE.
+fortisase_endpoint_policies is deprecated. Please use fortisase_endpoint_policy instead.
 
 ## Example Usage
 
 ```terraform
 # Same behavior as "fortisase_endpoint_profile"
-data "fortisase_endpoint_policies" "example" {
+data "fortisase_endpoint_policy" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -26,7 +28,7 @@ data "fortisase_endpoint_policies" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `enabled` (Boolean)
 - `skip_off_net_profile_creation_on_edit` (Boolean)

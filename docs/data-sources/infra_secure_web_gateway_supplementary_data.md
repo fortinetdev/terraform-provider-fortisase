@@ -25,7 +25,7 @@ data "fortisase_infra_secure_web_gateway_supplementary_data" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `end_session_after_mins` (Number)
 - `session_duration_hours` (Number)

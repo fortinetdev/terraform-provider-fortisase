@@ -23,13 +23,13 @@ data "fortisase_security_dns_filter_profile" "example" {
 
 ### Required
 
-- `primary_key` (String)
-
-### Optional
-
-- `allow_dns_requests_on_rating_error` (String)
 - `direction` (String) The direction of the target resource.
 Supported values: internal-profiles, outbound-profiles.
+- `primary_key` (String)
+
+### Read-Only
+
+- `allow_dns_requests_on_rating_error` (String)
 - `dns_translation_entries` (Attributes List) (see [below for nested schema](#nestedatt--dns_translation_entries))
 - `domain_filters` (Attributes List) (see [below for nested schema](#nestedatt--domain_filters))
 - `domain_threat_feed_filters` (Attributes List) (see [below for nested schema](#nestedatt--domain_threat_feed_filters))
@@ -43,7 +43,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--dns_translation_entries"></a>
 ### Nested Schema for `dns_translation_entries`
 
-Optional:
+Read-Only:
 
 - `dst` (String)
 - `netmask` (String)
@@ -54,7 +54,7 @@ Optional:
 <a id="nestedatt--domain_filters"></a>
 ### Nested Schema for `domain_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `enabled` (Boolean)
@@ -65,7 +65,7 @@ Optional:
 <a id="nestedatt--domain_threat_feed_filters"></a>
 ### Nested Schema for `domain_threat_feed_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--domain_threat_feed_filters--category))
@@ -73,7 +73,7 @@ Optional:
 <a id="nestedatt--domain_threat_feed_filters--category"></a>
 ### Nested Schema for `domain_threat_feed_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -83,7 +83,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters"></a>
 ### Nested Schema for `fortiguard_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--fortiguard_filters--category))
@@ -91,7 +91,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters--category"></a>
 ### Nested Schema for `fortiguard_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

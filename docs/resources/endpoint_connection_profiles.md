@@ -4,25 +4,28 @@ page_title: "fortisase_endpoint_connection_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Connection Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_connection_profiles is deprecated. Please use fortisase_endpoint_connection_profile instead.
 ---
 
 # fortisase_endpoint_connection_profiles (Resource)
 
 Connection Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_connection_profiles is deprecated. Please use fortisase_endpoint_connection_profile instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_policies" "endpoint_profile" {
-  primary_key = "example"
+# GUI: Endpoint management -> Configuration -> Profiles
+resource "fortisase_endpoint_profile" "endpoint_profile" {
+  primary_key = "example_endpoint_profile"
   enabled     = true
 }
 
-resource "fortisase_endpoint_connection_profiles" "connection_profile" {
-  primary_key = fortisase_endpoint_policies.endpoint_profile.primary_key
+resource "fortisase_endpoint_connection_profile" "connection_profile" {
+  primary_key = fortisase_endpoint_profile.endpoint_profile.primary_key
 
   # [Endpoint connects to FortiSASE Cloud Security]
-  connect_to_forti_sase = "automatically" # "automatically" or "manually"
+  connect_to_fortisase = "automatically" # "automatically" or "manually"
 
   # [Show option to disconnect from security PoP]
   show_disconnect_btn = "enable"
@@ -37,13 +40,13 @@ resource "fortisase_endpoint_connection_profiles" "connection_profile" {
     # failover_sequence = ["newdomain.com"]
 
     # [Run posture check before initiating FortiSASE Cloud Security tunnel]
-    # # Enable posture check
+    ## Optiona A: Enable posture check
     # posture_check = {
     #   action               = "prohibit"
-    #   tag                  = "tag1"
-    #   check_failed_message = "Your endpoint is not compliant and therefore not allowed to connect to FortiSASE"
+    #   tag                  = "your_posture_check_name"
+    #   check_failed_message = "Your Comment"
     # }
-    # # Disable Run posture check
+    ## Optiona B: Remove posture check
     # posture_check = {
     #   action               = "allow" # must be "allow"
     #   tag                  = "" # must be ""
@@ -79,10 +82,13 @@ Supported values: webBrowser, electron, webView2.
 - `allow_invalid_server_certificate` (String)
 - `allow_personal_vpns` (Boolean)
 - `auth_before_user_logon` (Boolean)
-- `available_vp_ns` (Attributes List) (see [below for nested schema](#nestedatt--available_vp_ns))
+- `available_vp_ns` (Attributes List, Deprecated) (see [below for nested schema](#nestedatt--available_vp_ns))
+- `available_vpns` (Attributes List) (see [below for nested schema](#nestedatt--available_vpns))
 - `before_logon_saml_auth` (String) Specifies the browser framework used for Pre-logon VPN SAML authentication.
 Supported values: webBrowser, electron.
-- `connect_to_forti_sase` (String)
+- `connect_to_forti_sase` (String, Deprecated)
+- `connect_to_fortisase` (String)
+- `disable_internet_check` (String)
 - `enable_invalid_server_cert_warning` (String)
 - `endpoint_on_net_bypass` (Boolean)
 - `lockdown` (Attributes) (see [below for nested schema](#nestedatt--lockdown))
@@ -110,7 +116,9 @@ Optional:
 - `allow_fido_auth` (String)
 - `auth_method` (String)
 - `authenticate_with_sso` (String)
+- `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
@@ -131,8 +139,72 @@ Optional:
 - `udp_port` (Number)
 - `username_prompt` (String)
 
+<a id="nestedatt--available_vp_ns--connect_disconnect_scripts"></a>
+### Nested Schema for `available_vp_ns.connect_disconnect_scripts`
+
+Optional:
+
+- `on_connect_mac` (String)
+- `on_connect_windows` (String)
+- `on_disconnect_mac` (String)
+- `on_disconnect_windows` (String)
+
+
 <a id="nestedatt--available_vp_ns--posture_check"></a>
 ### Nested Schema for `available_vp_ns.posture_check`
+
+Optional:
+
+- `action` (String)
+- `check_failed_message` (String)
+- `tag` (String)
+
+
+
+<a id="nestedatt--available_vpns"></a>
+### Nested Schema for `available_vpns`
+
+Optional:
+
+- `allow_fido_auth` (String)
+- `auth_method` (String)
+- `authenticate_with_sso` (String)
+- `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--connect_disconnect_scripts))
+- `dns_suffixes` (Set of String)
+- `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
+- `enable_local_lan` (String)
+- `encapsulation_mode` (String)
+- `external_browser_saml_login` (String)
+- `name` (String)
+- `port` (Number)
+- `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check))
+- `pre_shared_key` (String)
+- `remote_gateway` (String)
+- `require_certificate` (String)
+- `saml_port` (Number)
+- `save_username` (String)
+- `show_always_up` (String)
+- `show_auto_connect` (String)
+- `show_passcode` (String)
+- `show_remember_password` (String)
+- `tcp_port` (Number)
+- `type` (String)
+- `udp_port` (Number)
+- `username_prompt` (String)
+
+<a id="nestedatt--available_vpns--connect_disconnect_scripts"></a>
+### Nested Schema for `available_vpns.connect_disconnect_scripts`
+
+Optional:
+
+- `on_connect_mac` (String)
+- `on_connect_windows` (String)
+- `on_disconnect_mac` (String)
+- `on_disconnect_windows` (String)
+
+
+<a id="nestedatt--available_vpns--posture_check"></a>
+### Nested Schema for `available_vpns.posture_check`
 
 Optional:
 
@@ -190,6 +262,7 @@ Optional:
 - `fqdns` (Set of String)
 - `isdbs` (Attributes List) (see [below for nested schema](#nestedatt--off_net_split_tunnel--isdbs))
 - `local_apps` (Set of String)
+- `split_tunnel_mode` (String)
 - `subnets` (Attributes List) (see [below for nested schema](#nestedatt--off_net_split_tunnel--subnets))
 - `subnets_ipsec` (Set of String)
 
@@ -258,11 +331,25 @@ Optional:
 
 - `allow_fido_auth` (String)
 - `authenticate_with_sso` (String)
+- `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `eap_enabled` (Boolean) When vpnType is ipSecVPN, sets EAP (eap_method) on the Secure Internet Access tunnel(s) only (SIA-named connections), for both on-net and off-net EMS profiles. Custom/manual IPsec tunnels use availableVPNs[].eapEnabled.
 - `enable_local_lan` (String)
+- `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
 - `failover_sequence` (Set of String)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--posture_check))
+
+<a id="nestedatt--secure_internet_access--connect_disconnect_scripts"></a>
+### Nested Schema for `secure_internet_access.connect_disconnect_scripts`
+
+Optional:
+
+- `on_connect_mac` (String)
+- `on_connect_windows` (String)
+- `on_disconnect_mac` (String)
+- `on_disconnect_windows` (String)
+
 
 <a id="nestedatt--secure_internet_access--posture_check"></a>
 ### Nested Schema for `secure_internet_access.posture_check`
@@ -283,6 +370,7 @@ Optional:
 - `fqdns` (Set of String)
 - `isdbs` (Attributes List) (see [below for nested schema](#nestedatt--split_tunnel--isdbs))
 - `local_apps` (Set of String)
+- `split_tunnel_mode` (String)
 - `subnets` (Attributes List) (see [below for nested schema](#nestedatt--split_tunnel--subnets))
 - `subnets_ipsec` (Set of String)
 
@@ -310,5 +398,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_connection_profiles.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_connection_profile.{{your_resource_name}} {{primary_key}}
 ```

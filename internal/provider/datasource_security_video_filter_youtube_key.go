@@ -50,7 +50,6 @@ func (r *datasourceSecurityVideoFilterYoutubeKey) Schema(ctx context.Context, re
 					stringvalidatorwarning.LengthBetween(1, 47),
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}

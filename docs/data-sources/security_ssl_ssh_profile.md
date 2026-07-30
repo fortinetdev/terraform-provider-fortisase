@@ -23,14 +23,14 @@ data "fortisase_security_ssl_ssh_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `ca_certificate` (Attributes) (see [below for nested schema](#nestedatt--ca_certificate))
 - `cert_probe_failure` (String)
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `expired_certificate_action` (String)
 - `host_exemptions` (Attributes List) (see [below for nested schema](#nestedatt--host_exemptions))
 - `inspection_mode` (String)
@@ -44,7 +44,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--ca_certificate"></a>
 ### Nested Schema for `ca_certificate`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -53,7 +53,7 @@ Optional:
 <a id="nestedatt--host_exemptions"></a>
 ### Nested Schema for `host_exemptions`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -62,7 +62,7 @@ Optional:
 <a id="nestedatt--profile_protocol_options"></a>
 ### Nested Schema for `profile_protocol_options`
 
-Optional:
+Read-Only:
 
 - `compressed_limit` (Number)
 - `oversized_action` (String)
@@ -73,7 +73,7 @@ Optional:
 <a id="nestedatt--url_category_exemptions"></a>
 ### Nested Schema for `url_category_exemptions`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

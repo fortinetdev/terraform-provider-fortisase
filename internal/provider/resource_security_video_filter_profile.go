@@ -55,6 +55,9 @@ func (r *resourceSecurityVideoFilterProfile) Schema(ctx context.Context, req res
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"default_action": schema.StringAttribute{
 				Computed: true,
@@ -81,14 +84,12 @@ func (r *resourceSecurityVideoFilterProfile) Schema(ctx context.Context, req res
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/video-filter-fortiguard-categories"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -186,7 +187,7 @@ func (r *resourceSecurityVideoFilterProfile) Create(ctx context.Context, req res
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -294,6 +295,10 @@ func (r *resourceSecurityVideoFilterProfile) Read(ctx context.Context, req resou
 
 	read_output, err := c.ReadSecurityVideoFilterProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -340,13 +345,13 @@ func (m *resourceSecurityVideoFilterProfileModel) refreshSecurityVideoFilterProf
 
 func (data *resourceSecurityVideoFilterProfileModel) getCreateObjectSecurityVideoFilterProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
 	result["fortiguardFilters"] = data.expandSecurityVideoFilterProfileFortiguardFiltersList(ctx, data.FortiguardFilters, diags)
 
-	if !data.DefaultAction.IsNull() {
+	if !data.DefaultAction.IsNull() && !data.DefaultAction.IsUnknown() {
 		result["defaultAction"] = data.DefaultAction.ValueString()
 	}
 
@@ -359,7 +364,7 @@ func (data *resourceSecurityVideoFilterProfileModel) getCreateObjectSecurityVide
 
 func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVideoFilterProfile(ctx context.Context, state resourceSecurityVideoFilterProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -367,7 +372,7 @@ func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVide
 		result["fortiguardFilters"] = data.expandSecurityVideoFilterProfileFortiguardFiltersList(ctx, data.FortiguardFilters, diags)
 	}
 
-	if !data.DefaultAction.IsNull() {
+	if !data.DefaultAction.IsNull() && !data.DefaultAction.IsUnknown() {
 		result["defaultAction"] = data.DefaultAction.ValueString()
 	}
 
@@ -380,14 +385,14 @@ func (data *resourceSecurityVideoFilterProfileModel) getUpdateObjectSecurityVide
 
 func (data *resourceSecurityVideoFilterProfileModel) getURLObjectSecurityVideoFilterProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -434,12 +439,17 @@ func (s *resourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterProf
 		return []resourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument fortiguard_filters is not type of []interface{}.", "")
 		return []resourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityVideoFilterProfileFortiguardFiltersModel{}
 	}
@@ -447,6 +457,9 @@ func (s *resourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterProf
 	values := make([]resourceSecurityVideoFilterProfileFortiguardFiltersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityVideoFilterProfileFortiguardFiltersModel
+		if i < len(s.FortiguardFilters) {
+			m = s.FortiguardFilters[i]
+		}
 		values[i] = *m.flattenSecurityVideoFilterProfileFortiguardFilters(ctx, ele, diags)
 	}
 
@@ -500,12 +513,17 @@ func (s *resourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterProf
 		return []resourceSecurityVideoFilterProfileChannelsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument channels is not type of []interface{}.", "")
 		return []resourceSecurityVideoFilterProfileChannelsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityVideoFilterProfileChannelsModel{}
 	}
@@ -513,6 +531,9 @@ func (s *resourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterProf
 	values := make([]resourceSecurityVideoFilterProfileChannelsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityVideoFilterProfileChannelsModel
+		if i < len(s.Channels) {
+			m = s.Channels[i]
+		}
 		values[i] = *m.flattenSecurityVideoFilterProfileChannels(ctx, ele, diags)
 	}
 
@@ -521,10 +542,11 @@ func (s *resourceSecurityVideoFilterProfileModel) flattenSecurityVideoFilterProf
 
 func (data *resourceSecurityVideoFilterProfileFortiguardFiltersModel) expandSecurityVideoFilterProfileFortiguardFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
+	result["category"] = nil
 	if data.Category != nil && !isZeroStruct(*data.Category) {
 		result["category"] = data.Category.expandSecurityVideoFilterProfileFortiguardFiltersCategory(ctx, diags)
 	}
@@ -542,11 +564,11 @@ func (s *resourceSecurityVideoFilterProfileModel) expandSecurityVideoFilterProfi
 
 func (data *resourceSecurityVideoFilterProfileFortiguardFiltersCategoryModel) expandSecurityVideoFilterProfileFortiguardFiltersCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -555,15 +577,15 @@ func (data *resourceSecurityVideoFilterProfileFortiguardFiltersCategoryModel) ex
 
 func (data *resourceSecurityVideoFilterProfileChannelsModel) expandSecurityVideoFilterProfileChannels(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Name.IsNull() {
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		result["name"] = data.Name.ValueString()
 	}
 
-	if !data.ChannelId.IsNull() {
+	if !data.ChannelId.IsNull() && !data.ChannelId.IsUnknown() {
 		result["channelId"] = data.ChannelId.ValueString()
 	}
 

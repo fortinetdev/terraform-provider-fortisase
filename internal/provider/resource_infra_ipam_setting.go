@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -55,9 +54,11 @@ func (r *resourceInfraIpamSetting) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("$sase-global"),
 				},
-				Default:  stringdefault.StaticString("$sase-global"),
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"pools": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -241,6 +242,10 @@ func (r *resourceInfraIpamSetting) Read(ctx context.Context, req resource.ReadRe
 
 	read_output, err := c.ReadInfraIpamSetting(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -279,7 +284,7 @@ func (m *resourceInfraIpamSettingModel) refreshInfraIpamSetting(ctx context.Cont
 
 func (data *resourceInfraIpamSettingModel) getCreateObjectInfraIpamSetting(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -290,7 +295,7 @@ func (data *resourceInfraIpamSettingModel) getCreateObjectInfraIpamSetting(ctx c
 
 func (data *resourceInfraIpamSettingModel) getUpdateObjectInfraIpamSetting(ctx context.Context, state resourceInfraIpamSettingModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -339,12 +344,17 @@ func (s *resourceInfraIpamSettingModel) flattenInfraIpamSettingPoolsList(ctx con
 		return []resourceInfraIpamSettingPoolsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument pools is not type of []interface{}.", "")
 		return []resourceInfraIpamSettingPoolsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceInfraIpamSettingPoolsModel{}
 	}
@@ -352,6 +362,9 @@ func (s *resourceInfraIpamSettingModel) flattenInfraIpamSettingPoolsList(ctx con
 	values := make([]resourceInfraIpamSettingPoolsModel, len(l))
 	for i, ele := range l {
 		var m resourceInfraIpamSettingPoolsModel
+		if i < len(s.Pools) {
+			m = s.Pools[i]
+		}
 		values[i] = *m.flattenInfraIpamSettingPools(ctx, ele, diags)
 	}
 
@@ -378,12 +391,17 @@ func (s *resourceInfraIpamSettingPoolsModel) flattenInfraIpamSettingPoolsExclude
 		return []resourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument excluded_subnets is not type of []interface{}.", "")
 		return []resourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceInfraIpamSettingPoolsExcludedSubnetsModel{}
 	}
@@ -391,6 +409,9 @@ func (s *resourceInfraIpamSettingPoolsModel) flattenInfraIpamSettingPoolsExclude
 	values := make([]resourceInfraIpamSettingPoolsExcludedSubnetsModel, len(l))
 	for i, ele := range l {
 		var m resourceInfraIpamSettingPoolsExcludedSubnetsModel
+		if i < len(s.ExcludedSubnets) {
+			m = s.ExcludedSubnets[i]
+		}
 		values[i] = *m.flattenInfraIpamSettingPoolsExcludedSubnets(ctx, ele, diags)
 	}
 
@@ -399,11 +420,11 @@ func (s *resourceInfraIpamSettingPoolsModel) flattenInfraIpamSettingPoolsExclude
 
 func (data *resourceInfraIpamSettingPoolsModel) expandInfraIpamSettingPools(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Name.IsNull() {
+	if !data.Name.IsNull() && !data.Name.IsUnknown() {
 		result["name"] = data.Name.ValueString()
 	}
 
-	if !data.Subnet.IsNull() {
+	if !data.Subnet.IsNull() && !data.Subnet.IsUnknown() {
 		result["subnet"] = data.Subnet.ValueString()
 	}
 
@@ -422,7 +443,7 @@ func (s *resourceInfraIpamSettingModel) expandInfraIpamSettingPoolsList(ctx cont
 
 func (data *resourceInfraIpamSettingPoolsExcludedSubnetsModel) expandInfraIpamSettingPoolsExcludedSubnets(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Subnet.IsNull() {
+	if !data.Subnet.IsNull() && !data.Subnet.IsUnknown() {
 		result["subnet"] = data.Subnet.ValueString()
 	}
 

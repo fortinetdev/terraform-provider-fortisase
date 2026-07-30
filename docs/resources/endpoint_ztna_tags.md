@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_ztna_tags Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+  fortisase_endpoint_ztna_tags is deprecated. Please use fortisase_endpoint_ztna_tag instead.
 ---
 
 # fortisase_endpoint_ztna_tags (Resource)
 
 ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+fortisase_endpoint_ztna_tags is deprecated. Please use fortisase_endpoint_ztna_tag instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_ztna_tags" "ztna_tag" {
+resource "fortisase_endpoint_ztna_tag" "ztna_tag" {
   primary_key = "tag_primary_key"
 }
 ```
@@ -40,5 +42,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_ztna_tags.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_ztna_tag.{{your_resource_name}} {{primary_key}}
 ```

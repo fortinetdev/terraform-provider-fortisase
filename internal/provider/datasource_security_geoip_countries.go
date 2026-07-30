@@ -3,30 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// datasourceSecurityGeoipCountries keeps the deprecated Terraform type available while
+// reusing the canonical data source implementation.
 var _ datasource.DataSource = &datasourceSecurityGeoipCountries{}
 
 func newDatasourceSecurityGeoipCountries() datasource.DataSource {
-	return &datasourceSecurityGeoipCountries{}
+	return &datasourceSecurityGeoipCountries{
+		datasourceSecurityGeoipCountry: &datasourceSecurityGeoipCountry{},
+	}
 }
 
 type datasourceSecurityGeoipCountries struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// datasourceSecurityGeoipCountriesModel describes the datasource data model.
-type datasourceSecurityGeoipCountriesModel struct {
-	PrimaryKey  types.String `tfsdk:"primary_key"`
-	CountryName types.String `tfsdk:"country_name"`
+	*datasourceSecurityGeoipCountry
 }
 
 func (r *datasourceSecurityGeoipCountries) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -34,95 +26,12 @@ func (r *datasourceSecurityGeoipCountries) Metadata(ctx context.Context, req dat
 }
 
 func (r *datasourceSecurityGeoipCountries) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "GeoIP Country Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"primary_key": schema.StringAttribute{
-				Required: true,
-			},
-			"country_name": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-		},
-	}
+	r.datasourceSecurityGeoipCountry.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_security_geoip_countries is deprecated. Please use fortisase_security_geoip_country instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *datasourceSecurityGeoipCountries) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_security_geoip_countries"
-}
-
-func (r *datasourceSecurityGeoipCountries) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data datasourceSecurityGeoipCountriesModel
-
-	// Read Terraform prior config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.PrimaryKey.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectSecurityGeoipCountries(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityGeoipCountries(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read data source %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityGeoipCountries(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (m *datasourceSecurityGeoipCountriesModel) refreshSecurityGeoipCountries(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	if v, ok := o["countryName"]; ok {
-		m.CountryName = parseStringValue(v)
-	}
-
-	return diags
-}
-
-func (data *datasourceSecurityGeoipCountriesModel) getURLObjectSecurityGeoipCountries(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+	r.datasourceSecurityGeoipCountry.Configure(ctx, req, resp)
+	r.datasourceSecurityGeoipCountry.resourceName = "fortisase_security_geoip_countries"
 }

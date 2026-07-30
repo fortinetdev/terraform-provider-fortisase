@@ -37,7 +37,7 @@ func (r *datasourceBrowserProvision) Metadata(ctx context.Context, req datasourc
 
 func (r *datasourceBrowserProvision) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: ".",
+		MarkdownDescription: "Secure Browser Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
@@ -50,7 +50,6 @@ func (r *datasourceBrowserProvision) Schema(ctx context.Context, req datasource.
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}

@@ -23,14 +23,14 @@ data "fortisase_security_web_filter_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `block_invalid_url` (String)
 - `content_filters` (Attributes List) (see [below for nested schema](#nestedatt--content_filters))
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `enforce_safe_search` (String)
 - `fortiguard_filters` (Attributes List) (see [below for nested schema](#nestedatt--fortiguard_filters))
 - `fortiguard_local_category_filters` (Attributes List) (see [below for nested schema](#nestedatt--fortiguard_local_category_filters))
@@ -44,7 +44,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--content_filters"></a>
 ### Nested Schema for `content_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `lang` (String)
@@ -57,7 +57,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters"></a>
 ### Nested Schema for `fortiguard_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--fortiguard_filters--category))
@@ -66,7 +66,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters--category"></a>
 ### Nested Schema for `fortiguard_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -76,7 +76,7 @@ Optional:
 <a id="nestedatt--fortiguard_local_category_filters"></a>
 ### Nested Schema for `fortiguard_local_category_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--fortiguard_local_category_filters--category))
@@ -85,7 +85,7 @@ Optional:
 <a id="nestedatt--fortiguard_local_category_filters--category"></a>
 ### Nested Schema for `fortiguard_local_category_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -95,7 +95,7 @@ Optional:
 <a id="nestedatt--fqdn_threat_feed_filters"></a>
 ### Nested Schema for `fqdn_threat_feed_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--fqdn_threat_feed_filters--category))
@@ -104,7 +104,7 @@ Optional:
 <a id="nestedatt--fqdn_threat_feed_filters--category"></a>
 ### Nested Schema for `fqdn_threat_feed_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -114,7 +114,7 @@ Optional:
 <a id="nestedatt--http_headers"></a>
 ### Nested Schema for `http_headers`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `content` (String)
@@ -124,7 +124,7 @@ Optional:
 <a id="nestedatt--http_headers--destinations"></a>
 ### Nested Schema for `http_headers.destinations`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -134,7 +134,7 @@ Optional:
 <a id="nestedatt--url_filters"></a>
 ### Nested Schema for `url_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `status` (String)

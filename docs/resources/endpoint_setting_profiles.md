@@ -4,22 +4,25 @@ page_title: "fortisase_endpoint_setting_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Settings Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_setting_profiles is deprecated. Please use fortisase_endpoint_setting_profile instead.
 ---
 
 # fortisase_endpoint_setting_profiles (Resource)
 
 Settings Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_setting_profiles is deprecated. Please use fortisase_endpoint_setting_profile instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_policies" "endpoint_profile" {
-  primary_key = "example"
+# GUI: Endpoint management -> Configuration -> Profiles
+resource "fortisase_endpoint_profile" "endpoint_profile" {
+  primary_key = "example_endpoint_profile"
   enabled     = true
 }
 
-resource "fortisase_endpoint_setting_profiles" "endpoint_setting_profile" {
-  primary_key = fortisase_endpoint_policies.endpoint_profile.primary_key
+resource "fortisase_endpoint_setting_profile" "endpoint_setting_profile" {
+  primary_key = fortisase_endpoint_profile.endpoint_profile.primary_key
 }
 ```
 
@@ -33,11 +36,13 @@ resource "fortisase_endpoint_setting_profiles" "endpoint_setting_profile" {
 ### Optional
 
 - `allow_config_backup` (String)
+- `allow_debug_log_generation` (String)
 - `ems_disconnect_password` (String)
 - `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
 - `notify_vpn_issue` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
+- `trigger_vuln_scan_on_software_change` (String)
 - `users_can_disconnect` (String)
 
 ### Read-Only
@@ -58,5 +63,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_setting_profiles.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_setting_profile.{{your_resource_name}} {{primary_key}}
 ```

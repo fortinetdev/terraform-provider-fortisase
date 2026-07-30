@@ -3,37 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// resourceEndpointPolicies keeps the deprecated Terraform type available while
+// reusing the canonical resource implementation.
 var _ resource.Resource = &resourceEndpointPolicies{}
 
 func newResourceEndpointPolicies() resource.Resource {
-	return &resourceEndpointPolicies{}
+	return &resourceEndpointPolicies{
+		resourceEndpointPolicy: &resourceEndpointPolicy{},
+	}
 }
 
 type resourceEndpointPolicies struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// resourceEndpointPoliciesModel describes the resource data model.
-type resourceEndpointPoliciesModel struct {
-	ID                              types.String `tfsdk:"id"`
-	PrimaryKey                      types.String `tfsdk:"primary_key"`
-	Enabled                         types.Bool   `tfsdk:"enabled"`
-	SkipOffNetProfileCreationOnEdit types.Bool   `tfsdk:"skip_off_net_profile_creation_on_edit"`
+	*resourceEndpointPolicy
 }
 
 func (r *resourceEndpointPolicies) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -41,302 +26,15 @@ func (r *resourceEndpointPolicies) Metadata(ctx context.Context, req resource.Me
 }
 
 func (r *resourceEndpointPolicies) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Endpoint Policy Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 128),
-				},
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"skip_off_net_profile_creation_on_edit": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-			},
-		},
-	}
+	r.resourceEndpointPolicy.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_endpoint_policies is deprecated. Please use fortisase_endpoint_policy instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *resourceEndpointPolicies) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_endpoint_policies"
+	r.resourceEndpointPolicy.Configure(ctx, req, resp)
+	r.resourceEndpointPolicy.resourceName = "fortisase_endpoint_policies"
 }
-
-func (r *resourceEndpointPolicies) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
-	lock.Lock()
-	defer lock.Unlock()
-	var data resourceEndpointPoliciesModel
-	diags := &resp.Diagnostics
-
-	// Read Terraform config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.BodyParams = *(data.getCreateObjectEndpointPolicies(ctx, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "create", diags))
-
-	if diags.HasError() {
-		return
-	}
-	output, err := c.CreateEndpointPolicies(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
-	data.ID = types.StringValue(mkey)
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "read", diags))
-
-	read_output, err := c.ReadEndpointPolicies(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&read_input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshEndpointPolicies(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceEndpointPolicies) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
-	lock.Lock()
-	defer lock.Unlock()
-	diags := &resp.Diagnostics
-
-	// Read Terraform plan data into the model
-	var state resourceEndpointPoliciesModel
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	var data resourceEndpointPoliciesModel
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-	data.ID = state.ID
-
-	mkey := state.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.BodyParams = *(data.getUpdateObjectEndpointPolicies(ctx, state, diags))
-	input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "update", diags))
-
-	if diags.HasError() {
-		return
-	}
-
-	output, err := c.UpdateEndpointPolicies(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "read", diags))
-
-	read_output, err := c.ReadEndpointPolicies(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&read_input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshEndpointPolicies(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceEndpointPolicies) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	lock := r.fortiClient.GetResourceLock("EndpointPolicies")
-	lock.Lock()
-	defer lock.Unlock()
-	diags := &resp.Diagnostics
-	var data resourceEndpointPoliciesModel
-
-	// Read Terraform prior state data into the model
-	diags.Append(req.State.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "delete", diags))
-
-	output, err := c.DeleteEndpointPolicies(&input_model)
-	if err != nil {
-		if code, ok := getAPICode(output); ok && (code == 404) {
-			return
-		}
-		diags.AddError(
-			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-}
-
-func (r *resourceEndpointPolicies) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data resourceEndpointPoliciesModel
-
-	// Read Terraform prior state data into the model
-	diags.Append(req.State.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectEndpointPolicies(ctx, "read", diags))
-
-	read_output, err := c.ReadEndpointPolicies(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshEndpointPolicies(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceEndpointPolicies) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func (m *resourceEndpointPoliciesModel) refreshEndpointPolicies(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	if v, ok := o["enabled"]; ok {
-		m.Enabled = parseBoolValue(v)
-	}
-
-	if v, ok := o["skipOffNetProfileCreationOnEdit"]; ok {
-		m.SkipOffNetProfileCreationOnEdit = parseBoolValue(v)
-	}
-
-	return diags
-}
-
-func (data *resourceEndpointPoliciesModel) getCreateObjectEndpointPolicies(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
-		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
-	}
-
-	return &result
-}
-
-func (data *resourceEndpointPoliciesModel) getUpdateObjectEndpointPolicies(ctx context.Context, state resourceEndpointPoliciesModel, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Enabled.IsNull() {
-		result["enabled"] = data.Enabled.ValueBool()
-	}
-
-	if !data.SkipOffNetProfileCreationOnEdit.IsNull() {
-		result["skipOffNetProfileCreationOnEdit"] = data.SkipOffNetProfileCreationOnEdit.ValueBool()
-	}
-
-	return &result
-}
-
-func (data *resourceEndpointPoliciesModel) getURLObjectEndpointPolicies(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+func (r *resourceEndpointPolicies) MoveState(ctx context.Context) []resource.StateMover {
+	return nil
 }

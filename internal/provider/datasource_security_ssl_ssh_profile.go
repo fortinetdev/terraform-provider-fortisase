@@ -59,57 +59,49 @@ func (r *datasourceSecuritySslSshProfile) Schema(ctx context.Context, req dataso
 					stringvalidatorwarning.OneOf("certificate-inspection", "no-inspection", "deep-inspection"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"expired_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"revoked_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"timed_out_validation_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"validation_failed_certificate_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"cert_probe_failure": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("allow", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"quic": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("inspect", "bypass", "block"),
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"profile_protocol_options": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -118,87 +110,73 @@ func (r *datasourceSecuritySslSshProfile) Schema(ctx context.Context, req dataso
 							stringvalidatorwarning.OneOf("block", "inspect", "bypass"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"oversized_action": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("allow", "block"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"compressed_limit": schema.Float64Attribute{
 						Validators: []validator.Float64{
 							float64validatorwarning.Between(10, 64),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"uncompressed_limit": schema.Float64Attribute{
 						Validators: []validator.Float64{
 							float64validatorwarning.Between(10, 64),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"ca_certificate": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
 					"primary_key": schema.StringAttribute{
 						Computed: true,
-						Optional: true,
 					},
 					"datasource": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("system/certificate/ca-certificates"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"host_exemptions": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("network/hosts", "network/host-groups"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"url_category_exemptions": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("security/fortiguard-categories", "security/fortiguard-local-categories"),
 							},
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -316,14 +294,14 @@ func (m *datasourceSecuritySslSshProfileModel) refreshSecuritySslSshProfile(ctx 
 
 func (data *datasourceSecuritySslSshProfileModel) getURLObjectSecuritySslSshProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -422,12 +400,17 @@ func (s *datasourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileHostE
 		return []datasourceSecuritySslSshProfileHostExemptionsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument host_exemptions is not type of []interface{}.", "")
 		return []datasourceSecuritySslSshProfileHostExemptionsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecuritySslSshProfileHostExemptionsModel{}
 	}
@@ -435,6 +418,9 @@ func (s *datasourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileHostE
 	values := make([]datasourceSecuritySslSshProfileHostExemptionsModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecuritySslSshProfileHostExemptionsModel
+		if i < len(s.HostExemptions) {
+			m = s.HostExemptions[i]
+		}
 		values[i] = *m.flattenSecuritySslSshProfileHostExemptions(ctx, ele, diags)
 	}
 
@@ -465,12 +451,17 @@ func (s *datasourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCa
 		return []datasourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument url_category_exemptions is not type of []interface{}.", "")
 		return []datasourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceSecuritySslSshProfileUrlCategoryExemptionsModel{}
 	}
@@ -478,6 +469,9 @@ func (s *datasourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCa
 	values := make([]datasourceSecuritySslSshProfileUrlCategoryExemptionsModel, len(l))
 	for i, ele := range l {
 		var m datasourceSecuritySslSshProfileUrlCategoryExemptionsModel
+		if i < len(s.UrlCategoryExemptions) {
+			m = s.UrlCategoryExemptions[i]
+		}
 		values[i] = *m.flattenSecuritySslSshProfileUrlCategoryExemptions(ctx, ele, diags)
 	}
 

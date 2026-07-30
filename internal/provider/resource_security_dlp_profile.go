@@ -54,6 +54,9 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"direction": schema.StringAttribute{
 				Validators: []validator.String{
@@ -67,7 +70,6 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"primary_key": schema.StringAttribute{
-							Computed: true,
 							Optional: true,
 						},
 						"datasource_type": schema.StringAttribute{
@@ -130,14 +132,12 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/dlp-sensors"),
 										},
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -148,14 +148,12 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 						"sensitivity_label": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/dlp-dictionaries"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -165,14 +163,12 @@ func (r *resourceSecurityDlpProfile) Schema(ctx context.Context, req resource.Sc
 						"dlp_file_pattern": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
-									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/dlp-file-patterns"),
 									},
-									Computed: true,
 									Optional: true,
 								},
 							},
@@ -241,7 +237,7 @@ func (r *resourceSecurityDlpProfile) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -349,6 +345,10 @@ func (r *resourceSecurityDlpProfile) Read(ctx context.Context, req resource.Read
 
 	read_output, err := c.ReadSecurityDlpProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -383,7 +383,7 @@ func (m *resourceSecurityDlpProfileModel) refreshSecurityDlpProfile(ctx context.
 
 func (data *resourceSecurityDlpProfileModel) getCreateObjectSecurityDlpProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -394,7 +394,7 @@ func (data *resourceSecurityDlpProfileModel) getCreateObjectSecurityDlpProfile(c
 
 func (data *resourceSecurityDlpProfileModel) getUpdateObjectSecurityDlpProfile(ctx context.Context, state resourceSecurityDlpProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -407,14 +407,14 @@ func (data *resourceSecurityDlpProfileModel) getUpdateObjectSecurityDlpProfile(c
 
 func (data *resourceSecurityDlpProfileModel) getURLObjectSecurityDlpProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -484,6 +484,8 @@ func (m *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 
 	if v, ok := o["protocols"]; ok {
 		m.Protocols = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Protocols = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["dlpSensors"]; ok {
@@ -496,6 +498,8 @@ func (m *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 
 	if v, ok := o["sensitivities"]; ok {
 		m.Sensitivities = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Sensitivities = types.SetNull(types.StringType)
 	}
 
 	if v, ok := o["dlpFilePattern"]; ok {
@@ -510,12 +514,17 @@ func (s *resourceSecurityDlpProfileModel) flattenSecurityDlpProfileDlpRulesList(
 		return []resourceSecurityDlpProfileDlpRulesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dlp_rules is not type of []interface{}.", "")
 		return []resourceSecurityDlpProfileDlpRulesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDlpProfileDlpRulesModel{}
 	}
@@ -523,6 +532,9 @@ func (s *resourceSecurityDlpProfileModel) flattenSecurityDlpProfileDlpRulesList(
 	values := make([]resourceSecurityDlpProfileDlpRulesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDlpProfileDlpRulesModel
+		if i < len(s.DlpRules) {
+			m = s.DlpRules[i]
+		}
 		values[i] = *m.flattenSecurityDlpProfileDlpRules(ctx, ele, diags)
 	}
 
@@ -553,12 +565,17 @@ func (s *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 		return []resourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument dlp_sensors is not type of []interface{}.", "")
 		return []resourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityDlpProfileDlpRulesDlpSensorsModel{}
 	}
@@ -566,6 +583,9 @@ func (s *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 	values := make([]resourceSecurityDlpProfileDlpRulesDlpSensorsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDlpProfileDlpRulesDlpSensorsModel
+		if i < len(s.DlpSensors) {
+			m = s.DlpSensors[i]
+		}
 		values[i] = *m.flattenSecurityDlpProfileDlpRulesDlpSensors(ctx, ele, diags)
 	}
 
@@ -612,31 +632,31 @@ func (m *resourceSecurityDlpProfileDlpRulesDlpFilePatternModel) flattenSecurityD
 
 func (data *resourceSecurityDlpProfileDlpRulesModel) expandSecurityDlpProfileDlpRules(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.DatasourceType.IsNull() {
+	if !data.DatasourceType.IsNull() && !data.DatasourceType.IsUnknown() {
 		result["datasourceType"] = data.DatasourceType.ValueString()
 	}
 
-	if !data.Severity.IsNull() {
+	if !data.Severity.IsNull() && !data.Severity.IsUnknown() {
 		result["severity"] = data.Severity.ValueString()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.DlpRuleType.IsNull() {
+	if !data.DlpRuleType.IsNull() && !data.DlpRuleType.IsUnknown() {
 		result["dlpRuleType"] = data.DlpRuleType.ValueString()
 	}
 
-	if !data.FileType.IsNull() {
+	if !data.FileType.IsNull() && !data.FileType.IsUnknown() {
 		result["fileType"] = data.FileType.ValueString()
 	}
 
-	if !data.Protocols.IsNull() {
+	if !data.Protocols.IsNull() && !data.Protocols.IsUnknown() {
 		result["protocols"] = expandSetToStringList(data.Protocols)
 	}
 
@@ -644,14 +664,16 @@ func (data *resourceSecurityDlpProfileDlpRulesModel) expandSecurityDlpProfileDlp
 		result["dlpSensors"] = data.expandSecurityDlpProfileDlpRulesDlpSensorsList(ctx, data.DlpSensors, diags)
 	}
 
+	result["sensitivityLabel"] = nil
 	if data.SensitivityLabel != nil && !isZeroStruct(*data.SensitivityLabel) {
 		result["sensitivityLabel"] = data.SensitivityLabel.expandSecurityDlpProfileDlpRulesSensitivityLabel(ctx, diags)
 	}
 
-	if !data.Sensitivities.IsNull() {
+	if !data.Sensitivities.IsNull() && !data.Sensitivities.IsUnknown() {
 		result["sensitivities"] = expandSetToStringList(data.Sensitivities)
 	}
 
+	result["dlpFilePattern"] = nil
 	if data.DlpFilePattern != nil && !isZeroStruct(*data.DlpFilePattern) {
 		result["dlpFilePattern"] = data.DlpFilePattern.expandSecurityDlpProfileDlpRulesDlpFilePattern(ctx, diags)
 	}
@@ -669,11 +691,11 @@ func (s *resourceSecurityDlpProfileModel) expandSecurityDlpProfileDlpRulesList(c
 
 func (data *resourceSecurityDlpProfileDlpRulesDlpSensorsModel) expandSecurityDlpProfileDlpRulesDlpSensors(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -690,11 +712,11 @@ func (s *resourceSecurityDlpProfileDlpRulesModel) expandSecurityDlpProfileDlpRul
 
 func (data *resourceSecurityDlpProfileDlpRulesSensitivityLabelModel) expandSecurityDlpProfileDlpRulesSensitivityLabel(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 
@@ -703,11 +725,11 @@ func (data *resourceSecurityDlpProfileDlpRulesSensitivityLabelModel) expandSecur
 
 func (data *resourceSecurityDlpProfileDlpRulesDlpFilePatternModel) expandSecurityDlpProfileDlpRulesDlpFilePattern(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Datasource.IsNull() {
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
 	}
 

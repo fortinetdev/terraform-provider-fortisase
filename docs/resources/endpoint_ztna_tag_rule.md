@@ -145,5 +145,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_ztna_rules.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_ztna_rule.{{your_resource_name}} {{primary_key}}
 ```

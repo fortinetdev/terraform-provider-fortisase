@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_ztna_tags Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+  fortisase_endpoint_ztna_tags is deprecated. Please use fortisase_endpoint_ztna_tag instead.
 ---
 
 # fortisase_endpoint_ztna_tags (Data Source)
 
 ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS version: 7.2.
+fortisase_endpoint_ztna_tags is deprecated. Please use fortisase_endpoint_ztna_tag instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_ztna_tags" "example" {
+data "fortisase_endpoint_ztna_tag" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_endpoint_ztna_tags" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `name` (String)

@@ -45,37 +45,30 @@ func (r *datasourceInfraDataTransfer) Schema(ctx context.Context, req datasource
 			"tenant_id": schema.StringAttribute{
 				MarkdownDescription: "Tenant ID",
 				Computed:            true,
-				Optional:            true,
 			},
 			"license_start": schema.Float64Attribute{
 				MarkdownDescription: "Most recent anniversary of the tenant's license start time as a UNIX timestamp in milliseconds.",
 				Computed:            true,
-				Optional:            true,
 			},
 			"snapshot_end_ms": schema.Float64Attribute{
 				MarkdownDescription: "Date up to which usage is calculated (exclusive of that date) as a UNIX timestamp in milliseconds.",
 				Computed:            true,
-				Optional:            true,
 			},
 			"annual_allotment": schema.Float64Attribute{
 				MarkdownDescription: "Number of bytes of data transfer allotted to the tenant annually.",
 				Computed:            true,
-				Optional:            true,
 			},
 			"consumed_bytes": schema.Float64Attribute{
 				MarkdownDescription: "Number of bytes the tenant has consumed since licenseStart.",
 				Computed:            true,
-				Optional:            true,
 			},
 			"consumed_percent": schema.Float64Attribute{
 				MarkdownDescription: "Percent of annualAllotment that the tenant has consumed.",
 				Computed:            true,
-				Optional:            true,
 			},
 			"remaining_allotment": schema.Float64Attribute{
 				MarkdownDescription: "Number of bytes remaining in the tenant's annual data transfer allotment.",
 				Computed:            true,
-				Optional:            true,
 			},
 		},
 	}
@@ -114,7 +107,7 @@ func (r *datasourceInfraDataTransfer) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	mkey := "InfraDataTransfer"
+	var mkey interface{}
 
 	c := r.fortiClient.Client
 	var input_model forticlient.InputModel

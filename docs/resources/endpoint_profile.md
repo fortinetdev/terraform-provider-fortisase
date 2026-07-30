@@ -13,8 +13,9 @@ Endpoint Policy Resource API V2 for FortiSASE
 ## Example Usage
 
 ```terraform
+# GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example"
+  primary_key = "example_endpoint_profile"
   enabled     = true
 }
 ```

@@ -23,20 +23,20 @@ data "fortisase_security_file_filter_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `block` (Attributes List) (see [below for nested schema](#nestedatt--block))
 - `block_password_protected_files` (Boolean)
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `monitor` (Attributes List) (see [below for nested schema](#nestedatt--monitor))
 
 <a id="nestedatt--block"></a>
 ### Nested Schema for `block`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -45,7 +45,7 @@ Optional:
 <a id="nestedatt--monitor"></a>
 ### Nested Schema for `monitor`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

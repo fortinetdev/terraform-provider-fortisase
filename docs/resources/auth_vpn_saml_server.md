@@ -77,6 +77,7 @@ resource "fortisase_auth_vpn_saml_server" "vpn_sso" {
 - `idp_log_out_url` (String)
 - `idp_sign_on_url` (String)
 - `primary_key` (String)
+- `require_signed_resp_and_asrt` (Boolean)
 - `scim_enabled` (Boolean)
 - `sp_cert` (Attributes) (see [below for nested schema](#nestedatt--sp_cert))
 - `username` (String)

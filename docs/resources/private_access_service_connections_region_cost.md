@@ -3,12 +3,12 @@
 page_title: "fortisase_private_access_service_connections_region_cost Resource - fortisase"
 subcategory: "Others"
 description: |-
-  
+  fortisase_private_access_service_connections_region_cost is deprecated. Please use fortisase_private_access_service_connection_region_cost instead.
 ---
 
 # fortisase_private_access_service_connections_region_cost (Resource)
 
-
+fortisase_private_access_service_connections_region_cost is deprecated. Please use fortisase_private_access_service_connection_region_cost instead.
 
 ## Example Usage
 
@@ -23,7 +23,7 @@ resource "fortisase_private_access_network_configuration" "example" {
 }
 
 # Secure private access. fortisase_private_access_network_configuration must be created first.
-resource "fortisase_private_access_service_connections" "example" {
+resource "fortisase_private_access_service_connection" "example" {
   type = fortisase_private_access_network_configuration.example.bgp_design # overlay or loopback
 
   # [Name]
@@ -38,7 +38,7 @@ resource "fortisase_private_access_service_connections" "example" {
   ipsec_pre_shared_key = "example_shared_key" # Pre-shared key must be at least 6 characters long
   ## Method2: Certificate-Based Authentication
   # auth              = "pki"
-  # ipsec_cert_name   = "existing_cert_name" # GUI: "System" -> "Certificates" -> "Import" -> "Local Certificate"; Terraform: fortisase_security_cert_local_certs -> cert_name
+  # ipsec_cert_name   = "existing_cert_name" # GUI: "System" -> "Certificates" -> "Import" -> "Local Certificate"; Terraform: fortisase_security_cert_local_cert -> cert_name
   # ipsec_peer_name   = "existing_pki_name"  # GUI: "Access & authentication" -> "PKI"; Terraform: resource_security_pki_users -> primary_key
 
   # [ADVPN Route Tag]
@@ -71,14 +71,14 @@ resource "fortisase_private_access_service_connections" "example" {
 }
 
 output "support_regions" {
-  value = sort(keys(fortisase_private_access_service_connections.example.config.region_cost))
+  value = sort(keys(fortisase_private_access_service_connection.example.config.region_cost))
 }
 
 # The region should be within the support_regions
-resource "fortisase_private_access_service_connections_region_cost" "example" {
+resource "fortisase_private_access_service_connection_region_cost" "example" {
   entries = {
     "sjc-f1" : {
-      (fortisase_private_access_service_connections.example.id) : 8
+      (fortisase_private_access_service_connection.example.id) : 8
     }
   }
 }

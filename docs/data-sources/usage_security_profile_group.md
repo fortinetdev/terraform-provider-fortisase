@@ -23,11 +23,11 @@ data "fortisase_usage_security_profile_group" "example" {
 
 ### Required
 
-- `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
-
-### Optional
-
 - `direction` (String) The direction of the target resource.
 Supported values: internal-profiles, outbound-profiles.
+- `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
+
+### Read-Only
+
 - `ftntcount` (Number)
 - `type` (String)

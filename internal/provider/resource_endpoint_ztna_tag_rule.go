@@ -60,6 +60,9 @@ func (r *resourceEndpointZtnaTagRule) Schema(ctx context.Context, req resource.S
 					stringvalidatorwarning.LengthBetween(1, 128),
 				},
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"status": schema.StringAttribute{
 				Validators: []validator.String{
@@ -143,7 +146,6 @@ func (r *resourceEndpointZtnaTagRule) Schema(ctx context.Context, req resource.S
 						},
 						"content": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("AV Software is installed and running", "AV Signature is up-to-date", "FortiClient installed and Telemetry connected to EMS", "Sandbox detected malware in last 7 days", "Critical", "High or higher", "Medium or higher", "Low or higher", "Windows Defender is enabled", "Bitlocker Disk Encryption is enabled on all disks", "Bitlocker Disk Encryption is enabled on OS disk", "Exploit Guard is enabled", "Application Guard is enabled", "Windows Firewall is enabled", "Automatic Updates are enabled", "FileVault Disk Encryption is enabled", "On-Fabric", "Passcode Enabled", "Biometrics Protected", "Jail-broken"),
 								stringvalidatorwarning.LengthBetween(1, 256),
 							},
 							Computed: true,
@@ -295,6 +297,7 @@ func (r *resourceEndpointZtnaTagRule) Create(ctx context.Context, req resource.C
 	if diags.HasError() {
 		return
 	}
+	mkey := data.PrimaryKey.ValueString()
 	output, err := c.CreateEndpointZtnaTagRule(&input_model)
 	if err != nil {
 		diags.AddError(
@@ -304,7 +307,9 @@ func (r *resourceEndpointZtnaTagRule) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	if responseMkey, ok := getCreateResponseMkey(output, "primaryKey"); ok {
+		mkey = responseMkey
+	}
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -439,6 +444,10 @@ func (r *resourceEndpointZtnaTagRule) Read(ctx context.Context, req resource.Rea
 
 	read_output, err := c.ReadEndpointZtnaTagRule(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -456,6 +465,7 @@ func (r *resourceEndpointZtnaTagRule) Read(ctx context.Context, req resource.Rea
 
 func (r *resourceEndpointZtnaTagRule) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), req.ID)...)
 }
 
 func (m *resourceEndpointZtnaTagRuleModel) refreshEndpointZtnaTagRule(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
@@ -489,19 +499,19 @@ func (m *resourceEndpointZtnaTagRuleModel) refreshEndpointZtnaTagRule(ctx contex
 
 func (data *resourceEndpointZtnaTagRuleModel) getCreateObjectEndpointZtnaTagRule(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Description.IsNull() {
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		result["description"] = data.Description.ValueString()
 	}
 
-	if !data.Comments.IsNull() {
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
@@ -516,19 +526,19 @@ func (data *resourceEndpointZtnaTagRuleModel) getCreateObjectEndpointZtnaTagRule
 
 func (data *resourceEndpointZtnaTagRuleModel) getUpdateObjectEndpointZtnaTagRule(ctx context.Context, state resourceEndpointZtnaTagRuleModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Status.IsNull() {
+	if !data.Status.IsNull() && !data.Status.IsUnknown() {
 		result["status"] = data.Status.ValueString()
 	}
 
-	if !data.Description.IsNull() {
+	if !data.Description.IsNull() && !data.Description.IsUnknown() {
 		result["description"] = data.Description.ValueString()
 	}
 
-	if !data.Comments.IsNull() {
+	if !data.Comments.IsNull() && !data.Comments.IsUnknown() {
 		result["comments"] = data.Comments.ValueString()
 	}
 
@@ -545,7 +555,7 @@ func (data *resourceEndpointZtnaTagRuleModel) getUpdateObjectEndpointZtnaTagRule
 
 func (data *resourceEndpointZtnaTagRuleModel) getURLObjectEndpointZtnaTagRule(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
@@ -661,12 +671,17 @@ func (s *resourceEndpointZtnaTagRuleModel) flattenEndpointZtnaTagRuleRulesList(c
 		return []resourceEndpointZtnaTagRuleRulesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument rules is not type of []interface{}.", "")
 		return []resourceEndpointZtnaTagRuleRulesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceEndpointZtnaTagRuleRulesModel{}
 	}
@@ -674,6 +689,9 @@ func (s *resourceEndpointZtnaTagRuleModel) flattenEndpointZtnaTagRuleRulesList(c
 	values := make([]resourceEndpointZtnaTagRuleRulesModel, len(l))
 	for i, ele := range l {
 		var m resourceEndpointZtnaTagRuleRulesModel
+		if i < len(s.Rules) {
+			m = s.Rules[i]
+		}
 		values[i] = *m.flattenEndpointZtnaTagRuleRules(ctx, ele, diags)
 	}
 
@@ -775,59 +793,59 @@ func (m *resourceEndpointZtnaTagRuleLogicModel) flattenEndpointZtnaTagRuleLogic(
 
 func (data *resourceEndpointZtnaTagRuleRulesModel) expandEndpointZtnaTagRuleRules(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Id.IsNull() {
+	if !data.Id.IsNull() && !data.Id.IsUnknown() {
 		result["id"] = data.Id.ValueFloat64()
 	}
 
-	if !data.Os.IsNull() {
+	if !data.Os.IsNull() && !data.Os.IsUnknown() {
 		result["os"] = data.Os.ValueString()
 	}
 
-	if !data.Type.IsNull() {
+	if !data.Type.IsNull() && !data.Type.IsUnknown() {
 		result["type"] = data.Type.ValueString()
 	}
 
-	if !data.Service.IsNull() {
+	if !data.Service.IsNull() && !data.Service.IsUnknown() {
 		result["service"] = data.Service.ValueString()
 	}
 
-	if !data.Account.IsNull() {
+	if !data.Account.IsNull() && !data.Account.IsUnknown() {
 		result["account"] = data.Account.ValueString()
 	}
 
-	if !data.MatchType.IsNull() {
+	if !data.MatchType.IsNull() && !data.MatchType.IsUnknown() {
 		result["matchType"] = data.MatchType.ValueString()
 	}
 
-	if !data.Subject.IsNull() {
+	if !data.Subject.IsNull() && !data.Subject.IsUnknown() {
 		result["subject"] = data.Subject.ValueString()
 	}
 
-	if !data.Issuer.IsNull() {
+	if !data.Issuer.IsNull() && !data.Issuer.IsUnknown() {
 		result["issuer"] = data.Issuer.ValueString()
 	}
 
-	if !data.Content.IsNull() {
+	if !data.Content.IsNull() && !data.Content.IsUnknown() {
 		result["content"] = data.Content.ValueString()
 	}
 
-	if !data.Path.IsNull() {
+	if !data.Path.IsNull() && !data.Path.IsUnknown() {
 		result["path"] = data.Path.ValueString()
 	}
 
-	if !data.Negated.IsNull() {
+	if !data.Negated.IsNull() && !data.Negated.IsUnknown() {
 		result["negated"] = data.Negated.ValueBool()
 	}
 
-	if !data.EnableLatestUpdateCheck.IsNull() {
+	if !data.EnableLatestUpdateCheck.IsNull() && !data.EnableLatestUpdateCheck.IsUnknown() {
 		result["enableLatestUpdateCheck"] = data.EnableLatestUpdateCheck.ValueBool()
 	}
 
-	if !data.CheckUpdatesWithinDays.IsNull() {
+	if !data.CheckUpdatesWithinDays.IsNull() && !data.CheckUpdatesWithinDays.IsUnknown() {
 		result["checkUpdatesWithinDays"] = data.CheckUpdatesWithinDays.ValueFloat64()
 	}
 
-	if !data.Comparator.IsNull() {
+	if !data.Comparator.IsNull() && !data.Comparator.IsUnknown() {
 		result["comparator"] = data.Comparator.ValueString()
 	}
 
@@ -848,19 +866,19 @@ func (s *resourceEndpointZtnaTagRuleModel) expandEndpointZtnaTagRuleRulesList(ct
 
 func (data *resourceEndpointZtnaTagRuleRulesConditionModel) expandEndpointZtnaTagRuleRulesCondition(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Key.IsNull() {
+	if !data.Key.IsNull() && !data.Key.IsUnknown() {
 		result["key"] = data.Key.ValueString()
 	}
 
-	if !data.IsDword.IsNull() {
+	if !data.IsDword.IsNull() && !data.IsDword.IsUnknown() {
 		result["isDword"] = data.IsDword.ValueBool()
 	}
 
-	if !data.Comparator.IsNull() {
+	if !data.Comparator.IsNull() && !data.Comparator.IsUnknown() {
 		result["comparator"] = data.Comparator.ValueString()
 	}
 
-	if !data.Value.IsNull() {
+	if !data.Value.IsNull() && !data.Value.IsUnknown() {
 		result["value"] = data.Value.ValueString()
 	}
 
@@ -869,33 +887,33 @@ func (data *resourceEndpointZtnaTagRuleRulesConditionModel) expandEndpointZtnaTa
 
 func (data *resourceEndpointZtnaTagRuleLogicModel) expandEndpointZtnaTagRuleLogic(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Windows.IsNull() {
+	if !data.Windows.IsNull() && !data.Windows.IsUnknown() {
 		result["windows"] = data.Windows.ValueString()
-	} else {
+	} else if data.Windows.IsNull() {
 		result["windows"] = nil
 	}
 
-	if !data.Macos.IsNull() {
+	if !data.Macos.IsNull() && !data.Macos.IsUnknown() {
 		result["macos"] = data.Macos.ValueString()
-	} else {
+	} else if data.Macos.IsNull() {
 		result["macos"] = nil
 	}
 
-	if !data.Linux.IsNull() {
+	if !data.Linux.IsNull() && !data.Linux.IsUnknown() {
 		result["linux"] = data.Linux.ValueString()
-	} else {
+	} else if data.Linux.IsNull() {
 		result["linux"] = nil
 	}
 
-	if !data.Ios.IsNull() {
+	if !data.Ios.IsNull() && !data.Ios.IsUnknown() {
 		result["ios"] = data.Ios.ValueString()
-	} else {
+	} else if data.Ios.IsNull() {
 		result["ios"] = nil
 	}
 
-	if !data.Android.IsNull() {
+	if !data.Android.IsNull() && !data.Android.IsUnknown() {
 		result["android"] = data.Android.ValueString()
-	} else {
+	} else if data.Android.IsNull() {
 		result["android"] = nil
 	}
 

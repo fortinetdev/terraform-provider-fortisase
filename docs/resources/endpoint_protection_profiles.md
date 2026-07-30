@@ -4,22 +4,25 @@ page_title: "fortisase_endpoint_protection_profiles Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Protection Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_protection_profiles is deprecated. Please use fortisase_endpoint_protection_profile instead.
 ---
 
 # fortisase_endpoint_protection_profiles (Resource)
 
 Protection Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_protection_profiles is deprecated. Please use fortisase_endpoint_protection_profile instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_endpoint_policies" "endpoint_profile" {
-  primary_key = "example"
+# GUI: Endpoint management -> Configuration -> Profiles
+resource "fortisase_endpoint_profile" "endpoint_profile" {
+  primary_key = "example_endpoint_profile"
   enabled     = true
 }
 
-resource "fortisase_endpoint_protection_profiles" "endpoint_protection_profile" {
-  primary_key = fortisase_endpoint_policies.endpoint_profile.primary_key
+resource "fortisase_endpoint_protection_profile" "endpoint_protection_profile" {
+  primary_key = fortisase_endpoint_profile.endpoint_profile.primary_key
 
   # Malware
   antivirus      = "enable"
@@ -101,6 +104,7 @@ resource "fortisase_endpoint_protection_profiles" "endpoint_protection_profile" 
 - `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
 - `scheduled_antivirus_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_antivirus_scan))
 - `scheduled_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_scan))
+- `show_vulnerability_popup` (String)
 - `vulnerability_scan` (String)
 
 ### Read-Only
@@ -112,8 +116,26 @@ resource "fortisase_endpoint_protection_profiles" "endpoint_protection_profile" 
 
 Optional:
 
+- `antiransomware` (Attributes) (see [below for nested schema](#nestedatt--exclusions--antiransomware))
+- `antivirus` (Attributes) (see [below for nested schema](#nestedatt--exclusions--antivirus))
+
+<a id="nestedatt--exclusions--antiransomware"></a>
+### Nested Schema for `exclusions.antiransomware`
+
+Optional:
+
 - `files` (Set of String)
 - `folders` (Set of String)
+
+
+<a id="nestedatt--exclusions--antivirus"></a>
+### Nested Schema for `exclusions.antivirus`
+
+Optional:
+
+- `files` (Set of String)
+- `folders` (Set of String)
+
 
 
 <a id="nestedatt--rules"></a>
@@ -158,5 +180,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_endpoint_protection_profiles.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_endpoint_protection_profile.{{your_resource_name}} {{primary_key}}
 ```

@@ -4,16 +4,18 @@ page_title: "fortisase_security_application_categories Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Application Category Resource API V2 for FortiSASE.
+  fortisase_security_application_categories is deprecated. Please use fortisase_security_application_category instead.
 ---
 
 # fortisase_security_application_categories (Data Source)
 
 Application Category Resource API V2 for FortiSASE.
+fortisase_security_application_categories is deprecated. Please use fortisase_security_application_category instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_application_categories" "example" {
+data "fortisase_security_application_category" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,6 +27,6 @@ data "fortisase_security_application_categories" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `ftntid` (Number)

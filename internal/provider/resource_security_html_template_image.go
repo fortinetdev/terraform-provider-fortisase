@@ -1,0 +1,353 @@
+// Copyright 2020 Fortinet, Inc. All rights reserved.
+package provider
+
+import (
+	"context"
+	"fmt"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Ensure provider defined types fully satisfy framework interfaces.
+var _ resource.Resource = &resourceSecurityHtmlTemplateImage{}
+
+func newResourceSecurityHtmlTemplateImage() resource.Resource {
+	return &resourceSecurityHtmlTemplateImage{}
+}
+
+type resourceSecurityHtmlTemplateImage struct {
+	fortiClient  *FortiClient
+	resourceName string
+}
+
+// resourceSecurityHtmlTemplateImageModel describes the resource data model.
+type resourceSecurityHtmlTemplateImageModel struct {
+	ID          types.String `tfsdk:"id"`
+	PrimaryKey  types.String `tfsdk:"primary_key"`
+	ImageBase64 types.String `tfsdk:"image_base64"`
+	ImageType   types.String `tfsdk:"image_type"`
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_security_html_template_image"
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "HTML Template Images Resource API V2 for FortiSASE.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 23),
+				},
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+			},
+			"image_base64": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 4194304),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"image_type": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("jpeg", "jpg", "png"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+		},
+	}
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	client, ok := req.ProviderData.(*FortiClient)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	r.fortiClient = client
+	r.resourceName = "fortisase_security_html_template_image"
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityHtmlTemplateImage")
+	lock.Lock()
+	defer lock.Unlock()
+	var data resourceSecurityHtmlTemplateImageModel
+	diags := &resp.Diagnostics
+
+	// Read Terraform config data into the model
+	diags.Append(req.Config.Get(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.BodyParams = *(data.getCreateObjectSecurityHtmlTemplateImage(ctx, diags))
+	input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "create", diags))
+
+	if diags.HasError() {
+		return
+	}
+	mkey := data.PrimaryKey.ValueString()
+	output, err := c.CreateSecurityHtmlTemplateImage(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+
+	if responseMkey, ok := getCreateResponseMkey(output, "primaryKey"); ok {
+		mkey = responseMkey
+	}
+	data.ID = types.StringValue(mkey)
+	var read_input_model forticlient.InputModel
+	read_input_model.Mkey = mkey
+	read_input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityHtmlTemplateImage(&read_input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityHtmlTemplateImage(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityHtmlTemplateImage")
+	lock.Lock()
+	defer lock.Unlock()
+	diags := &resp.Diagnostics
+
+	// Read Terraform plan data into the model
+	var state resourceSecurityHtmlTemplateImageModel
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
+		return
+	}
+
+	var data resourceSecurityHtmlTemplateImageModel
+	diags.Append(req.Config.Get(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	data.ID = state.ID
+
+	mkey := state.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.BodyParams = *(data.getUpdateObjectSecurityHtmlTemplateImage(ctx, state, diags))
+	input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "update", diags))
+
+	if diags.HasError() {
+		return
+	}
+
+	output, err := c.UpdateSecurityHtmlTemplateImage(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+	var read_input_model forticlient.InputModel
+	read_input_model.Mkey = mkey
+	read_input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityHtmlTemplateImage(&read_input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&read_input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityHtmlTemplateImage(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	lock := r.fortiClient.GetResourceLock("SecurityHtmlTemplateImage")
+	lock.Lock()
+	defer lock.Unlock()
+	diags := &resp.Diagnostics
+	var data resourceSecurityHtmlTemplateImageModel
+
+	// Read Terraform prior state data into the model
+	diags.Append(req.State.Get(ctx, &data)...)
+
+	if diags.HasError() {
+		return
+	}
+
+	mkey := data.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "delete", diags))
+
+	output, err := c.DeleteSecurityHtmlTemplateImage(&input_model)
+	if err != nil {
+		diags.AddError(
+			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, output),
+		)
+		return
+	}
+}
+
+func (r *resourceSecurityHtmlTemplateImage) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	diags := &resp.Diagnostics
+	var data resourceSecurityHtmlTemplateImageModel
+
+	// Read Terraform prior state data into the model
+	diags.Append(req.State.Get(ctx, &data)...)
+
+	if diags.HasError() {
+		return
+	}
+
+	mkey := data.ID.ValueString()
+
+	c := r.fortiClient.Client
+	var input_model forticlient.InputModel
+	input_model.Mkey = mkey
+	input_model.URLParams = *(data.getURLObjectSecurityHtmlTemplateImage(ctx, "read", diags))
+
+	read_output, err := c.ReadSecurityHtmlTemplateImage(&input_model)
+	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		diags.AddError(
+			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
+			getErrorDetail(&input_model, read_output),
+		)
+		return
+	}
+
+	diags.Append(data.refreshSecurityHtmlTemplateImage(ctx, read_output)...)
+	if diags.HasError() {
+		return
+	}
+
+	diags.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *resourceSecurityHtmlTemplateImage) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("primary_key"), req.ID)...)
+}
+
+func (m *resourceSecurityHtmlTemplateImageModel) refreshSecurityHtmlTemplateImage(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if o == nil {
+		return diags
+	}
+
+	if v, ok := o["imageBase64"]; ok {
+		m.ImageBase64 = parseStringValue(v)
+	}
+
+	if v, ok := o["imageType"]; ok {
+		m.ImageType = parseStringValue(v)
+	}
+
+	return diags
+}
+
+func (data *resourceSecurityHtmlTemplateImageModel) getCreateObjectSecurityHtmlTemplateImage(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.ImageBase64.IsNull() && !data.ImageBase64.IsUnknown() {
+		result["imageBase64"] = data.ImageBase64.ValueString()
+	}
+
+	if !data.ImageType.IsNull() && !data.ImageType.IsUnknown() {
+		result["imageType"] = data.ImageType.ValueString()
+	}
+
+	return &result
+}
+
+func (data *resourceSecurityHtmlTemplateImageModel) getUpdateObjectSecurityHtmlTemplateImage(ctx context.Context, state resourceSecurityHtmlTemplateImageModel, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.ImageBase64.IsNull() && !data.ImageBase64.IsUnknown() {
+		result["imageBase64"] = data.ImageBase64.ValueString()
+	}
+
+	if !data.ImageType.IsNull() && !data.ImageType.IsUnknown() {
+		result["imageType"] = data.ImageType.ValueString()
+	}
+
+	return &result
+}
+
+func (data *resourceSecurityHtmlTemplateImageModel) getURLObjectSecurityHtmlTemplateImage(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	return &result
+}

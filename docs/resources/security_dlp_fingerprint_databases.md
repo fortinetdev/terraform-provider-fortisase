@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_fingerprint_databases Resource - fortisase"
 subcategory: "Security"
 description: |-
   DLP Fingerprint Database Resource API V2 for FortiSASE.
+  fortisase_security_dlp_fingerprint_databases is deprecated. Please use fortisase_security_dlp_fingerprint_database instead.
 ---
 
 # fortisase_security_dlp_fingerprint_databases (Resource)
 
 DLP Fingerprint Database Resource API V2 for FortiSASE.
+fortisase_security_dlp_fingerprint_databases is deprecated. Please use fortisase_security_dlp_fingerprint_database instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_dlp_fingerprint_databases" "dlp_fingerprint_databases" {
+resource "fortisase_security_dlp_fingerprint_database" "dlp_fingerprint_databases" {
   primary_key = "dlp_fingerprint_databases"
 
   server                 = "example-server.com"
@@ -87,5 +89,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_dlp_fingerprint_databases.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_dlp_fingerprint_database.{{your_resource_name}} {{primary_key}}
 ```

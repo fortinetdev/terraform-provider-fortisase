@@ -4,16 +4,18 @@ page_title: "fortisase_infra_ssids Data Source - fortisase"
 subcategory: "Others"
 description: |-
   FortiAP SSID Resource API V2 for FortiSASE.
+  fortisase_infra_ssids is deprecated. Please use fortisase_infra_ssid instead.
 ---
 
 # fortisase_infra_ssids (Data Source)
 
 FortiAP SSID Resource API V2 for FortiSASE.
+fortisase_infra_ssids is deprecated. Please use fortisase_infra_ssid instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_infra_ssids" "example" {
+data "fortisase_infra_ssid" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_infra_ssids" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `broadcast_ssid` (String)
 - `captive_portal` (Boolean)
@@ -40,7 +42,7 @@ data "fortisase_infra_ssids" "example" {
 <a id="nestedatt--radius_server"></a>
 ### Nested Schema for `radius_server`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -49,7 +51,7 @@ Optional:
 <a id="nestedatt--security_groups"></a>
 ### Nested Schema for `security_groups`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -58,6 +60,7 @@ Optional:
 <a id="nestedatt--user_groups"></a>
 ### Nested Schema for `user_groups`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
+- `primary_key` (String)

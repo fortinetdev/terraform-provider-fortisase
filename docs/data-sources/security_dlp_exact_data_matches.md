@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_exact_data_matches Data Source - fortisase"
 subcategory: "Security"
 description: |-
   DLP Exact Data Match Resource API V2 for FortiSASE.
+  fortisase_security_dlp_exact_data_matches is deprecated. Please use fortisase_security_dlp_exact_data_match instead.
 ---
 
 # fortisase_security_dlp_exact_data_matches (Data Source)
 
 DLP Exact Data Match Resource API V2 for FortiSASE.
+fortisase_security_dlp_exact_data_matches is deprecated. Please use fortisase_security_dlp_exact_data_match instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_dlp_exact_data_matches" "example" {
+data "fortisase_security_dlp_exact_data_match" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_dlp_exact_data_matches" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `columns` (Attributes List) (see [below for nested schema](#nestedatt--columns))
 - `external_resource_data` (Attributes) (see [below for nested schema](#nestedatt--external_resource_data))
@@ -34,7 +36,7 @@ data "fortisase_security_dlp_exact_data_matches" "example" {
 <a id="nestedatt--columns"></a>
 ### Nested Schema for `columns`
 
-Optional:
+Read-Only:
 
 - `index` (Number)
 - `optional` (Boolean)
@@ -43,7 +45,7 @@ Optional:
 <a id="nestedatt--columns--type"></a>
 ### Nested Schema for `columns.type`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -53,7 +55,7 @@ Optional:
 <a id="nestedatt--external_resource_data"></a>
 ### Nested Schema for `external_resource_data`
 
-Optional:
+Read-Only:
 
 - `password` (String, Sensitive)
 - `refresh_rate` (Number)

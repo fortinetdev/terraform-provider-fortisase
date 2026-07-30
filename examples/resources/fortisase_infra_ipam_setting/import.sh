@@ -1,1 +1,1 @@
-terraform import fortisase_infra_ssids.{{your_resource_name}} "$sase-global"
+terraform import fortisase_infra_ssid.{{your_resource_name}} '$sase-global'

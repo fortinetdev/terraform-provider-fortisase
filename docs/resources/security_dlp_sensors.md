@@ -4,16 +4,18 @@ page_title: "fortisase_security_dlp_sensors Resource - fortisase"
 subcategory: "Security"
 description: |-
   DLP Sensor Resource API V2 for FortiSASE.
+  fortisase_security_dlp_sensors is deprecated. Please use fortisase_security_dlp_sensor instead.
 ---
 
 # fortisase_security_dlp_sensors (Resource)
 
 DLP Sensor Resource API V2 for FortiSASE.
+fortisase_security_dlp_sensors is deprecated. Please use fortisase_security_dlp_sensor instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_dlp_dictionaries" "dlp_dictionary" {
+resource "fortisase_security_dlp_dictionary" "dlp_dictionary" {
   primary_key         = "example_dlp_dictionary_name"
   dictionary_type     = "sensor"
   entries_to_evaluate = "all"
@@ -30,14 +32,14 @@ resource "fortisase_security_dlp_dictionaries" "dlp_dictionary" {
   ]
 }
 
-resource "fortisase_security_dlp_sensors" "dlp_sensor" {
+resource "fortisase_security_dlp_sensor" "dlp_sensor" {
   primary_key                     = "example_dlp_senso_name"
   entry_matches_to_trigger_sensor = "all"
   sensor_dictionaries = [
     {
       dictionary_id = 1
       dictionary = {
-        primary_key = fortisase_security_dlp_dictionaries.dlp_dictionary.primary_key
+        primary_key = fortisase_security_dlp_dictionary.dlp_dictionary.primary_key
         datasource  = "security/dlp-dictionaries"
       }
       dictionary_matches_to_consider_risk = 255
@@ -89,5 +91,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_dlp_sensors.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_dlp_sensor.{{your_resource_name}} {{primary_key}}
 ```

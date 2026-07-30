@@ -32,16 +32,14 @@ type resourceSecurityApplicationControlProfile struct {
 
 // resourceSecurityApplicationControlProfileModel describes the resource data model.
 type resourceSecurityApplicationControlProfileModel struct {
-	ID                              types.String                                                                `tfsdk:"id"`
-	PrimaryKey                      types.String                                                                `tfsdk:"primary_key"`
-	ApplicationCategoryControls     []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel `tfsdk:"application_category_controls"`
-	ApplicationControls             []resourceSecurityApplicationControlProfileApplicationControlsModel         `tfsdk:"application_controls"`
-	Controls                        []resourceSecurityApplicationControlProfileControlsModel                    `tfsdk:"controls"`
-	UnknownApplicationAction        types.String                                                                `tfsdk:"unknown_application_action"`
-	NetworkProtocolEnforcement      types.String                                                                `tfsdk:"network_protocol_enforcement"`
-	NetworkProtocols                []resourceSecurityApplicationControlProfileNetworkProtocolsModel            `tfsdk:"network_protocols"`
-	BlockNonDefaultPortApplications types.String                                                                `tfsdk:"block_non_default_port_applications"`
-	Direction                       types.String                                                                `tfsdk:"direction"`
+	ID                              types.String                                                     `tfsdk:"id"`
+	PrimaryKey                      types.String                                                     `tfsdk:"primary_key"`
+	Controls                        []resourceSecurityApplicationControlProfileControlsModel         `tfsdk:"controls"`
+	UnknownApplicationAction        types.String                                                     `tfsdk:"unknown_application_action"`
+	NetworkProtocolEnforcement      types.String                                                     `tfsdk:"network_protocol_enforcement"`
+	NetworkProtocols                []resourceSecurityApplicationControlProfileNetworkProtocolsModel `tfsdk:"network_protocols"`
+	BlockNonDefaultPortApplications types.String                                                     `tfsdk:"block_non_default_port_applications"`
+	Direction                       types.String                                                     `tfsdk:"direction"`
 }
 
 func (r *resourceSecurityApplicationControlProfile) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -61,6 +59,9 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 			},
 			"primary_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"unknown_application_action": schema.StringAttribute{
 				Validators: []validator.String{
@@ -91,73 +92,8 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 				Computed:            true,
 				Optional:            true,
 			},
-			"application_category_controls": schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"action": schema.StringAttribute{
-							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
-							},
-							Computed: true,
-							Optional: true,
-						},
-						"category": schema.SingleNestedAttribute{
-							Attributes: map[string]schema.Attribute{
-								"primary_key": schema.StringAttribute{
-									Computed: true,
-									Optional: true,
-								},
-								"datasource": schema.StringAttribute{
-									Validators: []validator.String{
-										stringvalidatorwarning.OneOf("security/application-categories"),
-									},
-									Computed: true,
-									Optional: true,
-								},
-							},
-							Computed: true,
-							Optional: true,
-						},
-					},
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"application_controls": schema.ListNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"action": schema.StringAttribute{
-							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("monitor", "allow", "block"),
-							},
-							Computed: true,
-							Optional: true,
-						},
-						"applications": schema.ListNestedAttribute{
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"primary_key": schema.StringAttribute{
-										Computed: true,
-										Optional: true,
-									},
-									"datasource": schema.StringAttribute{
-										Validators: []validator.String{
-											stringvalidatorwarning.OneOf("security/applications"),
-										},
-										Computed: true,
-										Optional: true,
-									},
-								},
-							},
-							Computed: true,
-							Optional: true,
-						},
-					},
-				},
-				Computed: true,
-				Optional: true,
-			},
 			"controls": schema.ListNestedAttribute{
+				MarkdownDescription: "Generic controls defining actions for applications, filters, and overrides. Array order matters. Entries are evaluated first-to-last. Overrides must be placed ahead of application category controls for correct evaluation.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
@@ -167,38 +103,28 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 							Computed: true,
 							Optional: true,
 						},
-						"behavior": schema.StringAttribute{
-							Computed: true,
-							Optional: true,
+						"risk": schema.SetAttribute{
+							MarkdownDescription: "Risk level(s) with 0 being lowest and 4 being highest",
+							Computed:            true,
+							Optional:            true,
+							ElementType:         types.Int64Type,
 						},
-						"technology": schema.StringAttribute{
-							Computed: true,
-							Optional: true,
-						},
-						"vendor": schema.StringAttribute{
-							Computed: true,
-							Optional: true,
-						},
-						"popularity": schema.StringAttribute{
-							Computed: true,
-							Optional: true,
-						},
-						"protocols": schema.StringAttribute{
-							Computed: true,
-							Optional: true,
+						"popularity": schema.SetAttribute{
+							MarkdownDescription: "Popularity level(s) with 1 being lowest and 5 being highest",
+							Computed:            true,
+							Optional:            true,
+							ElementType:         types.Int64Type,
 						},
 						"applications": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"primary_key": schema.StringAttribute{
+										Optional: true,
+									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/applications"),
 										},
-										Computed: true,
-										Optional: true,
-									},
-									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -207,17 +133,16 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 							Optional: true,
 						},
 						"categories": schema.ListNestedAttribute{
+							MarkdownDescription: "Set the control action for a given application category. For the 'Proxy' category, the action cannot be set to 'block' if the linked profile group is referenced by a proxy policy.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
+									"primary_key": schema.StringAttribute{
+										Optional: true,
+									},
 									"datasource": schema.StringAttribute{
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("security/application-categories"),
 										},
-										Computed: true,
-										Optional: true,
-									},
-									"primary_key": schema.StringAttribute{
-										Computed: true,
 										Optional: true,
 									},
 								},
@@ -225,16 +150,17 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 							Computed: true,
 							Optional: true,
 						},
-						"risk": schema.ListNestedAttribute{
+						"ips_attributes": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"id": schema.Float64Attribute{
-										Validators: []validator.Float64{
-											float64validatorwarning.AtMost(4),
+									"primary_key": schema.StringAttribute{
+										Optional: true,
+									},
+									"datasource": schema.StringAttribute{
+										Validators: []validator.String{
+											stringvalidatorwarning.OneOf("security/ips-attr-map"),
 										},
-										MarkdownDescription: "Risk level with 0 being lowest and 4 being highest.\nValue at most 4.",
-										Computed:            true,
-										Optional:            true,
+										Optional: true,
 									},
 								},
 							},
@@ -336,7 +262,7 @@ func (r *resourceSecurityApplicationControlProfile) Create(ctx context.Context, 
 		return
 	}
 
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
+	mkey := data.PrimaryKey.ValueString()
 	data.ID = types.StringValue(mkey)
 	var read_input_model forticlient.InputModel
 	read_input_model.Mkey = mkey
@@ -444,6 +370,10 @@ func (r *resourceSecurityApplicationControlProfile) Read(ctx context.Context, re
 
 	read_output, err := c.ReadSecurityApplicationControlProfile(&input_model)
 	if err != nil {
+		if isNotFoundResponse(read_output) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		diags.AddError(
 			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
 			getErrorDetail(&input_model, read_output),
@@ -469,6 +399,10 @@ func (m *resourceSecurityApplicationControlProfileModel) refreshSecurityApplicat
 		return diags
 	}
 
+	if v, ok := o["controls"]; ok {
+		m.Controls = m.flattenSecurityApplicationControlProfileControlsList(ctx, v, &diags)
+	}
+
 	if v, ok := o["unknownApplicationAction"]; ok {
 		m.UnknownApplicationAction = parseStringValue(v)
 	}
@@ -490,29 +424,27 @@ func (m *resourceSecurityApplicationControlProfileModel) refreshSecurityApplicat
 
 func (data *resourceSecurityApplicationControlProfileModel) getCreateObjectSecurityApplicationControlProfile(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
-
-	result["applicationCategoryControls"] = data.expandSecurityApplicationControlProfileApplicationCategoryControlsList(ctx, data.ApplicationCategoryControls, diags)
-
-	result["applicationControls"] = data.expandSecurityApplicationControlProfileApplicationControlsList(ctx, data.ApplicationControls, diags)
 
 	if data.Controls != nil {
 		result["controls"] = data.expandSecurityApplicationControlProfileControlsList(ctx, data.Controls, diags)
 	}
 
-	if !data.UnknownApplicationAction.IsNull() {
+	if !data.UnknownApplicationAction.IsNull() && !data.UnknownApplicationAction.IsUnknown() {
 		result["unknownApplicationAction"] = data.UnknownApplicationAction.ValueString()
 	}
 
-	if !data.NetworkProtocolEnforcement.IsNull() {
+	if !data.NetworkProtocolEnforcement.IsNull() && !data.NetworkProtocolEnforcement.IsUnknown() {
 		result["networkProtocolEnforcement"] = data.NetworkProtocolEnforcement.ValueString()
 	}
 
-	result["networkProtocols"] = data.expandSecurityApplicationControlProfileNetworkProtocolsList(ctx, data.NetworkProtocols, diags)
+	if data.NetworkProtocols != nil {
+		result["networkProtocols"] = data.expandSecurityApplicationControlProfileNetworkProtocolsList(ctx, data.NetworkProtocols, diags)
+	}
 
-	if !data.BlockNonDefaultPortApplications.IsNull() {
+	if !data.BlockNonDefaultPortApplications.IsNull() && !data.BlockNonDefaultPortApplications.IsUnknown() {
 		result["blockNonDefaultPortApplications"] = data.BlockNonDefaultPortApplications.ValueString()
 	}
 
@@ -521,27 +453,19 @@ func (data *resourceSecurityApplicationControlProfileModel) getCreateObjectSecur
 
 func (data *resourceSecurityApplicationControlProfileModel) getUpdateObjectSecurityApplicationControlProfile(ctx context.Context, state resourceSecurityApplicationControlProfileModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if data.ApplicationCategoryControls != nil {
-		result["applicationCategoryControls"] = data.expandSecurityApplicationControlProfileApplicationCategoryControlsList(ctx, data.ApplicationCategoryControls, diags)
-	}
-
-	if data.ApplicationControls != nil {
-		result["applicationControls"] = data.expandSecurityApplicationControlProfileApplicationControlsList(ctx, data.ApplicationControls, diags)
 	}
 
 	if data.Controls != nil {
 		result["controls"] = data.expandSecurityApplicationControlProfileControlsList(ctx, data.Controls, diags)
 	}
 
-	if !data.UnknownApplicationAction.IsNull() {
+	if !data.UnknownApplicationAction.IsNull() && !data.UnknownApplicationAction.IsUnknown() {
 		result["unknownApplicationAction"] = data.UnknownApplicationAction.ValueString()
 	}
 
-	if !data.NetworkProtocolEnforcement.IsNull() {
+	if !data.NetworkProtocolEnforcement.IsNull() && !data.NetworkProtocolEnforcement.IsUnknown() {
 		result["networkProtocolEnforcement"] = data.NetworkProtocolEnforcement.ValueString()
 	}
 
@@ -549,7 +473,7 @@ func (data *resourceSecurityApplicationControlProfileModel) getUpdateObjectSecur
 		result["networkProtocols"] = data.expandSecurityApplicationControlProfileNetworkProtocolsList(ctx, data.NetworkProtocols, diags)
 	}
 
-	if !data.BlockNonDefaultPortApplications.IsNull() {
+	if !data.BlockNonDefaultPortApplications.IsNull() && !data.BlockNonDefaultPortApplications.IsUnknown() {
 		result["blockNonDefaultPortApplications"] = data.BlockNonDefaultPortApplications.ValueString()
 	}
 
@@ -558,218 +482,48 @@ func (data *resourceSecurityApplicationControlProfileModel) getUpdateObjectSecur
 
 func (data *resourceSecurityApplicationControlProfileModel) getURLObjectSecurityApplicationControlProfile(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)
 		result["direction"] = data.Direction.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
 	return &result
 }
 
-type resourceSecurityApplicationControlProfileApplicationCategoryControlsModel struct {
-	Action   types.String                                                                       `tfsdk:"action"`
-	Category *resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel `tfsdk:"category"`
-}
-
-type resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel struct {
-	PrimaryKey types.String `tfsdk:"primary_key"`
-	Datasource types.String `tfsdk:"datasource"`
-}
-
-type resourceSecurityApplicationControlProfileApplicationControlsModel struct {
-	Action       types.String                                                                    `tfsdk:"action"`
-	Applications []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel `tfsdk:"applications"`
-}
-
-type resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel struct {
-	PrimaryKey types.String `tfsdk:"primary_key"`
-	Datasource types.String `tfsdk:"datasource"`
-}
-
 type resourceSecurityApplicationControlProfileControlsModel struct {
-	Action       types.String                                                         `tfsdk:"action"`
-	Applications []resourceSecurityApplicationControlProfileControlsApplicationsModel `tfsdk:"applications"`
-	Categories   []resourceSecurityApplicationControlProfileControlsCategoriesModel   `tfsdk:"categories"`
-	Risk         []resourceSecurityApplicationControlProfileControlsRiskModel         `tfsdk:"risk"`
-	Behavior     types.String                                                         `tfsdk:"behavior"`
-	Technology   types.String                                                         `tfsdk:"technology"`
-	Vendor       types.String                                                         `tfsdk:"vendor"`
-	Popularity   types.String                                                         `tfsdk:"popularity"`
-	Protocols    types.String                                                         `tfsdk:"protocols"`
+	Action        types.String                                                          `tfsdk:"action"`
+	Applications  []resourceSecurityApplicationControlProfileControlsApplicationsModel  `tfsdk:"applications"`
+	Categories    []resourceSecurityApplicationControlProfileControlsCategoriesModel    `tfsdk:"categories"`
+	Risk          types.Set                                                             `tfsdk:"risk"`
+	Popularity    types.Set                                                             `tfsdk:"popularity"`
+	IpsAttributes []resourceSecurityApplicationControlProfileControlsIpsAttributesModel `tfsdk:"ips_attributes"`
 }
 
 type resourceSecurityApplicationControlProfileControlsApplicationsModel struct {
-	Datasource types.String `tfsdk:"datasource"`
 	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
 }
 
 type resourceSecurityApplicationControlProfileControlsCategoriesModel struct {
-	Datasource types.String `tfsdk:"datasource"`
 	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
 }
 
-type resourceSecurityApplicationControlProfileControlsRiskModel struct {
-	Id types.Float64 `tfsdk:"id"`
+type resourceSecurityApplicationControlProfileControlsIpsAttributesModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
 }
 
 type resourceSecurityApplicationControlProfileNetworkProtocolsModel struct {
 	Port     types.Float64 `tfsdk:"port"`
 	Action   types.String  `tfsdk:"action"`
 	Services types.Set     `tfsdk:"services"`
-}
-
-func (m *resourceSecurityApplicationControlProfileApplicationCategoryControlsModel) flattenSecurityApplicationControlProfileApplicationCategoryControls(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileApplicationCategoryControlsModel {
-	if input == nil {
-		return &resourceSecurityApplicationControlProfileApplicationCategoryControlsModel{}
-	}
-	if m == nil {
-		m = &resourceSecurityApplicationControlProfileApplicationCategoryControlsModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["action"]; ok {
-		m.Action = parseStringValue(v)
-	}
-
-	if v, ok := o["category"]; ok {
-		m.Category = m.Category.flattenSecurityApplicationControlProfileApplicationCategoryControlsCategory(ctx, v, diags)
-	}
-
-	return m
-}
-
-func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicationControlProfileApplicationCategoryControlsList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel {
-	if o == nil {
-		return []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument application_category_controls is not type of []interface{}.", "")
-		return []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel{}
-	}
-
-	values := make([]resourceSecurityApplicationControlProfileApplicationCategoryControlsModel, len(l))
-	for i, ele := range l {
-		var m resourceSecurityApplicationControlProfileApplicationCategoryControlsModel
-		values[i] = *m.flattenSecurityApplicationControlProfileApplicationCategoryControls(ctx, ele, diags)
-	}
-
-	return values
-}
-
-func (m *resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel) flattenSecurityApplicationControlProfileApplicationCategoryControlsCategory(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel {
-	if input == nil {
-		return &resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel{}
-	}
-	if m == nil {
-		m = &resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["datasource"]; ok {
-		m.Datasource = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (m *resourceSecurityApplicationControlProfileApplicationControlsModel) flattenSecurityApplicationControlProfileApplicationControls(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileApplicationControlsModel {
-	if input == nil {
-		return &resourceSecurityApplicationControlProfileApplicationControlsModel{}
-	}
-	if m == nil {
-		m = &resourceSecurityApplicationControlProfileApplicationControlsModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["action"]; ok {
-		m.Action = parseStringValue(v)
-	}
-
-	if v, ok := o["applications"]; ok {
-		m.Applications = m.flattenSecurityApplicationControlProfileApplicationControlsApplicationsList(ctx, v, diags)
-	}
-
-	return m
-}
-
-func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicationControlProfileApplicationControlsList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceSecurityApplicationControlProfileApplicationControlsModel {
-	if o == nil {
-		return []resourceSecurityApplicationControlProfileApplicationControlsModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument application_controls is not type of []interface{}.", "")
-		return []resourceSecurityApplicationControlProfileApplicationControlsModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []resourceSecurityApplicationControlProfileApplicationControlsModel{}
-	}
-
-	values := make([]resourceSecurityApplicationControlProfileApplicationControlsModel, len(l))
-	for i, ele := range l {
-		var m resourceSecurityApplicationControlProfileApplicationControlsModel
-		values[i] = *m.flattenSecurityApplicationControlProfileApplicationControls(ctx, ele, diags)
-	}
-
-	return values
-}
-
-func (m *resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel) flattenSecurityApplicationControlProfileApplicationControlsApplications(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel {
-	if input == nil {
-		return &resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel{}
-	}
-	if m == nil {
-		m = &resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["primaryKey"]; ok {
-		m.PrimaryKey = parseStringValue(v)
-	}
-
-	if v, ok := o["datasource"]; ok {
-		m.Datasource = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (s *resourceSecurityApplicationControlProfileApplicationControlsModel) flattenSecurityApplicationControlProfileApplicationControlsApplicationsList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel {
-	if o == nil {
-		return []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel{}
-	}
-
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument applications is not type of []interface{}.", "")
-		return []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel{}
-	}
-
-	l := o.([]interface{})
-	if len(l) == 0 || l[0] == nil {
-		return []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel{}
-	}
-
-	values := make([]resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel, len(l))
-	for i, ele := range l {
-		var m resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel
-		values[i] = *m.flattenSecurityApplicationControlProfileApplicationControlsApplications(ctx, ele, diags)
-	}
-
-	return values
 }
 
 func (m *resourceSecurityApplicationControlProfileControlsModel) flattenSecurityApplicationControlProfileControls(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileControlsModel {
@@ -793,27 +547,19 @@ func (m *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	}
 
 	if v, ok := o["risk"]; ok {
-		m.Risk = m.flattenSecurityApplicationControlProfileControlsRiskList(ctx, v, diags)
-	}
-
-	if v, ok := o["behavior"]; ok {
-		m.Behavior = parseStringValue(v)
-	}
-
-	if v, ok := o["technology"]; ok {
-		m.Technology = parseStringValue(v)
-	}
-
-	if v, ok := o["vendor"]; ok {
-		m.Vendor = parseStringValue(v)
+		m.Risk = parseSetValue(ctx, v, types.Int64Type)
+	} else {
+		m.Risk = types.SetNull(types.Int64Type)
 	}
 
 	if v, ok := o["popularity"]; ok {
-		m.Popularity = parseStringValue(v)
+		m.Popularity = parseSetValue(ctx, v, types.Int64Type)
+	} else {
+		m.Popularity = types.SetNull(types.Int64Type)
 	}
 
-	if v, ok := o["protocols"]; ok {
-		m.Protocols = parseStringValue(v)
+	if v, ok := o["ipsAttributes"]; ok {
+		m.IpsAttributes = m.flattenSecurityApplicationControlProfileControlsIpsAttributesList(ctx, v, diags)
 	}
 
 	return m
@@ -824,12 +570,17 @@ func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicat
 		return []resourceSecurityApplicationControlProfileControlsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument controls is not type of []interface{}.", "")
 		return []resourceSecurityApplicationControlProfileControlsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityApplicationControlProfileControlsModel{}
 	}
@@ -837,6 +588,9 @@ func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicat
 	values := make([]resourceSecurityApplicationControlProfileControlsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsModel
+		if i < len(s.Controls) {
+			m = s.Controls[i]
+		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControls(ctx, ele, diags)
 	}
 
@@ -851,12 +605,12 @@ func (m *resourceSecurityApplicationControlProfileControlsApplicationsModel) fla
 		m = &resourceSecurityApplicationControlProfileControlsApplicationsModel{}
 	}
 	o := input.(map[string]interface{})
-	if v, ok := o["datasource"]; ok {
-		m.Datasource = parseStringValue(v)
-	}
-
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
 	}
 
 	return m
@@ -867,12 +621,17 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 		return []resourceSecurityApplicationControlProfileControlsApplicationsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument applications is not type of []interface{}.", "")
 		return []resourceSecurityApplicationControlProfileControlsApplicationsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityApplicationControlProfileControlsApplicationsModel{}
 	}
@@ -880,6 +639,9 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	values := make([]resourceSecurityApplicationControlProfileControlsApplicationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsApplicationsModel
+		if i < len(s.Applications) {
+			m = s.Applications[i]
+		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControlsApplications(ctx, ele, diags)
 	}
 
@@ -894,12 +656,12 @@ func (m *resourceSecurityApplicationControlProfileControlsCategoriesModel) flatt
 		m = &resourceSecurityApplicationControlProfileControlsCategoriesModel{}
 	}
 	o := input.(map[string]interface{})
-	if v, ok := o["datasource"]; ok {
-		m.Datasource = parseStringValue(v)
-	}
-
 	if v, ok := o["primaryKey"]; ok {
 		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
 	}
 
 	return m
@@ -910,12 +672,17 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 		return []resourceSecurityApplicationControlProfileControlsCategoriesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument categories is not type of []interface{}.", "")
 		return []resourceSecurityApplicationControlProfileControlsCategoriesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityApplicationControlProfileControlsCategoriesModel{}
 	}
@@ -923,46 +690,61 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	values := make([]resourceSecurityApplicationControlProfileControlsCategoriesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsCategoriesModel
+		if i < len(s.Categories) {
+			m = s.Categories[i]
+		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControlsCategories(ctx, ele, diags)
 	}
 
 	return values
 }
 
-func (m *resourceSecurityApplicationControlProfileControlsRiskModel) flattenSecurityApplicationControlProfileControlsRisk(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileControlsRiskModel {
+func (m *resourceSecurityApplicationControlProfileControlsIpsAttributesModel) flattenSecurityApplicationControlProfileControlsIpsAttributes(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileControlsIpsAttributesModel {
 	if input == nil {
-		return &resourceSecurityApplicationControlProfileControlsRiskModel{}
+		return &resourceSecurityApplicationControlProfileControlsIpsAttributesModel{}
 	}
 	if m == nil {
-		m = &resourceSecurityApplicationControlProfileControlsRiskModel{}
+		m = &resourceSecurityApplicationControlProfileControlsIpsAttributesModel{}
 	}
 	o := input.(map[string]interface{})
-	if v, ok := o["id"]; ok {
-		m.Id = parseFloat64Value(v)
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
 	}
 
 	return m
 }
 
-func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurityApplicationControlProfileControlsRiskList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceSecurityApplicationControlProfileControlsRiskModel {
+func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurityApplicationControlProfileControlsIpsAttributesList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceSecurityApplicationControlProfileControlsIpsAttributesModel {
 	if o == nil {
-		return []resourceSecurityApplicationControlProfileControlsRiskModel{}
+		return []resourceSecurityApplicationControlProfileControlsIpsAttributesModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
-		diags.AddError("Argument risk is not type of []interface{}.", "")
-		return []resourceSecurityApplicationControlProfileControlsRiskModel{}
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
+		diags.AddError("Argument ips_attributes is not type of []interface{}.", "")
+		return []resourceSecurityApplicationControlProfileControlsIpsAttributesModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
-		return []resourceSecurityApplicationControlProfileControlsRiskModel{}
+		return []resourceSecurityApplicationControlProfileControlsIpsAttributesModel{}
 	}
 
-	values := make([]resourceSecurityApplicationControlProfileControlsRiskModel, len(l))
+	values := make([]resourceSecurityApplicationControlProfileControlsIpsAttributesModel, len(l))
 	for i, ele := range l {
-		var m resourceSecurityApplicationControlProfileControlsRiskModel
-		values[i] = *m.flattenSecurityApplicationControlProfileControlsRisk(ctx, ele, diags)
+		var m resourceSecurityApplicationControlProfileControlsIpsAttributesModel
+		if i < len(s.IpsAttributes) {
+			m = s.IpsAttributes[i]
+		}
+		values[i] = *m.flattenSecurityApplicationControlProfileControlsIpsAttributes(ctx, ele, diags)
 	}
 
 	return values
@@ -986,6 +768,8 @@ func (m *resourceSecurityApplicationControlProfileNetworkProtocolsModel) flatten
 
 	if v, ok := o["services"]; ok {
 		m.Services = parseSetValue(ctx, v, types.StringType)
+	} else {
+		m.Services = types.SetNull(types.StringType)
 	}
 
 	return m
@@ -996,12 +780,17 @@ func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicat
 		return []resourceSecurityApplicationControlProfileNetworkProtocolsModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument network_protocols is not type of []interface{}.", "")
 		return []resourceSecurityApplicationControlProfileNetworkProtocolsModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []resourceSecurityApplicationControlProfileNetworkProtocolsModel{}
 	}
@@ -1009,89 +798,18 @@ func (s *resourceSecurityApplicationControlProfileModel) flattenSecurityApplicat
 	values := make([]resourceSecurityApplicationControlProfileNetworkProtocolsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileNetworkProtocolsModel
+		if i < len(s.NetworkProtocols) {
+			m = s.NetworkProtocols[i]
+		}
 		values[i] = *m.flattenSecurityApplicationControlProfileNetworkProtocols(ctx, ele, diags)
 	}
 
 	return values
 }
 
-func (data *resourceSecurityApplicationControlProfileApplicationCategoryControlsModel) expandSecurityApplicationControlProfileApplicationCategoryControls(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
-		result["action"] = data.Action.ValueString()
-	}
-
-	if data.Category != nil && !isZeroStruct(*data.Category) {
-		result["category"] = data.Category.expandSecurityApplicationControlProfileApplicationCategoryControlsCategory(ctx, diags)
-	}
-
-	return result
-}
-
-func (s *resourceSecurityApplicationControlProfileModel) expandSecurityApplicationControlProfileApplicationCategoryControlsList(ctx context.Context, l []resourceSecurityApplicationControlProfileApplicationCategoryControlsModel, diags *diag.Diagnostics) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(l))
-	for i, item := range l {
-		result[i] = item.expandSecurityApplicationControlProfileApplicationCategoryControls(ctx, diags)
-	}
-	return result
-}
-
-func (data *resourceSecurityApplicationControlProfileApplicationCategoryControlsCategoryModel) expandSecurityApplicationControlProfileApplicationCategoryControlsCategory(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
-
-	return result
-}
-
-func (data *resourceSecurityApplicationControlProfileApplicationControlsModel) expandSecurityApplicationControlProfileApplicationControls(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
-		result["action"] = data.Action.ValueString()
-	}
-
-	result["applications"] = data.expandSecurityApplicationControlProfileApplicationControlsApplicationsList(ctx, data.Applications, diags)
-
-	return result
-}
-
-func (s *resourceSecurityApplicationControlProfileModel) expandSecurityApplicationControlProfileApplicationControlsList(ctx context.Context, l []resourceSecurityApplicationControlProfileApplicationControlsModel, diags *diag.Diagnostics) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(l))
-	for i, item := range l {
-		result[i] = item.expandSecurityApplicationControlProfileApplicationControls(ctx, diags)
-	}
-	return result
-}
-
-func (data *resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel) expandSecurityApplicationControlProfileApplicationControlsApplications(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
-	}
-
-	return result
-}
-
-func (s *resourceSecurityApplicationControlProfileApplicationControlsModel) expandSecurityApplicationControlProfileApplicationControlsApplicationsList(ctx context.Context, l []resourceSecurityApplicationControlProfileApplicationControlsApplicationsModel, diags *diag.Diagnostics) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(l))
-	for i, item := range l {
-		result[i] = item.expandSecurityApplicationControlProfileApplicationControlsApplications(ctx, diags)
-	}
-	return result
-}
-
 func (data *resourceSecurityApplicationControlProfileControlsModel) expandSecurityApplicationControlProfileControls(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
@@ -1099,27 +817,15 @@ func (data *resourceSecurityApplicationControlProfileControlsModel) expandSecuri
 
 	result["categories"] = data.expandSecurityApplicationControlProfileControlsCategoriesList(ctx, data.Categories, diags)
 
-	result["risk"] = data.expandSecurityApplicationControlProfileControlsRiskList(ctx, data.Risk, diags)
-
-	if !data.Behavior.IsNull() {
-		result["behavior"] = data.Behavior.ValueString()
+	if !data.Risk.IsNull() && !data.Risk.IsUnknown() {
+		result["risk"] = expandSetToInt64List(data.Risk)
 	}
 
-	if !data.Technology.IsNull() {
-		result["technology"] = data.Technology.ValueString()
+	if !data.Popularity.IsNull() && !data.Popularity.IsUnknown() {
+		result["popularity"] = expandSetToInt64List(data.Popularity)
 	}
 
-	if !data.Vendor.IsNull() {
-		result["vendor"] = data.Vendor.ValueString()
-	}
-
-	if !data.Popularity.IsNull() {
-		result["popularity"] = data.Popularity.ValueString()
-	}
-
-	if !data.Protocols.IsNull() {
-		result["protocols"] = data.Protocols.ValueString()
-	}
+	result["ipsAttributes"] = data.expandSecurityApplicationControlProfileControlsIpsAttributesList(ctx, data.IpsAttributes, diags)
 
 	return result
 }
@@ -1134,12 +840,12 @@ func (s *resourceSecurityApplicationControlProfileModel) expandSecurityApplicati
 
 func (data *resourceSecurityApplicationControlProfileControlsApplicationsModel) expandSecurityApplicationControlProfileControlsApplications(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
 	}
 
 	return result
@@ -1155,12 +861,12 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) expandSecurityA
 
 func (data *resourceSecurityApplicationControlProfileControlsCategoriesModel) expandSecurityApplicationControlProfileControlsCategories(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Datasource.IsNull() {
-		result["datasource"] = data.Datasource.ValueString()
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
 	}
 
 	return result
@@ -1174,34 +880,38 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) expandSecurityA
 	return result
 }
 
-func (data *resourceSecurityApplicationControlProfileControlsRiskModel) expandSecurityApplicationControlProfileControlsRisk(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+func (data *resourceSecurityApplicationControlProfileControlsIpsAttributesModel) expandSecurityApplicationControlProfileControlsIpsAttributes(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Id.IsNull() {
-		result["id"] = data.Id.ValueFloat64()
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
 	}
 
 	return result
 }
 
-func (s *resourceSecurityApplicationControlProfileControlsModel) expandSecurityApplicationControlProfileControlsRiskList(ctx context.Context, l []resourceSecurityApplicationControlProfileControlsRiskModel, diags *diag.Diagnostics) []map[string]interface{} {
+func (s *resourceSecurityApplicationControlProfileControlsModel) expandSecurityApplicationControlProfileControlsIpsAttributesList(ctx context.Context, l []resourceSecurityApplicationControlProfileControlsIpsAttributesModel, diags *diag.Diagnostics) []map[string]interface{} {
 	result := make([]map[string]interface{}, len(l))
 	for i, item := range l {
-		result[i] = item.expandSecurityApplicationControlProfileControlsRisk(ctx, diags)
+		result[i] = item.expandSecurityApplicationControlProfileControlsIpsAttributes(ctx, diags)
 	}
 	return result
 }
 
 func (data *resourceSecurityApplicationControlProfileNetworkProtocolsModel) expandSecurityApplicationControlProfileNetworkProtocols(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Port.IsNull() {
+	if !data.Port.IsNull() && !data.Port.IsUnknown() {
 		result["port"] = data.Port.ValueFloat64()
 	}
 
-	if !data.Action.IsNull() {
+	if !data.Action.IsNull() && !data.Action.IsUnknown() {
 		result["action"] = data.Action.ValueString()
 	}
 
-	if !data.Services.IsNull() {
+	if !data.Services.IsNull() && !data.Services.IsUnknown() {
 		result["services"] = expandSetToStringList(data.Services)
 	}
 

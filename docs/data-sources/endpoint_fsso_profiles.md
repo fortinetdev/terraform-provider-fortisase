@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_fsso_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   FSSO Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_fsso_profiles is deprecated. Please use fortisase_endpoint_fsso_profile instead.
 ---
 
 # fortisase_endpoint_fsso_profiles (Data Source)
 
 FSSO Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_fsso_profiles is deprecated. Please use fortisase_endpoint_fsso_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_fsso_profiles" "example" {
+data "fortisase_endpoint_fsso_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_fsso_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `enabled` (Boolean)
 - `host` (String)

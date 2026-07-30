@@ -23,20 +23,20 @@ data "fortisase_security_video_filter_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `channels` (Attributes List) (see [below for nested schema](#nestedatt--channels))
 - `default_action` (String)
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `fortiguard_filters` (Attributes List) (see [below for nested schema](#nestedatt--fortiguard_filters))
 
 <a id="nestedatt--channels"></a>
 ### Nested Schema for `channels`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `channel_id` (String)
@@ -46,7 +46,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters"></a>
 ### Nested Schema for `fortiguard_filters`
 
-Optional:
+Read-Only:
 
 - `action` (String)
 - `category` (Attributes) (see [below for nested schema](#nestedatt--fortiguard_filters--category))
@@ -54,7 +54,7 @@ Optional:
 <a id="nestedatt--fortiguard_filters--category"></a>
 ### Nested Schema for `fortiguard_filters.category`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

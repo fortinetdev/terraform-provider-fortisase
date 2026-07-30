@@ -43,15 +43,12 @@ func (r *datasourceEndpointsDonut) Schema(ctx context.Context, req datasource.Sc
 		Attributes: map[string]schema.Attribute{
 			"token": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"value": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 			"name": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 			},
 			"donut_type": schema.StringAttribute{
 				Validators: []validator.String{
@@ -143,7 +140,7 @@ func (m *datasourceEndpointsDonutModel) refreshEndpointsDonut(ctx context.Contex
 
 func (data *datasourceEndpointsDonutModel) getURLObjectEndpointsDonut(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.DonutType.IsNull() {
+	if !data.DonutType.IsNull() && !data.DonutType.IsUnknown() {
 		result["donutType"] = data.DonutType.ValueString()
 	}
 

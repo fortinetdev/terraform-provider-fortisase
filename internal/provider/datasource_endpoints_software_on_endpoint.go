@@ -51,32 +51,25 @@ func (r *datasourceEndpointsSoftwareOnEndpoint) Schema(ctx context.Context, req 
 					Attributes: map[string]schema.Attribute{
 						"id": schema.Float64Attribute{
 							Computed: true,
-							Optional: true,
 						},
 						"name": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"vendor": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"version": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"icon": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 						"install_date": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 						},
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -154,7 +147,7 @@ func (m *datasourceEndpointsSoftwareOnEndpointModel) refreshEndpointsSoftwareOnE
 
 func (data *datasourceEndpointsSoftwareOnEndpointModel) getURLObjectEndpointsSoftwareOnEndpoint(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.DeviceId.IsNull() {
+	if !data.DeviceId.IsNull() && !data.DeviceId.IsUnknown() {
 		result["deviceId"] = data.DeviceId.ValueFloat64()
 	}
 
@@ -210,12 +203,17 @@ func (s *datasourceEndpointsSoftwareOnEndpointModel) flattenEndpointsSoftwareOnE
 		return []datasourceEndpointsSoftwareOnEndpointSoftwareModel{}
 	}
 
-	if _, ok := o.([]interface{}); !ok {
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
 		diags.AddError("Argument software is not type of []interface{}.", "")
 		return []datasourceEndpointsSoftwareOnEndpointSoftwareModel{}
 	}
 
-	l := o.([]interface{})
 	if len(l) == 0 || l[0] == nil {
 		return []datasourceEndpointsSoftwareOnEndpointSoftwareModel{}
 	}
@@ -223,6 +221,9 @@ func (s *datasourceEndpointsSoftwareOnEndpointModel) flattenEndpointsSoftwareOnE
 	values := make([]datasourceEndpointsSoftwareOnEndpointSoftwareModel, len(l))
 	for i, ele := range l {
 		var m datasourceEndpointsSoftwareOnEndpointSoftwareModel
+		if i < len(s.Software) {
+			m = s.Software[i]
+		}
 		values[i] = *m.flattenEndpointsSoftwareOnEndpointSoftware(ctx, ele, diags)
 	}
 

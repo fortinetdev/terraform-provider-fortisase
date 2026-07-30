@@ -4,16 +4,18 @@ page_title: "fortisase_network_wildcard_fqdn_customs Data Source - fortisase"
 subcategory: "Network"
 description: |-
   Wildcard FQDN Resource API V2 for FortiSASE.
+  fortisase_network_wildcard_fqdn_customs is deprecated. Please use fortisase_network_wildcard_fqdn_custom instead.
 ---
 
 # fortisase_network_wildcard_fqdn_customs (Data Source)
 
 Wildcard FQDN Resource API V2 for FortiSASE.
+fortisase_network_wildcard_fqdn_customs is deprecated. Please use fortisase_network_wildcard_fqdn_custom instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_network_wildcard_fqdn_customs" "example" {
+data "fortisase_network_wildcard_fqdn_custom" "example" {
   primary_key = "<your_value>"
 }
 ```

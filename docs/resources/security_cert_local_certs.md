@@ -4,18 +4,30 @@ page_title: "fortisase_security_cert_local_certs Resource - fortisase"
 subcategory: "Security"
 description: |-
   Certificate Resource API for FortiSASE.
+  fortisase_security_cert_local_certs is deprecated. Please use fortisase_security_cert_local_cert instead.
 ---
 
 # fortisase_security_cert_local_certs (Resource)
 
 Certificate Resource API for FortiSASE.
+fortisase_security_cert_local_certs is deprecated. Please use fortisase_security_cert_local_cert instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_cert_local_certs" "local_cert" {
-  format           = "regular"
+# Method 1: fortisase_system_certificate is recommended for new configurations.
+resource "fortisase_system_certificate" "local_certificate" {
+  certificate_type = "local-certificate"
+  primary_key      = "example_local_cert"
+  format           = "regular" # "regular" or "pkcs12"
+  file_content     = base64encode(file("../path/to/my-server-cert.pem"))
+  key_file_content = base64encode(file("../path/to/my-server-key.pem")) # Only required if format is "regular"
+}
+
+# Method 2
+resource "fortisase_security_cert_local_cert" "local_cert" {
   cert_name        = "local_cert_name"
+  format           = "regular"
   password         = "your_password"
   file_content     = base64encode(file("./path/to/cert.pem"))
   key_file_content = base64encode(file("./path/to/key.pem"))
@@ -42,6 +54,7 @@ resource "fortisase_security_cert_local_certs" "local_cert" {
 - `primary_key` (String)
 - `serial_number` (String)
 - `source` (String)
+- `subject` (Attributes) (see [below for nested schema](#nestedatt--subject))
 - `type` (String)
 - `usages` (Attributes List) (see [below for nested schema](#nestedatt--usages))
 - `valid_from` (String)
@@ -50,7 +63,21 @@ resource "fortisase_security_cert_local_certs" "local_cert" {
 <a id="nestedatt--issuer"></a>
 ### Nested Schema for `issuer`
 
-Optional:
+Read-Only:
+
+- `c` (String)
+- `cn` (String)
+- `email_address` (String)
+- `l` (String)
+- `o` (String)
+- `ou` (String)
+- `st` (String)
+
+
+<a id="nestedatt--subject"></a>
+### Nested Schema for `subject`
+
+Read-Only:
 
 - `c` (String)
 - `cn` (String)
@@ -64,7 +91,7 @@ Optional:
 <a id="nestedatt--usages"></a>
 ### Nested Schema for `usages`
 
-Optional:
+Read-Only:
 
 - `count` (Number)
 - `type` (String)
@@ -76,5 +103,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_cert_local_certs.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_cert_local_cert.{{your_resource_name}} {{primary_key}}
 ```

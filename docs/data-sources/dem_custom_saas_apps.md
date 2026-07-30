@@ -4,16 +4,18 @@ page_title: "fortisase_dem_custom_saas_apps Data Source - fortisase"
 subcategory: "Others"
 description: |-
   DEM Custom SaaS Applications Resource API V2 for FortiSASE.
+  fortisase_dem_custom_saas_apps is deprecated. Please use fortisase_dem_custom_saas_app instead.
 ---
 
 # fortisase_dem_custom_saas_apps (Data Source)
 
 DEM Custom SaaS Applications Resource API V2 for FortiSASE.
+fortisase_dem_custom_saas_apps is deprecated. Please use fortisase_dem_custom_saas_app instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_dem_custom_saas_apps" "example" {
+data "fortisase_dem_custom_saas_app" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -26,7 +28,7 @@ data "fortisase_dem_custom_saas_apps" "example" {
 - `primary_key` (String) The primary key object of the DEM custom SaaS application. Can not be updated once created.
 Length between 1 and 253.
 
-### Optional
+### Read-Only
 
 - `alias` (String)
 - `fqdn` (String) The FQDN of the custom SaaS application.

@@ -23,14 +23,14 @@ data "fortisase_security_antivirus_profile" "example" {
 
 ### Required
 
+- `direction` (String) The direction of the target resource.
+Supported values: internal-profiles, outbound-profiles.
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `cdr` (Attributes) (see [below for nested schema](#nestedatt--cdr))
 - `cifs` (String)
-- `direction` (String) The direction of the target resource.
-Supported values: internal-profiles, outbound-profiles.
 - `ftp` (String)
 - `http` (String)
 - `imap` (String)
@@ -40,7 +40,7 @@ Supported values: internal-profiles, outbound-profiles.
 <a id="nestedatt--cdr"></a>
 ### Nested Schema for `cdr`
 
-Optional:
+Read-Only:
 
 - `allow_error_transmission` (Boolean)
 - `enable` (Boolean)

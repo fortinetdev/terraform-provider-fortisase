@@ -25,7 +25,7 @@ data "fortisase_auth_vpn_saml_server" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `application_id` (String)
 - `digest_method` (String)
@@ -37,6 +37,7 @@ data "fortisase_auth_vpn_saml_server" "example" {
 - `idp_entity_id` (String)
 - `idp_log_out_url` (String)
 - `idp_sign_on_url` (String)
+- `require_signed_resp_and_asrt` (Boolean)
 - `scim_enabled` (Boolean)
 - `sp_cert` (Attributes) (see [below for nested schema](#nestedatt--sp_cert))
 - `username` (String)
@@ -44,7 +45,7 @@ data "fortisase_auth_vpn_saml_server" "example" {
 <a id="nestedatt--idp_certificate"></a>
 ### Nested Schema for `idp_certificate`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -53,7 +54,7 @@ Optional:
 <a id="nestedatt--sp_cert"></a>
 ### Nested Schema for `sp_cert`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

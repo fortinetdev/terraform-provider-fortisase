@@ -3,12 +3,12 @@
 page_title: "fortisase_browser_provision Data Source - fortisase"
 subcategory: "Others"
 description: |-
-  .
+  Secure Browser Resource API V2 for FortiSASE.
 ---
 
 # fortisase_browser_provision (Data Source)
 
-.
+Secure Browser Resource API V2 for FortiSASE.
 
 ## Example Usage
 
@@ -25,6 +25,6 @@ data "fortisase_browser_provision" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `status` (String)

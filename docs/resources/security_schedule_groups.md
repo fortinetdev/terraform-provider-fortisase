@@ -4,16 +4,18 @@ page_title: "fortisase_security_schedule_groups Resource - fortisase"
 subcategory: "Security"
 description: |-
   Schedule Group Resource API V2 for FortiSASE.
+  fortisase_security_schedule_groups is deprecated. Please use fortisase_security_schedule_group instead.
 ---
 
 # fortisase_security_schedule_groups (Resource)
 
 Schedule Group Resource API V2 for FortiSASE.
+fortisase_security_schedule_groups is deprecated. Please use fortisase_security_schedule_group instead.
 
 ## Example Usage
 
 ```terraform
-resource "fortisase_security_schedule_groups" "example" {
+resource "fortisase_security_schedule_group" "example" {
   primary_key = "example_name"
   members = [{
     datasource  = "security/recurring-schedules"
@@ -52,5 +54,5 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import fortisase_security_schedule_groups.{{your_resource_name}} {{primary_key}}
+terraform import fortisase_security_schedule_group.{{your_resource_name}} {{primary_key}}
 ```

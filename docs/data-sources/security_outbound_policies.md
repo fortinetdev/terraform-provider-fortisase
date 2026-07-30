@@ -4,16 +4,18 @@ page_title: "fortisase_security_outbound_policies Data Source - fortisase"
 subcategory: "Security"
 description: |-
   Outbound Policy Resource API V2 for FortiSASE.
+  fortisase_security_outbound_policies is deprecated. Please use fortisase_security_outbound_policy instead.
 ---
 
 # fortisase_security_outbound_policies (Data Source)
 
 Outbound Policy Resource API V2 for FortiSASE.
+fortisase_security_outbound_policies is deprecated. Please use fortisase_security_outbound_policy instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_security_outbound_policies" "example" {
+data "fortisase_security_outbound_policy" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_security_outbound_policies" "example" {
 
 - `primary_key` (String)
 
-### Optional
+### Read-Only
 
 - `action` (String)
 - `captive_portal_exempt` (Boolean)
@@ -43,7 +45,7 @@ data "fortisase_security_outbound_policies" "example" {
 <a id="nestedatt--destinations"></a>
 ### Nested Schema for `destinations`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -52,7 +54,7 @@ Optional:
 <a id="nestedatt--profile_group"></a>
 ### Nested Schema for `profile_group`
 
-Optional:
+Read-Only:
 
 - `force_cert_inspection` (Boolean)
 - `group` (Attributes) (see [below for nested schema](#nestedatt--profile_group--group))
@@ -60,7 +62,7 @@ Optional:
 <a id="nestedatt--profile_group--group"></a>
 ### Nested Schema for `profile_group.group`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -70,7 +72,7 @@ Optional:
 <a id="nestedatt--schedule"></a>
 ### Nested Schema for `schedule`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -79,7 +81,7 @@ Optional:
 <a id="nestedatt--services"></a>
 ### Nested Schema for `services`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -88,7 +90,7 @@ Optional:
 <a id="nestedatt--sources"></a>
 ### Nested Schema for `sources`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -97,7 +99,7 @@ Optional:
 <a id="nestedatt--users"></a>
 ### Nested Schema for `users`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

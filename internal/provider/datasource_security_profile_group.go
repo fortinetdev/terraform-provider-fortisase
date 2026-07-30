@@ -59,8 +59,7 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 					stringvalidatorwarning.OneOf("internal-profiles", "outbound-profiles"),
 				},
 				MarkdownDescription: "The direction of the target resource.\nSupported values: internal-profiles, outbound-profiles.",
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 			},
 			"antivirus_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -69,28 +68,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/antivirus-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"web_filter_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -99,28 +93,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/web-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"video_filter_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -129,28 +118,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/video-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"dns_filter_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -159,28 +143,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/dns-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"application_control_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -189,28 +168,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/application-control-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"file_filter_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -219,28 +193,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/file-filter-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"dlp_filter_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -249,28 +218,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/dlp-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"intrusion_prevention_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -279,28 +243,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable", "disable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/ips-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 			"ssl_ssh_profile": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -309,28 +268,23 @@ func (r *datasourceSecurityProfileGroup) Schema(ctx context.Context, req datasou
 							stringvalidatorwarning.OneOf("enable"),
 						},
 						Computed: true,
-						Optional: true,
 					},
 					"profile": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
 							"primary_key": schema.StringAttribute{
 								Computed: true,
-								Optional: true,
 							},
 							"datasource": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("security/ssl-ssh-profiles"),
 								},
 								Computed: true,
-								Optional: true,
 							},
 						},
 						Computed: true,
-						Optional: true,
 					},
 				},
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -440,11 +394,11 @@ func (m *datasourceSecurityProfileGroupModel) refreshSecurityProfileGroup(ctx co
 
 func (data *datasourceSecurityProfileGroupModel) getURLObjectSecurityProfileGroup(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
 		result["primaryKey"] = data.PrimaryKey.ValueString()
 	}
 
-	if !data.Direction.IsNull() {
+	if !data.Direction.IsNull() && !data.Direction.IsUnknown() {
 		diags.AddWarning("\"direction\" is deprecated and may be removed in future.",
 			"It is recommended to recreate the resource without \"direction\" to avoid unexpected behavior in future.",
 		)

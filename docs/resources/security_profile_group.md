@@ -13,6 +13,7 @@ Profile Group Resource API V2 for FortiSASE.
 ## Example Usage
 
 ```terraform
+# GUI: Security -> Security profiles
 resource "fortisase_security_profile_group" "example" {
   primary_key = "example_profile_name" # The name of the new profile group
 
@@ -94,7 +95,7 @@ Optional:
 <a id="nestedatt--antivirus_profile--profile"></a>
 ### Nested Schema for `antivirus_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -112,7 +113,7 @@ Optional:
 <a id="nestedatt--application_control_profile--profile"></a>
 ### Nested Schema for `application_control_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -130,7 +131,7 @@ Optional:
 <a id="nestedatt--dlp_filter_profile--profile"></a>
 ### Nested Schema for `dlp_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -148,7 +149,7 @@ Optional:
 <a id="nestedatt--dns_filter_profile--profile"></a>
 ### Nested Schema for `dns_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -166,7 +167,7 @@ Optional:
 <a id="nestedatt--file_filter_profile--profile"></a>
 ### Nested Schema for `file_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -184,7 +185,7 @@ Optional:
 <a id="nestedatt--intrusion_prevention_profile--profile"></a>
 ### Nested Schema for `intrusion_prevention_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -202,7 +203,7 @@ Optional:
 <a id="nestedatt--ssl_ssh_profile--profile"></a>
 ### Nested Schema for `ssl_ssh_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -220,7 +221,7 @@ Optional:
 <a id="nestedatt--video_filter_profile--profile"></a>
 ### Nested Schema for `video_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)
@@ -238,7 +239,7 @@ Optional:
 <a id="nestedatt--web_filter_profile--profile"></a>
 ### Nested Schema for `web_filter_profile.profile`
 
-Optional:
+Read-Only:
 
 - `datasource` (String)
 - `primary_key` (String)

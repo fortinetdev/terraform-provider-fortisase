@@ -4,18 +4,20 @@ page_title: "fortisase_endpoint_policies_clone Resource - fortisase"
 subcategory: "Endpoint"
 description: |-
   Endpoint Policy Resource API V2 for FortiSASE.
+  fortisase_endpoint_policies_clone is deprecated. Please use fortisase_endpoint_policy_clone instead.
 ---
 
 # fortisase_endpoint_policies_clone (Resource)
 
 Endpoint Policy Resource API V2 for FortiSASE.
+fortisase_endpoint_policies_clone is deprecated. Please use fortisase_endpoint_policy_clone instead.
 
 ## Example Usage
 
 ```terraform
 # Note: Destroy this resource won't delete the cloned endpoint profile.
 # Same behavior as "fortisase_endpoint_profile_clone"
-resource "fortisase_endpoint_policies_clone" "clone" {
+resource "fortisase_endpoint_policy_clone" "clone" {
   based_on    = "Default"        # The profile to clone from
   primary_key = "newProfileName" # The name of the new profile
   enabled     = true

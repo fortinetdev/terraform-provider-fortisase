@@ -38,7 +38,6 @@ func (r *datasourceSecurityBotnetDomainsStat2Edl) Schema(ctx context.Context, re
 		Attributes: map[string]schema.Attribute{
 			"total_entries": schema.Float64Attribute{
 				Computed: true,
-				Optional: true,
 			},
 		},
 	}
@@ -77,7 +76,7 @@ func (r *datasourceSecurityBotnetDomainsStat2Edl) Read(ctx context.Context, req 
 		return
 	}
 
-	mkey := "SecurityBotnetDomainsStat"
+	var mkey interface{}
 
 	c := r.fortiClient.Client
 	var input_model forticlient.InputModel

@@ -52,7 +52,6 @@ func (r *resourceEndpointsAccessProxyAuthorize2Edl) Schema(ctx context.Context, 
 				Validators: []validator.Set{
 					setvalidatorwarning.SizeAtLeast(1),
 				},
-				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 			},
@@ -164,7 +163,7 @@ func (r *resourceEndpointsAccessProxyAuthorize2Edl) Read(ctx context.Context, re
 
 func (data *resourceEndpointsAccessProxyAuthorize2EdlModel) getCreateObjectEndpointsAccessProxyAuthorize(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.SnList.IsNull() {
+	if !data.SnList.IsNull() && !data.SnList.IsUnknown() {
 		result["snList"] = expandSetToStringList(data.SnList)
 	}
 
@@ -173,7 +172,7 @@ func (data *resourceEndpointsAccessProxyAuthorize2EdlModel) getCreateObjectEndpo
 
 func (data *resourceEndpointsAccessProxyAuthorize2EdlModel) getUpdateObjectEndpointsAccessProxyAuthorize(ctx context.Context, state resourceEndpointsAccessProxyAuthorize2EdlModel, diags *diag.Diagnostics) *map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.SnList.IsNull() {
+	if !data.SnList.IsNull() && !data.SnList.IsUnknown() {
 		result["snList"] = expandSetToStringList(data.SnList)
 	}
 

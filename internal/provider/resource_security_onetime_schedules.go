@@ -3,39 +3,22 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
-	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces.
+// resourceSecurityOnetimeSchedules keeps the deprecated Terraform type available while
+// reusing the canonical resource implementation.
 var _ resource.Resource = &resourceSecurityOnetimeSchedules{}
 
 func newResourceSecurityOnetimeSchedules() resource.Resource {
-	return &resourceSecurityOnetimeSchedules{}
+	return &resourceSecurityOnetimeSchedules{
+		resourceSecurityOnetimeSchedule: &resourceSecurityOnetimeSchedule{},
+	}
 }
 
 type resourceSecurityOnetimeSchedules struct {
-	fortiClient  *FortiClient
-	resourceName string
-}
-
-// resourceSecurityOnetimeSchedulesModel describes the resource data model.
-type resourceSecurityOnetimeSchedulesModel struct {
-	ID             types.String  `tfsdk:"id"`
-	PrimaryKey     types.String  `tfsdk:"primary_key"`
-	ExpirationDays types.Float64 `tfsdk:"expiration_days"`
-	StartUtc       types.Float64 `tfsdk:"start_utc"`
-	EndUtc         types.Float64 `tfsdk:"end_utc"`
+	*resourceSecurityOnetimeSchedule
 }
 
 func (r *resourceSecurityOnetimeSchedules) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -43,315 +26,15 @@ func (r *resourceSecurityOnetimeSchedules) Metadata(ctx context.Context, req res
 }
 
 func (r *resourceSecurityOnetimeSchedules) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Onetime Schedule Resource API V2 for FortiSASE.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"primary_key": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 31),
-				},
-				Required: true,
-			},
-			"expiration_days": schema.Float64Attribute{
-				Validators: []validator.Float64{
-					float64validatorwarning.Between(1, 100),
-				},
-				Computed: true,
-				Optional: true,
-			},
-			"start_utc": schema.Float64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-			"end_utc": schema.Float64Attribute{
-				Computed: true,
-				Optional: true,
-			},
-		},
-	}
+	r.resourceSecurityOnetimeSchedule.Schema(ctx, req, resp)
+	resp.Schema.DeprecationMessage = "fortisase_security_onetime_schedules is deprecated. Please use fortisase_security_onetime_schedule instead."
+	resp.Schema.MarkdownDescription += "\n" + resp.Schema.DeprecationMessage
 }
 
 func (r *resourceSecurityOnetimeSchedules) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Always perform a nil check when handling ProviderData because Terraform
-	// sets that data after it calls the ConfigureProvider RPC.
-	if req.ProviderData == nil {
-		return
-	}
-
-	client, ok := req.ProviderData.(*FortiClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *FortiClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.fortiClient = client
-	r.resourceName = "fortisase_security_onetime_schedules"
+	r.resourceSecurityOnetimeSchedule.Configure(ctx, req, resp)
+	r.resourceSecurityOnetimeSchedule.resourceName = "fortisase_security_onetime_schedules"
 }
-
-func (r *resourceSecurityOnetimeSchedules) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
-	lock.Lock()
-	defer lock.Unlock()
-	var data resourceSecurityOnetimeSchedulesModel
-	diags := &resp.Diagnostics
-
-	// Read Terraform config data into the model
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.BodyParams = *(data.getCreateObjectSecurityOnetimeSchedules(ctx, diags))
-	input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "create", diags))
-
-	if diags.HasError() {
-		return
-	}
-	output, err := c.CreateSecurityOnetimeSchedules(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to create resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-
-	mkey := fmt.Sprintf("%v", output["primaryKey"])
-	data.ID = types.StringValue(mkey)
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityOnetimeSchedules(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&read_input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityOnetimeSchedules(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceSecurityOnetimeSchedules) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
-	lock.Lock()
-	defer lock.Unlock()
-	diags := &resp.Diagnostics
-
-	// Read Terraform plan data into the model
-	var state resourceSecurityOnetimeSchedulesModel
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	var data resourceSecurityOnetimeSchedulesModel
-	diags.Append(req.Config.Get(ctx, &data)...)
-	if diags.HasError() {
-		return
-	}
-	data.ID = state.ID
-
-	mkey := state.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.BodyParams = *(data.getUpdateObjectSecurityOnetimeSchedules(ctx, state, diags))
-	input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "update", diags))
-
-	if diags.HasError() {
-		return
-	}
-
-	output, err := c.UpdateSecurityOnetimeSchedules(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to update resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-	var read_input_model forticlient.InputModel
-	read_input_model.Mkey = mkey
-	read_input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityOnetimeSchedules(&read_input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&read_input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityOnetimeSchedules(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceSecurityOnetimeSchedules) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	lock := r.fortiClient.GetResourceLock("SecurityOnetimeSchedules")
-	lock.Lock()
-	defer lock.Unlock()
-	diags := &resp.Diagnostics
-	var data resourceSecurityOnetimeSchedulesModel
-
-	// Read Terraform prior state data into the model
-	diags.Append(req.State.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "delete", diags))
-
-	output, err := c.DeleteSecurityOnetimeSchedules(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
-		return
-	}
-}
-
-func (r *resourceSecurityOnetimeSchedules) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	diags := &resp.Diagnostics
-	var data resourceSecurityOnetimeSchedulesModel
-
-	// Read Terraform prior state data into the model
-	diags.Append(req.State.Get(ctx, &data)...)
-
-	if diags.HasError() {
-		return
-	}
-
-	mkey := data.ID.ValueString()
-
-	c := r.fortiClient.Client
-	var input_model forticlient.InputModel
-	input_model.Mkey = mkey
-	input_model.URLParams = *(data.getURLObjectSecurityOnetimeSchedules(ctx, "read", diags))
-
-	read_output, err := c.ReadSecurityOnetimeSchedules(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to read resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, read_output),
-		)
-		return
-	}
-
-	diags.Append(data.refreshSecurityOnetimeSchedules(ctx, read_output)...)
-	if diags.HasError() {
-		return
-	}
-
-	diags.Append(resp.State.Set(ctx, &data)...)
-}
-
-func (r *resourceSecurityOnetimeSchedules) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-func (m *resourceSecurityOnetimeSchedulesModel) refreshSecurityOnetimeSchedules(ctx context.Context, o map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if o == nil {
-		return diags
-	}
-
-	if v, ok := o["expirationDays"]; ok {
-		m.ExpirationDays = parseFloat64Value(v)
-	}
-
-	if v, ok := o["startUtc"]; ok {
-		m.StartUtc = parseFloat64Value(v)
-	}
-
-	if v, ok := o["endUtc"]; ok {
-		m.EndUtc = parseFloat64Value(v)
-	}
-
-	return diags
-}
-
-func (data *resourceSecurityOnetimeSchedulesModel) getCreateObjectSecurityOnetimeSchedules(ctx context.Context, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.ExpirationDays.IsNull() {
-		result["expirationDays"] = data.ExpirationDays.ValueFloat64()
-	}
-
-	if !data.StartUtc.IsNull() {
-		result["startUtc"] = data.StartUtc.ValueFloat64()
-	}
-
-	if !data.EndUtc.IsNull() {
-		result["endUtc"] = data.EndUtc.ValueFloat64()
-	}
-
-	return &result
-}
-
-func (data *resourceSecurityOnetimeSchedulesModel) getUpdateObjectSecurityOnetimeSchedules(ctx context.Context, state resourceSecurityOnetimeSchedulesModel, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	if !data.ExpirationDays.IsNull() {
-		result["expirationDays"] = data.ExpirationDays.ValueFloat64()
-	}
-
-	if !data.StartUtc.IsNull() {
-		result["startUtc"] = data.StartUtc.ValueFloat64()
-	}
-
-	if !data.EndUtc.IsNull() {
-		result["endUtc"] = data.EndUtc.ValueFloat64()
-	}
-
-	return &result
-}
-
-func (data *resourceSecurityOnetimeSchedulesModel) getURLObjectSecurityOnetimeSchedules(ctx context.Context, ope string, diags *diag.Diagnostics) *map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.PrimaryKey.IsNull() {
-		result["primaryKey"] = data.PrimaryKey.ValueString()
-	}
-
-	return &result
+func (r *resourceSecurityOnetimeSchedules) MoveState(ctx context.Context) []resource.StateMover {
+	return nil
 }

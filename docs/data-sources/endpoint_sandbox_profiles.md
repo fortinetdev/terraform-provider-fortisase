@@ -4,16 +4,18 @@ page_title: "fortisase_endpoint_sandbox_profiles Data Source - fortisase"
 subcategory: "Endpoint"
 description: |-
   Sandbox Profile Resource API V2 for FortiSASE.
+  fortisase_endpoint_sandbox_profiles is deprecated. Please use fortisase_endpoint_sandbox_profile instead.
 ---
 
 # fortisase_endpoint_sandbox_profiles (Data Source)
 
 Sandbox Profile Resource API V2 for FortiSASE.
+fortisase_endpoint_sandbox_profiles is deprecated. Please use fortisase_endpoint_sandbox_profile instead.
 
 ## Example Usage
 
 ```terraform
-data "fortisase_endpoint_sandbox_profiles" "example" {
+data "fortisase_endpoint_sandbox_profile" "example" {
   primary_key = "<your_value>"
 }
 ```
@@ -25,7 +27,7 @@ data "fortisase_endpoint_sandbox_profiles" "example" {
 
 - `primary_key` (String) The primary key of the object. Can be found in the response from the get request.
 
-### Optional
+### Read-Only
 
 - `authentication` (Boolean)
 - `detection_verdict_level` (String)
@@ -42,7 +44,7 @@ data "fortisase_endpoint_sandbox_profiles" "example" {
 <a id="nestedatt--exceptions"></a>
 ### Nested Schema for `exceptions`
 
-Optional:
+Read-Only:
 
 - `exclude_files_from_trusted_sources` (String)
 - `files` (Set of String)
@@ -52,7 +54,7 @@ Optional:
 <a id="nestedatt--file_submission_options"></a>
 ### Nested Schema for `file_submission_options`
 
-Optional:
+Read-Only:
 
 - `all_email_downloads` (String)
 - `all_files_mapped_network_drives` (String)
