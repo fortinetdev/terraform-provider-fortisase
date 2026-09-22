@@ -13,6 +13,7 @@ ZTNA Tag Resource API V2 for FortiSASE. This resource is restricted to EMS versi
 ## Example Usage
 
 ```terraform
+# This resource is only available for EMS 7.2
 resource "fortisase_endpoint_ztna_tag" "ztna_tag" {
   primary_key = "tag_primary_key"
 }

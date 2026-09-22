@@ -15,13 +15,14 @@ fortisase_auth_fsso_agents is deprecated. Please use fortisase_auth_fsso_agent i
 ## Example Usage
 
 ```terraform
-resource "fortisase_auth_fsso_agent" "fsso_agents" {
-  primary_key      = "fsso_agent"
-  name             = "fsso_agent"
+# GUI: Access & authentication -> Fortinet Single Sign-On (FSSO)
+resource "fortisase_auth_fsso_agent" "fsso_agent" {
+  primary_key      = "fsso_agent_name"
+  name             = "fsso_agent_name"
   server           = "1.2.3.4"
-  status           = "disconnected"
+  port             = "8001"
   password         = "password"
-  ssl_trusted_cert = "remote_ca_certs"
+  ssl_trusted_cert = "existing_remote_ca_certificate_name"
 }
 ```
 

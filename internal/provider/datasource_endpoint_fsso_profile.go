@@ -28,12 +28,13 @@ type datasourceEndpointFssoProfile struct {
 
 // datasourceEndpointFssoProfileModel describes the datasource data model.
 type datasourceEndpointFssoProfileModel struct {
-	Enabled       types.Bool    `tfsdk:"enabled"`
-	PreferEntraId types.String  `tfsdk:"prefer_entra_id"`
-	Host          types.String  `tfsdk:"host"`
-	Port          types.Float64 `tfsdk:"port"`
-	PreSharedKey  types.String  `tfsdk:"pre_shared_key"`
-	PrimaryKey    types.String  `tfsdk:"primary_key"`
+	Enabled       types.Bool                                  `tfsdk:"enabled"`
+	PreferEntraId types.String                                `tfsdk:"prefer_entra_id"`
+	Servers       []datasourceEndpointFssoProfileServersModel `tfsdk:"servers"`
+	Host          types.String                                `tfsdk:"host"`
+	Port          types.Float64                               `tfsdk:"port"`
+	PreSharedKey  types.String                                `tfsdk:"pre_shared_key"`
+	PrimaryKey    types.String                                `tfsdk:"primary_key"`
 }
 
 func (r *datasourceEndpointFssoProfile) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -54,13 +55,15 @@ func (r *datasourceEndpointFssoProfile) Schema(ctx context.Context, req datasour
 				Computed: true,
 			},
 			"host": schema.StringAttribute{
-				Computed: true,
+				MarkdownDescription: "Deprecated: use `servers` instead. On GET this mirrors the host of the first `servers` entry. Planned for removal in release 26.4.1.",
+				Computed:            true,
 			},
 			"port": schema.Float64Attribute{
 				Validators: []validator.Float64{
 					float64validatorwarning.AtMost(65535),
 				},
-				Computed: true,
+				MarkdownDescription: "Deprecated: use `servers` instead. On GET this mirrors the port of the first `servers` entry. Planned for removal in release 26.4.1.\nValue at most 65535.",
+				Computed:            true,
 			},
 			"pre_shared_key": schema.StringAttribute{
 				Computed: true,
@@ -68,6 +71,28 @@ func (r *datasourceEndpointFssoProfile) Schema(ctx context.Context, req datasour
 			"primary_key": schema.StringAttribute{
 				MarkdownDescription: "The primary key of the object. Can be found in the response from the get request.",
 				Required:            true,
+			},
+			"servers": schema.ListNestedAttribute{
+				MarkdownDescription: "FSSO Mobility Agent servers. The first entry is the primary server. Replaces the deprecated `host`/`port` pair.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"host": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.LengthAtMost(253),
+							},
+							MarkdownDescription: "IPv4 address or hostname of the FSSO Mobility Agent server.\nLength at most 253.",
+							Computed:            true,
+						},
+						"port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.Between(1, 65535),
+							},
+							MarkdownDescription: "Listening port of the FSSO Mobility Agent server.\nValue between 1 and 65535.",
+							Computed:            true,
+						},
+					},
+				},
+				Computed: true,
 			},
 		},
 	}
@@ -144,6 +169,10 @@ func (m *datasourceEndpointFssoProfileModel) refreshEndpointFssoProfile(ctx cont
 		m.PreferEntraId = parseStringValue(v)
 	}
 
+	if v, ok := o["servers"]; ok {
+		m.Servers = m.flattenEndpointFssoProfileServersList(ctx, v, &diags)
+	}
+
 	if v, ok := o["host"]; ok {
 		m.Host = parseStringValue(v)
 	}
@@ -166,4 +195,60 @@ func (data *datasourceEndpointFssoProfileModel) getURLObjectEndpointFssoProfile(
 	}
 
 	return &result
+}
+
+type datasourceEndpointFssoProfileServersModel struct {
+	Host types.String  `tfsdk:"host"`
+	Port types.Float64 `tfsdk:"port"`
+}
+
+func (m *datasourceEndpointFssoProfileServersModel) flattenEndpointFssoProfileServers(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointFssoProfileServersModel {
+	if input == nil {
+		return &datasourceEndpointFssoProfileServersModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointFssoProfileServersModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["host"]; ok {
+		m.Host = parseStringValue(v)
+	}
+
+	if v, ok := o["port"]; ok {
+		m.Port = parseFloat64Value(v)
+	}
+
+	return m
+}
+
+func (s *datasourceEndpointFssoProfileModel) flattenEndpointFssoProfileServersList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []datasourceEndpointFssoProfileServersModel {
+	if o == nil {
+		return []datasourceEndpointFssoProfileServersModel{}
+	}
+
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
+		diags.AddError("Argument servers is not type of []interface{}.", "")
+		return []datasourceEndpointFssoProfileServersModel{}
+	}
+
+	if len(l) == 0 || l[0] == nil {
+		return []datasourceEndpointFssoProfileServersModel{}
+	}
+
+	values := make([]datasourceEndpointFssoProfileServersModel, len(l))
+	for i, ele := range l {
+		var m datasourceEndpointFssoProfileServersModel
+		if i < len(s.Servers) {
+			m = s.Servers[i]
+		}
+		values[i] = *m.flattenEndpointFssoProfileServers(ctx, ele, diags)
+	}
+
+	return values
 }

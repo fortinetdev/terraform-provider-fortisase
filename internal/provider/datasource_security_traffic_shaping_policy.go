@@ -176,7 +176,7 @@ func (r *datasourceSecurityTrafficShapingPolicy) Schema(ctx context.Context, req
 						},
 						"datasource": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("security/applications"),
+								stringvalidatorwarning.OneOf("security/applications", "security/app-custom-signatures"),
 							},
 							Computed: true,
 						},

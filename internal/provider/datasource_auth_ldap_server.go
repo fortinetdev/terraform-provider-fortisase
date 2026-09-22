@@ -36,6 +36,7 @@ type datasourceAuthLdapServerModel struct {
 	BindType                     types.String                              `tfsdk:"bind_type"`
 	SecureConnection             types.Bool                                `tfsdk:"secure_connection"`
 	AdvancedGroupMatchingEnabled types.Bool                                `tfsdk:"advanced_group_matching_enabled"`
+	ForPrivate                   types.Bool                                `tfsdk:"for_private"`
 	GroupMemberCheck             types.String                              `tfsdk:"group_member_check"`
 	MemberAttribute              types.String                              `tfsdk:"member_attribute"`
 	GroupFilter                  types.String                              `tfsdk:"group_filter"`
@@ -98,6 +99,9 @@ func (r *datasourceAuthLdapServer) Schema(ctx context.Context, req datasource.Sc
 				Computed: true,
 			},
 			"advanced_group_matching_enabled": schema.BoolAttribute{
+				Computed: true,
+			},
+			"for_private": schema.BoolAttribute{
 				Computed: true,
 			},
 			"group_member_check": schema.StringAttribute{
@@ -272,6 +276,10 @@ func (m *datasourceAuthLdapServerModel) refreshAuthLdapServer(ctx context.Contex
 
 	if v, ok := o["advancedGroupMatchingEnabled"]; ok {
 		m.AdvancedGroupMatchingEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["forPrivate"]; ok {
+		m.ForPrivate = parseBoolValue(v)
 	}
 
 	if v, ok := o["groupMemberCheck"]; ok {

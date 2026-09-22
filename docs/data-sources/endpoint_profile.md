@@ -14,7 +14,7 @@ Endpoint Policy Resource API V2 for FortiSASE
 
 ```terraform
 data "fortisase_endpoint_profile" "example" {
-  primary_key = "<your_value>"
+  primary_key = "exampleEndpointProfile"
 }
 ```
 

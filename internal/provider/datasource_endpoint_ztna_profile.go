@@ -85,6 +85,16 @@ func (r *datasourceEndpointZtnaProfile) Schema(ctx context.Context, req datasour
 							},
 							Computed: true,
 						},
+						"enable_udp": schema.BoolAttribute{
+							Computed: true,
+						},
+						"redirect": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							MarkdownDescription: "Application-level SAML external-browser redirect. Applies to EMS 7.4+. Omitted on earlier EMS, where redirect is per-gateway.\nSupported values: enable, disable.",
+							Computed:            true,
+						},
 						"gateways": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -104,7 +114,8 @@ func (r *datasourceEndpointZtnaProfile) Schema(ctx context.Context, req datasour
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("enable", "disable"),
 										},
-										Computed: true,
+										MarkdownDescription: "Per-gateway SAML external-browser redirect. Applies to EMS versions below 7.4. Omitted on EMS 7.4+, where redirect is application-level.\nSupported values: enable, disable.",
+										Computed:            true,
 									},
 								},
 							},
@@ -229,6 +240,8 @@ type datasourceEndpointZtnaProfileConnectionRulesModel struct {
 	Port       types.String                                                `tfsdk:"port"`
 	Name       types.String                                                `tfsdk:"name"`
 	Encryption types.String                                                `tfsdk:"encryption"`
+	EnableUdp  types.Bool                                                  `tfsdk:"enable_udp"`
+	Redirect   types.String                                                `tfsdk:"redirect"`
 }
 
 type datasourceEndpointZtnaProfileConnectionRulesGatewaysModel struct {
@@ -282,6 +295,14 @@ func (m *datasourceEndpointZtnaProfileConnectionRulesModel) flattenEndpointZtnaP
 
 	if v, ok := o["encryption"]; ok {
 		m.Encryption = parseStringValue(v)
+	}
+
+	if v, ok := o["enable_udp"]; ok {
+		m.EnableUdp = parseBoolValue(v)
+	}
+
+	if v, ok := o["redirect"]; ok {
+		m.Redirect = parseStringValue(v)
 	}
 
 	return m

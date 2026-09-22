@@ -36,6 +36,9 @@ type resourceEndpointProtectionProfileModel struct {
 	Antivirus                         types.String                                                  `tfsdk:"antivirus"`
 	Antiransomware                    types.String                                                  `tfsdk:"antiransomware"`
 	EventBasedScanning                types.String                                                  `tfsdk:"event_based_scanning"`
+	ScanOnRegistration                types.String                                                  `tfsdk:"scan_on_registration"`
+	ScanOnOsUpdate                    types.String                                                  `tfsdk:"scan_on_os_update"`
+	ScanOnSignatureUpdate             types.String                                                  `tfsdk:"scan_on_signature_update"`
 	VulnerabilityScan                 types.String                                                  `tfsdk:"vulnerability_scan"`
 	AntivirusScan                     types.String                                                  `tfsdk:"antivirus_scan"`
 	AutomaticallyPatchVulnerabilities types.String                                                  `tfsdk:"automatically_patch_vulnerabilities"`
@@ -81,6 +84,28 @@ func (r *resourceEndpointProtectionProfile) Schema(ctx context.Context, req reso
 				Optional: true,
 			},
 			"event_based_scanning": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				MarkdownDescription: "Deprecated by PMDB 42138. Replaced by the finer-grained scanOnRegistration, scanOnOsUpdate, and scanOnSignatureUpdate fields; the fetch layer keeps emitting this as the OR of the three replacements for backward compatibility.\nSupported values: enable, disable.",
+				Computed:            true,
+				Optional:            true,
+			},
+			"scan_on_registration": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"scan_on_os_update": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"scan_on_signature_update": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
@@ -522,6 +547,18 @@ func (m *resourceEndpointProtectionProfileModel) refreshEndpointProtectionProfil
 		m.EventBasedScanning = parseStringValue(v)
 	}
 
+	if v, ok := o["scanOnRegistration"]; ok {
+		m.ScanOnRegistration = parseStringValue(v)
+	}
+
+	if v, ok := o["scanOnOsUpdate"]; ok {
+		m.ScanOnOsUpdate = parseStringValue(v)
+	}
+
+	if v, ok := o["scanOnSignatureUpdate"]; ok {
+		m.ScanOnSignatureUpdate = parseStringValue(v)
+	}
+
 	if v, ok := o["vulnerabilityScan"]; ok {
 		m.VulnerabilityScan = parseStringValue(v)
 	}
@@ -586,7 +623,22 @@ func (data *resourceEndpointProtectionProfileModel) getCreateObjectEndpointProte
 	}
 
 	if !data.EventBasedScanning.IsNull() && !data.EventBasedScanning.IsUnknown() {
+		diags.AddWarning("\"event_based_scanning\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"event_based_scanning\" to avoid unexpected behavior in future.",
+		)
 		result["eventBasedScanning"] = data.EventBasedScanning.ValueString()
+	}
+
+	if !data.ScanOnRegistration.IsNull() && !data.ScanOnRegistration.IsUnknown() {
+		result["scanOnRegistration"] = data.ScanOnRegistration.ValueString()
+	}
+
+	if !data.ScanOnOsUpdate.IsNull() && !data.ScanOnOsUpdate.IsUnknown() {
+		result["scanOnOsUpdate"] = data.ScanOnOsUpdate.ValueString()
+	}
+
+	if !data.ScanOnSignatureUpdate.IsNull() && !data.ScanOnSignatureUpdate.IsUnknown() {
+		result["scanOnSignatureUpdate"] = data.ScanOnSignatureUpdate.ValueString()
 	}
 
 	if !data.VulnerabilityScan.IsNull() && !data.VulnerabilityScan.IsUnknown() {
@@ -650,6 +702,18 @@ func (data *resourceEndpointProtectionProfileModel) getUpdateObjectEndpointProte
 
 	if !data.EventBasedScanning.IsNull() && !data.EventBasedScanning.IsUnknown() {
 		result["eventBasedScanning"] = data.EventBasedScanning.ValueString()
+	}
+
+	if !data.ScanOnRegistration.IsNull() && !data.ScanOnRegistration.IsUnknown() {
+		result["scanOnRegistration"] = data.ScanOnRegistration.ValueString()
+	}
+
+	if !data.ScanOnOsUpdate.IsNull() && !data.ScanOnOsUpdate.IsUnknown() {
+		result["scanOnOsUpdate"] = data.ScanOnOsUpdate.ValueString()
+	}
+
+	if !data.ScanOnSignatureUpdate.IsNull() && !data.ScanOnSignatureUpdate.IsUnknown() {
+		result["scanOnSignatureUpdate"] = data.ScanOnSignatureUpdate.ValueString()
 	}
 
 	if !data.VulnerabilityScan.IsNull() && !data.VulnerabilityScan.IsUnknown() {

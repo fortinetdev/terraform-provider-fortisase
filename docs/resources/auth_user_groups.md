@@ -43,15 +43,19 @@ resource "fortisase_auth_user_group" "user_group" {
   primary_key = "user_group"
   group_type  = "firewall"
 
-  # Users
+  # [Users]
+  ### Option: Specify local user
   local_users = [
     {
       primary_key = fortisase_auth_user.user.primary_key
       datasource  = "auth/users"
     }
   ]
+  ### Option: No local user
+  # local_users = []
 
-  # Remote Groups
+  # [Remote Groups]
+  ### Option: Specify remote user group
   remote_user_groups = [
     {
       server = {
@@ -61,6 +65,8 @@ resource "fortisase_auth_user_group" "user_group" {
       matches = ["group1"]
     }
   ]
+  ### Option: No remote user group
+  # remote_user_groups = []
 }
 ```
 

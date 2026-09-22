@@ -32,6 +32,7 @@ type datasourceSecurityApplicationControlProfileModel struct {
 	PrimaryKey                      types.String                                                       `tfsdk:"primary_key"`
 	Controls                        []datasourceSecurityApplicationControlProfileControlsModel         `tfsdk:"controls"`
 	UnknownApplicationAction        types.String                                                       `tfsdk:"unknown_application_action"`
+	OtherApplicationAction          types.String                                                       `tfsdk:"other_application_action"`
 	NetworkProtocolEnforcement      types.String                                                       `tfsdk:"network_protocol_enforcement"`
 	NetworkProtocols                []datasourceSecurityApplicationControlProfileNetworkProtocolsModel `tfsdk:"network_protocols"`
 	BlockNonDefaultPortApplications types.String                                                       `tfsdk:"block_non_default_port_applications"`
@@ -50,6 +51,12 @@ func (r *datasourceSecurityApplicationControlProfile) Schema(ctx context.Context
 				Required: true,
 			},
 			"unknown_application_action": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("block", "allow", "monitor"),
+				},
+				Computed: true,
+			},
+			"other_application_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("block", "allow", "monitor"),
 				},
@@ -85,7 +92,7 @@ func (r *datasourceSecurityApplicationControlProfile) Schema(ctx context.Context
 							Computed: true,
 						},
 						"risk": schema.SetAttribute{
-							MarkdownDescription: "Risk level(s) with 0 being lowest and 4 being highest",
+							MarkdownDescription: "Risk level(s) with 1 being lowest and 5 being highest",
 							Computed:            true,
 							ElementType:         types.Int64Type,
 						},
@@ -249,6 +256,10 @@ func (m *datasourceSecurityApplicationControlProfileModel) refreshSecurityApplic
 
 	if v, ok := o["unknownApplicationAction"]; ok {
 		m.UnknownApplicationAction = parseStringValue(v)
+	}
+
+	if v, ok := o["otherApplicationAction"]; ok {
+		m.OtherApplicationAction = parseStringValue(v)
 	}
 
 	if v, ok := o["networkProtocolEnforcement"]; ok {

@@ -32,13 +32,14 @@ type resourceEndpointFssoProfile struct {
 
 // resourceEndpointFssoProfileModel describes the resource data model.
 type resourceEndpointFssoProfileModel struct {
-	ID            types.String  `tfsdk:"id"`
-	Enabled       types.Bool    `tfsdk:"enabled"`
-	PreferEntraId types.String  `tfsdk:"prefer_entra_id"`
-	Host          types.String  `tfsdk:"host"`
-	Port          types.Float64 `tfsdk:"port"`
-	PreSharedKey  types.String  `tfsdk:"pre_shared_key"`
-	PrimaryKey    types.String  `tfsdk:"primary_key"`
+	ID            types.String                              `tfsdk:"id"`
+	Enabled       types.Bool                                `tfsdk:"enabled"`
+	PreferEntraId types.String                              `tfsdk:"prefer_entra_id"`
+	Servers       []resourceEndpointFssoProfileServersModel `tfsdk:"servers"`
+	Host          types.String                              `tfsdk:"host"`
+	Port          types.Float64                             `tfsdk:"port"`
+	PreSharedKey  types.String                              `tfsdk:"pre_shared_key"`
+	PrimaryKey    types.String                              `tfsdk:"primary_key"`
 }
 
 func (r *resourceEndpointFssoProfile) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -68,15 +69,17 @@ func (r *resourceEndpointFssoProfile) Schema(ctx context.Context, req resource.S
 				Optional: true,
 			},
 			"host": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "Deprecated: use `servers` instead. On GET this mirrors the host of the first `servers` entry. Planned for removal in release 26.4.1.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"port": schema.Float64Attribute{
 				Validators: []validator.Float64{
 					float64validatorwarning.AtMost(65535),
 				},
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "Deprecated: use `servers` instead. On GET this mirrors the port of the first `servers` entry. Planned for removal in release 26.4.1.\nValue at most 65535.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"pre_shared_key": schema.StringAttribute{
 				Computed: true,
@@ -88,6 +91,31 @@ func (r *resourceEndpointFssoProfile) Schema(ctx context.Context, req resource.S
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+			},
+			"servers": schema.ListNestedAttribute{
+				MarkdownDescription: "FSSO Mobility Agent servers. The first entry is the primary server. Replaces the deprecated `host`/`port` pair.",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"host": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.LengthAtMost(253),
+							},
+							MarkdownDescription: "IPv4 address or hostname of the FSSO Mobility Agent server.\nLength at most 253.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"port": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.Between(1, 65535),
+							},
+							MarkdownDescription: "Listening port of the FSSO Mobility Agent server.\nValue between 1 and 65535.",
+							Computed:            true,
+							Optional:            true,
+						},
+					},
+				},
+				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -316,6 +344,10 @@ func (m *resourceEndpointFssoProfileModel) refreshEndpointFssoProfile(ctx contex
 		m.PreferEntraId = parseStringValue(v)
 	}
 
+	if v, ok := o["servers"]; ok {
+		m.Servers = m.flattenEndpointFssoProfileServersList(ctx, v, &diags)
+	}
+
 	if v, ok := o["host"]; ok {
 		m.Host = parseStringValue(v)
 	}
@@ -341,11 +373,21 @@ func (data *resourceEndpointFssoProfileModel) getCreateObjectEndpointFssoProfile
 		result["preferEntraId"] = data.PreferEntraId.ValueString()
 	}
 
+	if data.Servers != nil {
+		result["servers"] = data.expandEndpointFssoProfileServersList(ctx, data.Servers, diags)
+	}
+
 	if !data.Host.IsNull() && !data.Host.IsUnknown() {
+		diags.AddWarning("\"host\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"host\" to avoid unexpected behavior in future.",
+		)
 		result["host"] = data.Host.ValueString()
 	}
 
 	if !data.Port.IsNull() && !data.Port.IsUnknown() {
+		diags.AddWarning("\"port\" is deprecated and may be removed in future.",
+			"It is recommended to recreate the resource without \"port\" to avoid unexpected behavior in future.",
+		)
 		result["port"] = data.Port.ValueFloat64()
 	}
 
@@ -364,6 +406,10 @@ func (data *resourceEndpointFssoProfileModel) getUpdateObjectEndpointFssoProfile
 
 	if !data.PreferEntraId.IsNull() && !data.PreferEntraId.IsUnknown() {
 		result["preferEntraId"] = data.PreferEntraId.ValueString()
+	}
+
+	if data.Servers != nil {
+		result["servers"] = data.expandEndpointFssoProfileServersList(ctx, data.Servers, diags)
 	}
 
 	if !data.Host.IsNull() && !data.Host.IsUnknown() {
@@ -388,4 +434,81 @@ func (data *resourceEndpointFssoProfileModel) getURLObjectEndpointFssoProfile(ct
 	}
 
 	return &result
+}
+
+type resourceEndpointFssoProfileServersModel struct {
+	Host types.String  `tfsdk:"host"`
+	Port types.Float64 `tfsdk:"port"`
+}
+
+func (m *resourceEndpointFssoProfileServersModel) flattenEndpointFssoProfileServers(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointFssoProfileServersModel {
+	if input == nil {
+		return &resourceEndpointFssoProfileServersModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointFssoProfileServersModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["host"]; ok {
+		m.Host = parseStringValue(v)
+	}
+
+	if v, ok := o["port"]; ok {
+		m.Port = parseFloat64Value(v)
+	}
+
+	return m
+}
+
+func (s *resourceEndpointFssoProfileModel) flattenEndpointFssoProfileServersList(ctx context.Context, o interface{}, diags *diag.Diagnostics) []resourceEndpointFssoProfileServersModel {
+	if o == nil {
+		return []resourceEndpointFssoProfileServersModel{}
+	}
+
+	var l []interface{}
+	switch v := o.(type) {
+	case []interface{}:
+		l = v
+	case map[string]interface{}:
+		l = []interface{}{v}
+	default:
+		diags.AddError("Argument servers is not type of []interface{}.", "")
+		return []resourceEndpointFssoProfileServersModel{}
+	}
+
+	if len(l) == 0 || l[0] == nil {
+		return []resourceEndpointFssoProfileServersModel{}
+	}
+
+	values := make([]resourceEndpointFssoProfileServersModel, len(l))
+	for i, ele := range l {
+		var m resourceEndpointFssoProfileServersModel
+		if i < len(s.Servers) {
+			m = s.Servers[i]
+		}
+		values[i] = *m.flattenEndpointFssoProfileServers(ctx, ele, diags)
+	}
+
+	return values
+}
+
+func (data *resourceEndpointFssoProfileServersModel) expandEndpointFssoProfileServers(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.Host.IsNull() && !data.Host.IsUnknown() {
+		result["host"] = data.Host.ValueString()
+	}
+
+	if !data.Port.IsNull() && !data.Port.IsUnknown() {
+		result["port"] = data.Port.ValueFloat64()
+	}
+
+	return result
+}
+
+func (s *resourceEndpointFssoProfileModel) expandEndpointFssoProfileServersList(ctx context.Context, l []resourceEndpointFssoProfileServersModel, diags *diag.Diagnostics) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(l))
+	for i, item := range l {
+		result[i] = item.expandEndpointFssoProfileServers(ctx, diags)
+	}
+	return result
 }

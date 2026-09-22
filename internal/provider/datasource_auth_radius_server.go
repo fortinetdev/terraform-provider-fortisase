@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -27,11 +28,13 @@ type datasourceAuthRadiusServer struct {
 
 // datasourceAuthRadiusServerModel describes the datasource data model.
 type datasourceAuthRadiusServerModel struct {
-	PrimaryKey                 types.String `tfsdk:"primary_key"`
-	AuthType                   types.String `tfsdk:"auth_type"`
-	PrimaryServer              types.String `tfsdk:"primary_server"`
-	IncludedInDefaultUserGroup types.Bool   `tfsdk:"included_in_default_user_group"`
-	SecondaryServer            types.String `tfsdk:"secondary_server"`
+	PrimaryKey                 types.String  `tfsdk:"primary_key"`
+	AuthType                   types.String  `tfsdk:"auth_type"`
+	PrimaryServer              types.String  `tfsdk:"primary_server"`
+	IncludedInDefaultUserGroup types.Bool    `tfsdk:"included_in_default_user_group"`
+	Timeout                    types.Float64 `tfsdk:"timeout"`
+	ForPrivate                 types.Bool    `tfsdk:"for_private"`
+	SecondaryServer            types.String  `tfsdk:"secondary_server"`
 }
 
 func (r *datasourceAuthRadiusServer) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -61,6 +64,15 @@ func (r *datasourceAuthRadiusServer) Schema(ctx context.Context, req datasource.
 				Computed: true,
 			},
 			"included_in_default_user_group": schema.BoolAttribute{
+				Computed: true,
+			},
+			"timeout": schema.Float64Attribute{
+				Validators: []validator.Float64{
+					float64validatorwarning.Between(1, 300),
+				},
+				Computed: true,
+			},
+			"for_private": schema.BoolAttribute{
 				Computed: true,
 			},
 			"secondary_server": schema.StringAttribute{
@@ -146,6 +158,14 @@ func (m *datasourceAuthRadiusServerModel) refreshAuthRadiusServer(ctx context.Co
 
 	if v, ok := o["includedInDefaultUserGroup"]; ok {
 		m.IncludedInDefaultUserGroup = parseBoolValue(v)
+	}
+
+	if v, ok := o["timeout"]; ok {
+		m.Timeout = parseFloat64Value(v)
+	}
+
+	if v, ok := o["forPrivate"]; ok {
+		m.ForPrivate = parseBoolValue(v)
 	}
 
 	if v, ok := o["secondaryServer"]; ok {

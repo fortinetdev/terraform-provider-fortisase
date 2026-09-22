@@ -43,7 +43,7 @@ func (r *datasourceSecurityDlpDictionary) Schema(ctx context.Context, req dataso
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 			},
@@ -76,6 +76,9 @@ func (r *datasourceSecurityDlpDictionary) Schema(ctx context.Context, req dataso
 							Computed: true,
 						},
 						"pattern": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.LengthAtMost(255),
+							},
 							Computed: true,
 						},
 						"case_sensitive": schema.StringAttribute{

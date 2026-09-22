@@ -41,6 +41,7 @@ type resourceAuthLdapServerModel struct {
 	BindType                     types.String                            `tfsdk:"bind_type"`
 	SecureConnection             types.Bool                              `tfsdk:"secure_connection"`
 	AdvancedGroupMatchingEnabled types.Bool                              `tfsdk:"advanced_group_matching_enabled"`
+	ForPrivate                   types.Bool                              `tfsdk:"for_private"`
 	GroupMemberCheck             types.String                            `tfsdk:"group_member_check"`
 	MemberAttribute              types.String                            `tfsdk:"member_attribute"`
 	GroupFilter                  types.String                            `tfsdk:"group_filter"`
@@ -119,6 +120,10 @@ func (r *resourceAuthLdapServer) Schema(ctx context.Context, req resource.Schema
 				Optional: true,
 			},
 			"advanced_group_matching_enabled": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"for_private": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -489,6 +494,10 @@ func (m *resourceAuthLdapServerModel) refreshAuthLdapServer(ctx context.Context,
 		m.AdvancedGroupMatchingEnabled = parseBoolValue(v)
 	}
 
+	if v, ok := o["forPrivate"]; ok {
+		m.ForPrivate = parseBoolValue(v)
+	}
+
 	if v, ok := o["groupMemberCheck"]; ok {
 		m.GroupMemberCheck = parseStringValue(v)
 	}
@@ -568,6 +577,10 @@ func (data *resourceAuthLdapServerModel) getCreateObjectAuthLdapServer(ctx conte
 
 	if !data.AdvancedGroupMatchingEnabled.IsNull() && !data.AdvancedGroupMatchingEnabled.IsUnknown() {
 		result["advancedGroupMatchingEnabled"] = data.AdvancedGroupMatchingEnabled.ValueBool()
+	}
+
+	if !data.ForPrivate.IsNull() && !data.ForPrivate.IsUnknown() {
+		result["forPrivate"] = data.ForPrivate.ValueBool()
 	}
 
 	if !data.GroupMemberCheck.IsNull() && !data.GroupMemberCheck.IsUnknown() {
@@ -655,6 +668,10 @@ func (data *resourceAuthLdapServerModel) getUpdateObjectAuthLdapServer(ctx conte
 
 	if !data.AdvancedGroupMatchingEnabled.IsNull() && !data.AdvancedGroupMatchingEnabled.IsUnknown() {
 		result["advancedGroupMatchingEnabled"] = data.AdvancedGroupMatchingEnabled.ValueBool()
+	}
+
+	if !data.ForPrivate.IsNull() && !data.ForPrivate.IsUnknown() {
+		result["forPrivate"] = data.ForPrivate.ValueBool()
 	}
 
 	if !data.GroupMemberCheck.IsNull() && !data.GroupMemberCheck.IsUnknown() {

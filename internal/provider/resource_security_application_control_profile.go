@@ -36,6 +36,7 @@ type resourceSecurityApplicationControlProfileModel struct {
 	PrimaryKey                      types.String                                                     `tfsdk:"primary_key"`
 	Controls                        []resourceSecurityApplicationControlProfileControlsModel         `tfsdk:"controls"`
 	UnknownApplicationAction        types.String                                                     `tfsdk:"unknown_application_action"`
+	OtherApplicationAction          types.String                                                     `tfsdk:"other_application_action"`
 	NetworkProtocolEnforcement      types.String                                                     `tfsdk:"network_protocol_enforcement"`
 	NetworkProtocols                []resourceSecurityApplicationControlProfileNetworkProtocolsModel `tfsdk:"network_protocols"`
 	BlockNonDefaultPortApplications types.String                                                     `tfsdk:"block_non_default_port_applications"`
@@ -64,6 +65,13 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 				},
 			},
 			"unknown_application_action": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("block", "allow", "monitor"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"other_application_action": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("block", "allow", "monitor"),
 				},
@@ -104,7 +112,7 @@ func (r *resourceSecurityApplicationControlProfile) Schema(ctx context.Context, 
 							Optional: true,
 						},
 						"risk": schema.SetAttribute{
-							MarkdownDescription: "Risk level(s) with 0 being lowest and 4 being highest",
+							MarkdownDescription: "Risk level(s) with 1 being lowest and 5 being highest",
 							Computed:            true,
 							Optional:            true,
 							ElementType:         types.Int64Type,
@@ -407,6 +415,10 @@ func (m *resourceSecurityApplicationControlProfileModel) refreshSecurityApplicat
 		m.UnknownApplicationAction = parseStringValue(v)
 	}
 
+	if v, ok := o["otherApplicationAction"]; ok {
+		m.OtherApplicationAction = parseStringValue(v)
+	}
+
 	if v, ok := o["networkProtocolEnforcement"]; ok {
 		m.NetworkProtocolEnforcement = parseStringValue(v)
 	}
@@ -436,6 +448,10 @@ func (data *resourceSecurityApplicationControlProfileModel) getCreateObjectSecur
 		result["unknownApplicationAction"] = data.UnknownApplicationAction.ValueString()
 	}
 
+	if !data.OtherApplicationAction.IsNull() && !data.OtherApplicationAction.IsUnknown() {
+		result["otherApplicationAction"] = data.OtherApplicationAction.ValueString()
+	}
+
 	if !data.NetworkProtocolEnforcement.IsNull() && !data.NetworkProtocolEnforcement.IsUnknown() {
 		result["networkProtocolEnforcement"] = data.NetworkProtocolEnforcement.ValueString()
 	}
@@ -463,6 +479,10 @@ func (data *resourceSecurityApplicationControlProfileModel) getUpdateObjectSecur
 
 	if !data.UnknownApplicationAction.IsNull() && !data.UnknownApplicationAction.IsUnknown() {
 		result["unknownApplicationAction"] = data.UnknownApplicationAction.ValueString()
+	}
+
+	if !data.OtherApplicationAction.IsNull() && !data.OtherApplicationAction.IsUnknown() {
+		result["otherApplicationAction"] = data.OtherApplicationAction.ValueString()
 	}
 
 	if !data.NetworkProtocolEnforcement.IsNull() && !data.NetworkProtocolEnforcement.IsUnknown() {

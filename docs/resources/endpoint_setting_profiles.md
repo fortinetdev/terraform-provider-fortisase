@@ -17,7 +17,7 @@ fortisase_endpoint_setting_profiles is deprecated. Please use fortisase_endpoint
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
@@ -37,9 +37,12 @@ resource "fortisase_endpoint_setting_profile" "endpoint_setting_profile" {
 
 - `allow_config_backup` (String)
 - `allow_debug_log_generation` (String)
+- `allow_shutdown_when_registered` (String)
 - `ems_disconnect_password` (String)
 - `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
+- `invalid_cert_action` (String)
 - `notify_vpn_issue` (String)
+- `send_application_inventory` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
 - `trigger_vuln_scan_on_software_change` (String)

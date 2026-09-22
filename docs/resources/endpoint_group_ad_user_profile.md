@@ -15,7 +15,7 @@ Group & AD Users Profile Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 

@@ -1,6 +1,6 @@
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
@@ -23,17 +23,20 @@ resource "fortisase_endpoint_connection_profile" "connection_profile" {
     # failover_sequence = ["newdomain.com"]
 
     # [Run posture check before initiating FortiSASE Cloud Security tunnel]
-    ## Optiona A: Enable posture check
+    ## Option A: Enable posture check
     # posture_check = {
-    #   action               = "prohibit"
-    #   tag                  = "your_posture_check_name"
+    #   action = "prohibit"
+    #   tag = {
+    #     primary_key = "ztna_tag_name"
+    #     datasource  = "endpoint/ztna-tag-rules" # endpoint/ztna-tags or endpoint/ztna-tag-rules
+    #   }
     #   check_failed_message = "Your Comment"
     # }
-    ## Optiona B: Remove posture check
+    ## Option B: Remove posture check
     # posture_check = {
     #   action               = "allow" # must be "allow"
-    #   tag                  = "" # must be ""
-    #   check_failed_message = "" # must be ""
+    #   tag                  = null    # must be null
+    #   check_failed_message = ""      # must be ""
     # }
 
     # [Allow local LAN access]

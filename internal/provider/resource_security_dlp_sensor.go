@@ -56,7 +56,7 @@ func (r *resourceSecurityDlpSensor) Schema(ctx context.Context, req resource.Sch
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -89,7 +89,7 @@ func (r *resourceSecurityDlpSensor) Schema(ctx context.Context, req resource.Sch
 						},
 						"dictionary_matches_to_consider_risk": schema.Float64Attribute{
 							Validators: []validator.Float64{
-								float64validatorwarning.AtMost(255),
+								float64validatorwarning.Between(1, 255),
 							},
 							Computed: true,
 							Optional: true,

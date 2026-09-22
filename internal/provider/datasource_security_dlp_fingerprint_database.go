@@ -50,6 +50,9 @@ func (r *datasourceSecurityDlpFingerprintDatabase) Schema(ctx context.Context, r
 		MarkdownDescription: "DLP Fingerprint Database Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 35),
+				},
 				Required: true,
 			},
 			"server": schema.StringAttribute{

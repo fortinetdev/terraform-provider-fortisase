@@ -34,6 +34,7 @@ data "fortisase_auth_ldap_server" "example" {
 - `client_cert_auth_enabled` (Boolean)
 - `cnid` (String)
 - `dn` (String)
+- `for_private` (Boolean)
 - `group_filter` (String)
 - `group_member_check` (String)
 - `group_object_filter` (String)

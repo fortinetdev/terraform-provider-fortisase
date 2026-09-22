@@ -31,6 +31,9 @@ type datasourceEndpointProtectionProfileModel struct {
 	Antivirus                         types.String                                                    `tfsdk:"antivirus"`
 	Antiransomware                    types.String                                                    `tfsdk:"antiransomware"`
 	EventBasedScanning                types.String                                                    `tfsdk:"event_based_scanning"`
+	ScanOnRegistration                types.String                                                    `tfsdk:"scan_on_registration"`
+	ScanOnOsUpdate                    types.String                                                    `tfsdk:"scan_on_os_update"`
+	ScanOnSignatureUpdate             types.String                                                    `tfsdk:"scan_on_signature_update"`
 	VulnerabilityScan                 types.String                                                    `tfsdk:"vulnerability_scan"`
 	AntivirusScan                     types.String                                                    `tfsdk:"antivirus_scan"`
 	AutomaticallyPatchVulnerabilities types.String                                                    `tfsdk:"automatically_patch_vulnerabilities"`
@@ -67,6 +70,25 @@ func (r *datasourceEndpointProtectionProfile) Schema(ctx context.Context, req da
 				Computed: true,
 			},
 			"event_based_scanning": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				MarkdownDescription: "Deprecated by PMDB 42138. Replaced by the finer-grained scanOnRegistration, scanOnOsUpdate, and scanOnSignatureUpdate fields; the fetch layer keeps emitting this as the OR of the three replacements for backward compatibility.\nSupported values: enable, disable.",
+				Computed:            true,
+			},
+			"scan_on_registration": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+			},
+			"scan_on_os_update": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+			},
+			"scan_on_signature_update": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
 				},
@@ -317,6 +339,18 @@ func (m *datasourceEndpointProtectionProfileModel) refreshEndpointProtectionProf
 
 	if v, ok := o["eventBasedScanning"]; ok {
 		m.EventBasedScanning = parseStringValue(v)
+	}
+
+	if v, ok := o["scanOnRegistration"]; ok {
+		m.ScanOnRegistration = parseStringValue(v)
+	}
+
+	if v, ok := o["scanOnOsUpdate"]; ok {
+		m.ScanOnOsUpdate = parseStringValue(v)
+	}
+
+	if v, ok := o["scanOnSignatureUpdate"]; ok {
+		m.ScanOnSignatureUpdate = parseStringValue(v)
 	}
 
 	if v, ok := o["vulnerabilityScan"]; ok {

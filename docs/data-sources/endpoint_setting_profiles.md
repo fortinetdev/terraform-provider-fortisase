@@ -31,9 +31,12 @@ data "fortisase_endpoint_setting_profile" "example" {
 
 - `allow_config_backup` (String)
 - `allow_debug_log_generation` (String)
+- `allow_shutdown_when_registered` (String)
 - `ems_disconnect_password` (String)
 - `fct_gui` (Attributes) (see [below for nested schema](#nestedatt--fct_gui))
+- `invalid_cert_action` (String)
 - `notify_vpn_issue` (String)
+- `send_application_inventory` (String)
 - `show_notifications` (String)
 - `show_tag_forti_client` (String)
 - `trigger_vuln_scan_on_software_change` (String)

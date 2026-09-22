@@ -109,6 +109,18 @@ func (r *resourceEndpointZtnaProfile) Schema(ctx context.Context, req resource.S
 							Computed: true,
 							Optional: true,
 						},
+						"enable_udp": schema.BoolAttribute{
+							Computed: true,
+							Optional: true,
+						},
+						"redirect": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							MarkdownDescription: "Application-level SAML external-browser redirect. Applies to EMS 7.4+. Omitted on earlier EMS, where redirect is per-gateway.\nSupported values: enable, disable.",
+							Computed:            true,
+							Optional:            true,
+						},
 						"gateways": schema.ListNestedAttribute{
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -132,8 +144,9 @@ func (r *resourceEndpointZtnaProfile) Schema(ctx context.Context, req resource.S
 										Validators: []validator.String{
 											stringvalidatorwarning.OneOf("enable", "disable"),
 										},
-										Computed: true,
-										Optional: true,
+										MarkdownDescription: "Per-gateway SAML external-browser redirect. Applies to EMS versions below 7.4. Omitted on EMS 7.4+, where redirect is application-level.\nSupported values: enable, disable.",
+										Computed:            true,
+										Optional:            true,
 									},
 								},
 							},
@@ -457,6 +470,8 @@ type resourceEndpointZtnaProfileConnectionRulesModel struct {
 	Port       types.String                                              `tfsdk:"port"`
 	Name       types.String                                              `tfsdk:"name"`
 	Encryption types.String                                              `tfsdk:"encryption"`
+	EnableUdp  types.Bool                                                `tfsdk:"enable_udp"`
+	Redirect   types.String                                              `tfsdk:"redirect"`
 }
 
 type resourceEndpointZtnaProfileConnectionRulesGatewaysModel struct {
@@ -510,6 +525,14 @@ func (m *resourceEndpointZtnaProfileConnectionRulesModel) flattenEndpointZtnaPro
 
 	if v, ok := o["encryption"]; ok {
 		m.Encryption = parseStringValue(v)
+	}
+
+	if v, ok := o["enable_udp"]; ok {
+		m.EnableUdp = parseBoolValue(v)
+	}
+
+	if v, ok := o["redirect"]; ok {
+		m.Redirect = parseStringValue(v)
 	}
 
 	return m
@@ -659,6 +682,14 @@ func (data *resourceEndpointZtnaProfileConnectionRulesModel) expandEndpointZtnaP
 
 	if !data.Encryption.IsNull() && !data.Encryption.IsUnknown() {
 		result["encryption"] = data.Encryption.ValueString()
+	}
+
+	if !data.EnableUdp.IsNull() && !data.EnableUdp.IsUnknown() {
+		result["enable_udp"] = data.EnableUdp.ValueBool()
+	}
+
+	if !data.Redirect.IsNull() && !data.Redirect.IsUnknown() {
+		result["redirect"] = data.Redirect.ValueString()
 	}
 
 	return result

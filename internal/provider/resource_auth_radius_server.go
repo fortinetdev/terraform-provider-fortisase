@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
+	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/float64validatorwarning"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -31,14 +32,16 @@ type resourceAuthRadiusServer struct {
 
 // resourceAuthRadiusServerModel describes the resource data model.
 type resourceAuthRadiusServerModel struct {
-	ID                         types.String `tfsdk:"id"`
-	PrimaryKey                 types.String `tfsdk:"primary_key"`
-	AuthType                   types.String `tfsdk:"auth_type"`
-	PrimaryServer              types.String `tfsdk:"primary_server"`
-	PrimarySecret              types.String `tfsdk:"primary_secret"`
-	IncludedInDefaultUserGroup types.Bool   `tfsdk:"included_in_default_user_group"`
-	SecondaryServer            types.String `tfsdk:"secondary_server"`
-	SecondarySecret            types.String `tfsdk:"secondary_secret"`
+	ID                         types.String  `tfsdk:"id"`
+	PrimaryKey                 types.String  `tfsdk:"primary_key"`
+	AuthType                   types.String  `tfsdk:"auth_type"`
+	PrimaryServer              types.String  `tfsdk:"primary_server"`
+	PrimarySecret              types.String  `tfsdk:"primary_secret"`
+	IncludedInDefaultUserGroup types.Bool    `tfsdk:"included_in_default_user_group"`
+	Timeout                    types.Float64 `tfsdk:"timeout"`
+	ForPrivate                 types.Bool    `tfsdk:"for_private"`
+	SecondaryServer            types.String  `tfsdk:"secondary_server"`
+	SecondarySecret            types.String  `tfsdk:"secondary_secret"`
 }
 
 func (r *resourceAuthRadiusServer) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -88,6 +91,17 @@ func (r *resourceAuthRadiusServer) Schema(ctx context.Context, req resource.Sche
 				Optional:  true,
 			},
 			"included_in_default_user_group": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+			},
+			"timeout": schema.Float64Attribute{
+				Validators: []validator.Float64{
+					float64validatorwarning.Between(1, 300),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"for_private": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
 			},
@@ -366,6 +380,14 @@ func (m *resourceAuthRadiusServerModel) refreshAuthRadiusServer(ctx context.Cont
 		m.IncludedInDefaultUserGroup = parseBoolValue(v)
 	}
 
+	if v, ok := o["timeout"]; ok {
+		m.Timeout = parseFloat64Value(v)
+	}
+
+	if v, ok := o["forPrivate"]; ok {
+		m.ForPrivate = parseBoolValue(v)
+	}
+
 	if v, ok := o["secondaryServer"]; ok {
 		m.SecondaryServer = parseStringValue(v)
 	}
@@ -393,6 +415,14 @@ func (data *resourceAuthRadiusServerModel) getCreateObjectAuthRadiusServer(ctx c
 
 	if !data.IncludedInDefaultUserGroup.IsNull() && !data.IncludedInDefaultUserGroup.IsUnknown() {
 		result["includedInDefaultUserGroup"] = data.IncludedInDefaultUserGroup.ValueBool()
+	}
+
+	if !data.Timeout.IsNull() && !data.Timeout.IsUnknown() {
+		result["timeout"] = data.Timeout.ValueFloat64()
+	}
+
+	if !data.ForPrivate.IsNull() && !data.ForPrivate.IsUnknown() {
+		result["forPrivate"] = data.ForPrivate.ValueBool()
 	}
 
 	if !data.SecondaryServer.IsNull() && !data.SecondaryServer.IsUnknown() {
@@ -426,6 +456,14 @@ func (data *resourceAuthRadiusServerModel) getUpdateObjectAuthRadiusServer(ctx c
 
 	if !data.IncludedInDefaultUserGroup.IsNull() && !data.IncludedInDefaultUserGroup.IsUnknown() {
 		result["includedInDefaultUserGroup"] = data.IncludedInDefaultUserGroup.ValueBool()
+	}
+
+	if !data.Timeout.IsNull() && !data.Timeout.IsUnknown() {
+		result["timeout"] = data.Timeout.ValueFloat64()
+	}
+
+	if !data.ForPrivate.IsNull() && !data.ForPrivate.IsUnknown() {
+		result["forPrivate"] = data.ForPrivate.ValueBool()
 	}
 
 	if !data.SecondaryServer.IsNull() && !data.SecondaryServer.IsUnknown() {

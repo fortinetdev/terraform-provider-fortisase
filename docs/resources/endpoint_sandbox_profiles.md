@@ -17,7 +17,7 @@ fortisase_endpoint_sandbox_profiles is deprecated. Please use fortisase_endpoint
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 

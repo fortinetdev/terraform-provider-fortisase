@@ -9,8 +9,7 @@
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12.x +
-- [Go](https://golang.org/doc/install) 1.21.x (to build the provider plugin)
-- The provider can cover FortiSASE version 25.2.b.
+- [Go](https://golang.org/doc/install) 1.25.0 (to build the provider plugin)
 
 ## Building the Provider
 
@@ -38,7 +37,7 @@ $ terraform init
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need Go installed on your machine (version 1.13+ is required). You'll also need to correctly setup a GOPATH, as well as adding $GOPATH/bin to your $PATH.
+If you wish to work on the provider, you'll first need Go installed on your machine. You'll also need to correctly setup a GOPATH, as well as adding $GOPATH/bin to your $PATH.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the $GOPATH/bin directory.
 

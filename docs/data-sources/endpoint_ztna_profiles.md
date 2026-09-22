@@ -40,12 +40,15 @@ data "fortisase_endpoint_ztna_profile" "example" {
 Read-Only:
 
 - `address` (String)
+- `enable_udp` (Boolean)
 - `encryption` (String)
 - `gateways` (Attributes List) (see [below for nested schema](#nestedatt--connection_rules--gateways))
 - `id` (Number)
 - `mask` (String)
 - `name` (String)
 - `port` (String)
+- `redirect` (String) Application-level SAML external-browser redirect. Applies to EMS 7.4+. Omitted on earlier EMS, where redirect is per-gateway.
+Supported values: enable, disable.
 - `uid` (String)
 
 <a id="nestedatt--connection_rules--gateways"></a>
@@ -56,7 +59,8 @@ Read-Only:
 - `alias` (String)
 - `id` (Number)
 - `private_app_count` (Number)
-- `redirect` (String)
+- `redirect` (String) Per-gateway SAML external-browser redirect. Applies to EMS versions below 7.4. Omitted on EMS 7.4+, where redirect is application-level.
+Supported values: enable, disable.
 - `vip` (String)
 
 

@@ -15,7 +15,7 @@ FSSO Profile Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
@@ -35,14 +35,26 @@ resource "fortisase_endpoint_fsso_profile" "example" {
 ### Optional
 
 - `enabled` (Boolean)
-- `host` (String)
-- `port` (Number)
+- `host` (String) Deprecated: use `servers` instead. On GET this mirrors the host of the first `servers` entry. Planned for removal in release 26.4.1.
+- `port` (Number) Deprecated: use `servers` instead. On GET this mirrors the port of the first `servers` entry. Planned for removal in release 26.4.1.
+Value at most 65535.
 - `pre_shared_key` (String)
 - `prefer_entra_id` (String)
+- `servers` (Attributes List) FSSO Mobility Agent servers. The first entry is the primary server. Replaces the deprecated `host`/`port` pair. (see [below for nested schema](#nestedatt--servers))
 
 ### Read-Only
 
 - `id` (String) Identifier, required by Terraform, not configurable.
+
+<a id="nestedatt--servers"></a>
+### Nested Schema for `servers`
+
+Optional:
+
+- `host` (String) IPv4 address or hostname of the FSSO Mobility Agent server.
+Length at most 253.
+- `port` (Number) Listening port of the FSSO Mobility Agent server.
+Value between 1 and 65535.
 
 ## Import
 

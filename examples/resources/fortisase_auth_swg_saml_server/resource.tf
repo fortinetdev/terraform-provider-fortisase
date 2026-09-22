@@ -20,7 +20,7 @@ resource "fortisase_auth_swg_saml_server" "swg_sso" {
   # [IdP Certificate]
   # References a remote certificate stored in the system
   idp_certificate = {
-    primary_key = "certificate"
+    primary_key = "remote_certificate_name"
     datasource  = "system/certificate/remote-certificates"
   }
 

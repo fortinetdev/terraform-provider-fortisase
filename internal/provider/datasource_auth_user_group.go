@@ -80,7 +80,7 @@ func (r *datasourceAuthUserGroup) Schema(ctx context.Context, req datasource.Sch
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.OneOf("auth/ldap-servers", "auth/radius-servers", "auth/swg-saml-server", "auth/vpn-saml-server", "auth/sslvpn-saml-server"),
+										stringvalidatorwarning.OneOf("auth/ldap-servers", "auth/radius-servers", "auth/swg-saml-server", "auth/sslvpn-saml-server", "auth/vpn-saml-server"),
 									},
 									Computed: true,
 								},

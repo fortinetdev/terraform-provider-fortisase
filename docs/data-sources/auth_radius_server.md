@@ -28,6 +28,8 @@ data "fortisase_auth_radius_server" "example" {
 ### Read-Only
 
 - `auth_type` (String)
+- `for_private` (Boolean)
 - `included_in_default_user_group` (Boolean)
 - `primary_server` (String)
 - `secondary_server` (String)
+- `timeout` (Number)

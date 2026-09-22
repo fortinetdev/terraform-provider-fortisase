@@ -41,6 +41,7 @@ Supported values: webBrowser, electron.
 - `connect_to_forti_sase` (String, Deprecated)
 - `connect_to_fortisase` (String)
 - `disable_internet_check` (String)
+- `dns_registration` (Attributes) Which adapter addresses FortiClient registers with the DNS server, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile. (see [below for nested schema](#nestedatt--dns_registration))
 - `enable_invalid_server_cert_warning` (String)
 - `endpoint_on_net_bypass` (Boolean)
 - `lockdown` (Attributes) (see [below for nested schema](#nestedatt--lockdown))
@@ -66,10 +67,14 @@ Read-Only:
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
+- `ipv4_only` (String)
 - `name` (String)
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--posture_check))
@@ -105,7 +110,16 @@ Read-Only:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--posture_check--tag))
+
+<a id="nestedatt--available_vp_ns--posture_check--tag"></a>
+### Nested Schema for `available_vp_ns.posture_check.tag`
+
+Read-Only:
+
+- `datasource` (String)
+- `primary_key` (String)
+
 
 
 
@@ -119,10 +133,14 @@ Read-Only:
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
+- `ipv4_only` (String)
 - `name` (String)
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check))
@@ -158,8 +176,28 @@ Read-Only:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check--tag))
 
+<a id="nestedatt--available_vpns--posture_check--tag"></a>
+### Nested Schema for `available_vpns.posture_check.tag`
+
+Read-Only:
+
+- `datasource` (String)
+- `primary_key` (String)
+
+
+
+
+<a id="nestedatt--dns_registration"></a>
+### Nested Schema for `dns_registration`
+
+Read-Only:
+
+- `off_net` (String) Applied to the off-net endpoint profile.
+Supported values: both, physicalOnly, tunnelOnly.
+- `on_net` (String) Applied to the on-net endpoint profile.
+Supported values: both, physicalOnly, tunnelOnly.
 
 
 <a id="nestedatt--lockdown"></a>
@@ -280,7 +318,11 @@ Read-Only:
 - `allow_fido_auth` (String)
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--connect_disconnect_scripts))
+- `dns_preference` (Attributes) Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile. (see [below for nested schema](#nestedatt--secure_internet_access--dns_preference))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) When vpnType is ipSecVPN, sets EAP (eap_method) on the Secure Internet Access tunnel(s) only (SIA-named connections), for both on-net and off-net EMS profiles. Custom/manual IPsec tunnels use availableVPNs[].eapEnabled.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
@@ -299,6 +341,17 @@ Read-Only:
 - `on_disconnect_windows` (String)
 
 
+<a id="nestedatt--secure_internet_access--dns_preference"></a>
+### Nested Schema for `secure_internet_access.dns_preference`
+
+Read-Only:
+
+- `off_net` (String) Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.
+Supported values: sia, bothPreferSia.
+- `on_net` (String) Applied to the on-net endpoint profile.
+Supported values: sia, local, bothPreferSia.
+
+
 <a id="nestedatt--secure_internet_access--posture_check"></a>
 ### Nested Schema for `secure_internet_access.posture_check`
 
@@ -306,7 +359,16 @@ Read-Only:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--posture_check--tag))
+
+<a id="nestedatt--secure_internet_access--posture_check--tag"></a>
+### Nested Schema for `secure_internet_access.posture_check.tag`
+
+Read-Only:
+
+- `datasource` (String)
+- `primary_key` (String)
+
 
 
 

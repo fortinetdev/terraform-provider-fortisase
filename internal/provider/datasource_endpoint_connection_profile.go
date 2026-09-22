@@ -49,6 +49,7 @@ type datasourceEndpointConnectionProfileModel struct {
 	MtuSize                        types.Float64                                                 `tfsdk:"mtu_size"`
 	VpnType                        types.String                                                  `tfsdk:"vpn_type"`
 	DisableInternetCheck           types.String                                                  `tfsdk:"disable_internet_check"`
+	DnsRegistration                *datasourceEndpointConnectionProfileDnsRegistrationModel      `tfsdk:"dns_registration"`
 	ShowDisconnectBtn              types.String                                                  `tfsdk:"show_disconnect_btn"`
 	EnableInvalidServerCertWarning types.String                                                  `tfsdk:"enable_invalid_server_cert_warning"`
 	PreLogon                       *datasourceEndpointConnectionProfilePreLogonModel             `tfsdk:"pre_logon"`
@@ -256,6 +257,12 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							},
 							Computed: true,
 						},
+						"ipv4_only": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+						},
 						"external_browser_saml_login": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -282,6 +289,24 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							MarkdownDescription: "Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.",
 							Computed:            true,
 						},
+						"dpd": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+						},
+						"dpd_retry_count": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(10),
+							},
+							Computed: true,
+						},
+						"dpd_retry_interval": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(3600),
+							},
+							Computed: true,
+						},
 						"saml_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -295,25 +320,25 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							Attributes: map[string]schema.Attribute{
 								"on_connect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_connect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_disconnect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_disconnect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
@@ -322,9 +347,6 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 						},
 						"posture_check": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"tag": schema.StringAttribute{
-									Computed: true,
-								},
 								"action": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -332,6 +354,20 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 									Computed: true,
 								},
 								"check_failed_message": schema.StringAttribute{
+									Computed: true,
+								},
+								"tag": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"primary_key": schema.StringAttribute{
+											Computed: true,
+										},
+										"datasource": schema.StringAttribute{
+											Validators: []validator.String{
+												stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+											},
+											Computed: true,
+										},
+									},
 									Computed: true,
 								},
 							},
@@ -441,6 +477,12 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							},
 							Computed: true,
 						},
+						"ipv4_only": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+						},
 						"external_browser_saml_login": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -467,6 +509,24 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							MarkdownDescription: "Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.",
 							Computed:            true,
 						},
+						"dpd": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+						},
+						"dpd_retry_count": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(10),
+							},
+							Computed: true,
+						},
+						"dpd_retry_interval": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(3600),
+							},
+							Computed: true,
+						},
 						"saml_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -480,25 +540,25 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							Attributes: map[string]schema.Attribute{
 								"on_connect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_connect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_disconnect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
 								"on_disconnect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 								},
@@ -507,9 +567,6 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 						},
 						"posture_check": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"tag": schema.StringAttribute{
-									Computed: true,
-								},
 								"action": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -517,6 +574,20 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 									Computed: true,
 								},
 								"check_failed_message": schema.StringAttribute{
+									Computed: true,
+								},
+								"tag": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"primary_key": schema.StringAttribute{
+											Computed: true,
+										},
+										"datasource": schema.StringAttribute{
+											Validators: []validator.String{
+												stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+											},
+											Computed: true,
+										},
+									},
 									Computed: true,
 								},
 							},
@@ -748,6 +819,24 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 						MarkdownDescription: "When vpnType is ipSecVPN, sets EAP (eap_method) on the Secure Internet Access tunnel(s) only (SIA-named connections), for both on-net and off-net EMS profiles. Custom/manual IPsec tunnels use availableVPNs[].eapEnabled.",
 						Computed:            true,
 					},
+					"dpd": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("enable", "disable"),
+						},
+						Computed: true,
+					},
+					"dpd_retry_count": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validatorwarning.AtMost(10),
+						},
+						Computed: true,
+					},
+					"dpd_retry_interval": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validatorwarning.AtMost(3600),
+						},
+						Computed: true,
+					},
 					"encapsulation_mode": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("Auto", "TCP", "UDP"),
@@ -764,25 +853,25 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 						Attributes: map[string]schema.Attribute{
 							"on_connect_windows": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 							},
 							"on_connect_mac": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 							},
 							"on_disconnect_windows": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 							},
 							"on_disconnect_mac": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 							},
@@ -791,9 +880,6 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 					},
 					"posture_check": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							"tag": schema.StringAttribute{
-								Computed: true,
-							},
 							"action": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -803,8 +889,62 @@ func (r *datasourceEndpointConnectionProfile) Schema(ctx context.Context, req da
 							"check_failed_message": schema.StringAttribute{
 								Computed: true,
 							},
+							"tag": schema.SingleNestedAttribute{
+								Attributes: map[string]schema.Attribute{
+									"primary_key": schema.StringAttribute{
+										Computed: true,
+									},
+									"datasource": schema.StringAttribute{
+										Validators: []validator.String{
+											stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+										},
+										Computed: true,
+									},
+								},
+								Computed: true,
+							},
 						},
 						Computed: true,
+					},
+					"dns_preference": schema.SingleNestedAttribute{
+						MarkdownDescription: "Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile.",
+						Attributes: map[string]schema.Attribute{
+							"on_net": schema.StringAttribute{
+								Validators: []validator.String{
+									stringvalidatorwarning.OneOf("sia", "local", "bothPreferSia"),
+								},
+								MarkdownDescription: "Applied to the on-net endpoint profile.\nSupported values: sia, local, bothPreferSia.",
+								Computed:            true,
+							},
+							"off_net": schema.StringAttribute{
+								Validators: []validator.String{
+									stringvalidatorwarning.OneOf("sia", "bothPreferSia"),
+								},
+								MarkdownDescription: "Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.\nSupported values: sia, bothPreferSia.",
+								Computed:            true,
+							},
+						},
+						Computed: true,
+					},
+				},
+				Computed: true,
+			},
+			"dns_registration": schema.SingleNestedAttribute{
+				MarkdownDescription: "Which adapter addresses FortiClient registers with the DNS server, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile.",
+				Attributes: map[string]schema.Attribute{
+					"on_net": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("both", "physicalOnly", "tunnelOnly"),
+						},
+						MarkdownDescription: "Applied to the on-net endpoint profile.\nSupported values: both, physicalOnly, tunnelOnly.",
+						Computed:            true,
+					},
+					"off_net": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("both", "physicalOnly", "tunnelOnly"),
+						},
+						MarkdownDescription: "Applied to the off-net endpoint profile.\nSupported values: both, physicalOnly, tunnelOnly.",
+						Computed:            true,
 					},
 				},
 				Computed: true,
@@ -1015,6 +1155,10 @@ func (m *datasourceEndpointConnectionProfileModel) refreshEndpointConnectionProf
 		m.DisableInternetCheck = parseStringValue(v)
 	}
 
+	if v, ok := o["dnsRegistration"]; ok {
+		m.DnsRegistration = m.DnsRegistration.flattenEndpointConnectionProfileDnsRegistration(ctx, v, &diags)
+	}
+
 	if v, ok := o["showDisconnectBtn"]; ok {
 		m.ShowDisconnectBtn = parseStringValue(v)
 	}
@@ -1057,12 +1201,16 @@ type datasourceEndpointConnectionProfileAvailableVpnsModel struct {
 	ConnectDisconnectScripts *datasourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
 	Port                     types.Float64                                                                  `tfsdk:"port"`
 	RequireCertificate       types.String                                                                   `tfsdk:"require_certificate"`
+	Ipv4Only                 types.String                                                                   `tfsdk:"ipv4_only"`
 	ExternalBrowserSamlLogin types.String                                                                   `tfsdk:"external_browser_saml_login"`
 	AuthMethod               types.String                                                                   `tfsdk:"auth_method"`
 	DnsSuffixes              types.Set                                                                      `tfsdk:"dns_suffixes"`
 	ShowPasscode             types.String                                                                   `tfsdk:"show_passcode"`
 	PostureCheck             *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckModel             `tfsdk:"posture_check"`
 	EapEnabled               types.Bool                                                                     `tfsdk:"eap_enabled"`
+	Dpd                      types.String                                                                   `tfsdk:"dpd"`
+	DpdRetryCount            types.Float64                                                                  `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval         types.Float64                                                                  `tfsdk:"dpd_retry_interval"`
 	SamlPort                 types.Float64                                                                  `tfsdk:"saml_port"`
 	PreSharedKey             types.String                                                                   `tfsdk:"pre_shared_key"`
 }
@@ -1075,9 +1223,14 @@ type datasourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsMod
 }
 
 type datasourceEndpointConnectionProfileAvailableVpnsPostureCheckModel struct {
-	Tag                types.String `tfsdk:"tag"`
-	Action             types.String `tfsdk:"action"`
-	CheckFailedMessage types.String `tfsdk:"check_failed_message"`
+	Tag                *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel `tfsdk:"tag"`
+	Action             types.String                                                          `tfsdk:"action"`
+	CheckFailedMessage types.String                                                          `tfsdk:"check_failed_message"`
+}
+
+type datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
 }
 
 type datasourceEndpointConnectionProfileLockdownModel struct {
@@ -1156,7 +1309,11 @@ type datasourceEndpointConnectionProfileSecureInternetAccessModel struct {
 	FailoverSequence         types.Set                                                                             `tfsdk:"failover_sequence"`
 	PostureCheck             *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel             `tfsdk:"posture_check"`
 	EapEnabled               types.Bool                                                                            `tfsdk:"eap_enabled"`
+	Dpd                      types.String                                                                          `tfsdk:"dpd"`
+	DpdRetryCount            types.Float64                                                                         `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval         types.Float64                                                                         `tfsdk:"dpd_retry_interval"`
 	EncapsulationMode        types.String                                                                          `tfsdk:"encapsulation_mode"`
+	DnsPreference            *datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel            `tfsdk:"dns_preference"`
 	ExternalBrowserSamlLogin types.String                                                                          `tfsdk:"external_browser_saml_login"`
 }
 
@@ -1168,9 +1325,24 @@ type datasourceEndpointConnectionProfileSecureInternetAccessConnectDisconnectScr
 }
 
 type datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel struct {
-	Tag                types.String `tfsdk:"tag"`
-	Action             types.String `tfsdk:"action"`
-	CheckFailedMessage types.String `tfsdk:"check_failed_message"`
+	Tag                *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel `tfsdk:"tag"`
+	Action             types.String                                                                 `tfsdk:"action"`
+	CheckFailedMessage types.String                                                                 `tfsdk:"check_failed_message"`
+}
+
+type datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
+}
+
+type datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel struct {
+	OnNet  types.String `tfsdk:"on_net"`
+	OffNet types.String `tfsdk:"off_net"`
+}
+
+type datasourceEndpointConnectionProfileDnsRegistrationModel struct {
+	OnNet  types.String `tfsdk:"on_net"`
+	OffNet types.String `tfsdk:"off_net"`
 }
 
 type datasourceEndpointConnectionProfilePreLogonModel struct {
@@ -1267,6 +1439,10 @@ func (m *datasourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointC
 		m.RequireCertificate = parseStringValue(v)
 	}
 
+	if v, ok := o["ipv4Only"]; ok {
+		m.Ipv4Only = parseStringValue(v)
+	}
+
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
 		m.ExternalBrowserSamlLogin = parseStringValue(v)
 	}
@@ -1291,6 +1467,18 @@ func (m *datasourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointC
 
 	if v, ok := o["eapEnabled"]; ok {
 		m.EapEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["dpd"]; ok {
+		m.Dpd = parseStringValue(v)
+	}
+
+	if v, ok := o["dpdRetryCount"]; ok {
+		m.DpdRetryCount = parseFloat64Value(v)
+	}
+
+	if v, ok := o["dpdRetryInterval"]; ok {
+		m.DpdRetryInterval = parseFloat64Value(v)
 	}
 
 	if v, ok := o["samlPort"]; ok {
@@ -1372,7 +1560,7 @@ func (m *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) flat
 	}
 	o := input.(map[string]interface{})
 	if v, ok := o["tag"]; ok {
-		m.Tag = parseStringValue(v)
+		m.Tag = m.Tag.flattenEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx, v, diags)
 	}
 
 	if v, ok := o["action"]; ok {
@@ -1381,6 +1569,25 @@ func (m *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) flat
 
 	if v, ok := o["checkFailedMessage"]; ok {
 		m.CheckFailedMessage = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel) flattenEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel {
+	if input == nil {
+		return &datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
 	}
 
 	return m
@@ -1891,8 +2098,24 @@ func (m *datasourceEndpointConnectionProfileSecureInternetAccessModel) flattenEn
 		m.EapEnabled = parseBoolValue(v)
 	}
 
+	if v, ok := o["dpd"]; ok {
+		m.Dpd = parseStringValue(v)
+	}
+
+	if v, ok := o["dpdRetryCount"]; ok {
+		m.DpdRetryCount = parseFloat64Value(v)
+	}
+
+	if v, ok := o["dpdRetryInterval"]; ok {
+		m.DpdRetryInterval = parseFloat64Value(v)
+	}
+
 	if v, ok := o["encapsulationMode"]; ok {
 		m.EncapsulationMode = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsPreference"]; ok {
+		m.DnsPreference = m.DnsPreference.flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx, v, diags)
 	}
 
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
@@ -1938,7 +2161,7 @@ func (m *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckMode
 	}
 	o := input.(map[string]interface{})
 	if v, ok := o["tag"]; ok {
-		m.Tag = parseStringValue(v)
+		m.Tag = m.Tag.flattenEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx, v, diags)
 	}
 
 	if v, ok := o["action"]; ok {
@@ -1947,6 +2170,63 @@ func (m *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckMode
 
 	if v, ok := o["checkFailedMessage"]; ok {
 		m.CheckFailedMessage = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel) flattenEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel {
+	if input == nil {
+		return &datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel) flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel {
+	if input == nil {
+		return &datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["onNet"]; ok {
+		m.OnNet = parseStringValue(v)
+	}
+
+	if v, ok := o["offNet"]; ok {
+		m.OffNet = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *datasourceEndpointConnectionProfileDnsRegistrationModel) flattenEndpointConnectionProfileDnsRegistration(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceEndpointConnectionProfileDnsRegistrationModel {
+	if input == nil {
+		return &datasourceEndpointConnectionProfileDnsRegistrationModel{}
+	}
+	if m == nil {
+		m = &datasourceEndpointConnectionProfileDnsRegistrationModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["onNet"]; ok {
+		m.OnNet = parseStringValue(v)
+	}
+
+	if v, ok := o["offNet"]; ok {
+		m.OffNet = parseStringValue(v)
 	}
 
 	return m

@@ -15,7 +15,7 @@ Connection Profile Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
@@ -38,17 +38,20 @@ resource "fortisase_endpoint_connection_profile" "connection_profile" {
     # failover_sequence = ["newdomain.com"]
 
     # [Run posture check before initiating FortiSASE Cloud Security tunnel]
-    ## Optiona A: Enable posture check
+    ## Option A: Enable posture check
     # posture_check = {
-    #   action               = "prohibit"
-    #   tag                  = "your_posture_check_name"
+    #   action = "prohibit"
+    #   tag = {
+    #     primary_key = "ztna_tag_name"
+    #     datasource  = "endpoint/ztna-tag-rules" # endpoint/ztna-tags or endpoint/ztna-tag-rules
+    #   }
     #   check_failed_message = "Your Comment"
     # }
-    ## Optiona B: Remove posture check
+    ## Option B: Remove posture check
     # posture_check = {
     #   action               = "allow" # must be "allow"
-    #   tag                  = "" # must be ""
-    #   check_failed_message = "" # must be ""
+    #   tag                  = null    # must be null
+    #   check_failed_message = ""      # must be ""
     # }
 
     # [Allow local LAN access]
@@ -87,6 +90,7 @@ Supported values: webBrowser, electron.
 - `connect_to_forti_sase` (String, Deprecated)
 - `connect_to_fortisase` (String)
 - `disable_internet_check` (String)
+- `dns_registration` (Attributes) Which adapter addresses FortiClient registers with the DNS server, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile. (see [below for nested schema](#nestedatt--dns_registration))
 - `enable_invalid_server_cert_warning` (String)
 - `endpoint_on_net_bypass` (Boolean)
 - `lockdown` (Attributes) (see [below for nested schema](#nestedatt--lockdown))
@@ -116,10 +120,14 @@ Optional:
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
+- `ipv4_only` (String)
 - `name` (String)
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--posture_check))
@@ -155,7 +163,16 @@ Optional:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--posture_check--tag))
+
+<a id="nestedatt--available_vp_ns--posture_check--tag"></a>
+### Nested Schema for `available_vp_ns.posture_check.tag`
+
+Optional:
+
+- `datasource` (String)
+- `primary_key` (String)
+
 
 
 
@@ -169,10 +186,14 @@ Optional:
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--connect_disconnect_scripts))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
+- `ipv4_only` (String)
 - `name` (String)
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check))
@@ -208,8 +229,28 @@ Optional:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check--tag))
 
+<a id="nestedatt--available_vpns--posture_check--tag"></a>
+### Nested Schema for `available_vpns.posture_check.tag`
+
+Optional:
+
+- `datasource` (String)
+- `primary_key` (String)
+
+
+
+
+<a id="nestedatt--dns_registration"></a>
+### Nested Schema for `dns_registration`
+
+Optional:
+
+- `off_net` (String) Applied to the off-net endpoint profile.
+Supported values: both, physicalOnly, tunnelOnly.
+- `on_net` (String) Applied to the on-net endpoint profile.
+Supported values: both, physicalOnly, tunnelOnly.
 
 
 <a id="nestedatt--lockdown"></a>
@@ -330,7 +371,11 @@ Optional:
 - `allow_fido_auth` (String)
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--connect_disconnect_scripts))
+- `dns_preference` (Attributes) Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile. (see [below for nested schema](#nestedatt--secure_internet_access--dns_preference))
 - `dns_suffixes` (Set of String)
+- `dpd` (String)
+- `dpd_retry_count` (Number)
+- `dpd_retry_interval` (Number)
 - `eap_enabled` (Boolean) When vpnType is ipSecVPN, sets EAP (eap_method) on the Secure Internet Access tunnel(s) only (SIA-named connections), for both on-net and off-net EMS profiles. Custom/manual IPsec tunnels use availableVPNs[].eapEnabled.
 - `enable_local_lan` (String)
 - `encapsulation_mode` (String)
@@ -349,6 +394,17 @@ Optional:
 - `on_disconnect_windows` (String)
 
 
+<a id="nestedatt--secure_internet_access--dns_preference"></a>
+### Nested Schema for `secure_internet_access.dns_preference`
+
+Optional:
+
+- `off_net` (String) Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.
+Supported values: sia, bothPreferSia.
+- `on_net` (String) Applied to the on-net endpoint profile.
+Supported values: sia, local, bothPreferSia.
+
+
 <a id="nestedatt--secure_internet_access--posture_check"></a>
 ### Nested Schema for `secure_internet_access.posture_check`
 
@@ -356,7 +412,16 @@ Optional:
 
 - `action` (String)
 - `check_failed_message` (String)
-- `tag` (String)
+- `tag` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--posture_check--tag))
+
+<a id="nestedatt--secure_internet_access--posture_check--tag"></a>
+### Nested Schema for `secure_internet_access.posture_check.tag`
+
+Optional:
+
+- `datasource` (String)
+- `primary_key` (String)
+
 
 
 

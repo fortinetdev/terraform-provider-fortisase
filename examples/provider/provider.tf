@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     fortisase = {
-      version = "~> 1.0.0"
+      version = "~> 1.0"
       source  = "fortinet.com/fortinetdev/fortisase"
     }
   }

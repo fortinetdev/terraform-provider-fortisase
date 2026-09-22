@@ -55,7 +55,7 @@ func (r *resourceSecurityDlpDictionary) Schema(ctx context.Context, req resource
 			},
 			"primary_key": schema.StringAttribute{
 				Validators: []validator.String{
-					stringvalidatorwarning.LengthBetween(1, 64),
+					stringvalidatorwarning.LengthBetween(1, 35),
 				},
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -95,6 +95,9 @@ func (r *resourceSecurityDlpDictionary) Schema(ctx context.Context, req resource
 							Optional: true,
 						},
 						"pattern": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.LengthAtMost(255),
+							},
 							Computed: true,
 							Optional: true,
 						},

@@ -43,6 +43,9 @@ func (r *datasourceSecurityDlpExactDataMatch) Schema(ctx context.Context, req da
 		MarkdownDescription: "DLP Exact Data Match Resource API V2 for FortiSASE.",
 		Attributes: map[string]schema.Attribute{
 			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 35),
+				},
 				Required: true,
 			},
 			"optional_count": schema.Float64Attribute{

@@ -55,6 +55,7 @@ type resourceEndpointConnectionProfileModel struct {
 	MtuSize                        types.Float64                                               `tfsdk:"mtu_size"`
 	VpnType                        types.String                                                `tfsdk:"vpn_type"`
 	DisableInternetCheck           types.String                                                `tfsdk:"disable_internet_check"`
+	DnsRegistration                *resourceEndpointConnectionProfileDnsRegistrationModel      `tfsdk:"dns_registration"`
 	ShowDisconnectBtn              types.String                                                `tfsdk:"show_disconnect_btn"`
 	EnableInvalidServerCertWarning types.String                                                `tfsdk:"enable_invalid_server_cert_warning"`
 	PreLogon                       *resourceEndpointConnectionProfilePreLogonModel             `tfsdk:"pre_logon"`
@@ -304,6 +305,13 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed: true,
 							Optional: true,
 						},
+						"ipv4_only": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"external_browser_saml_login": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -335,6 +343,27 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed:            true,
 							Optional:            true,
 						},
+						"dpd": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"dpd_retry_count": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(10),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"dpd_retry_interval": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(3600),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"saml_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -350,28 +379,28 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Attributes: map[string]schema.Attribute{
 								"on_connect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_connect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_disconnect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_disconnect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
@@ -382,10 +411,6 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						},
 						"posture_check": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"tag": schema.StringAttribute{
-									Computed: true,
-									Optional: true,
-								},
 								"action": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -394,6 +419,21 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 									Optional: true,
 								},
 								"check_failed_message": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"tag": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"primary_key": schema.StringAttribute{
+											Optional: true,
+										},
+										"datasource": schema.StringAttribute{
+											Validators: []validator.String{
+												stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+											},
+											Optional: true,
+										},
+									},
 									Computed: true,
 									Optional: true,
 								},
@@ -522,6 +562,13 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed: true,
 							Optional: true,
 						},
+						"ipv4_only": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"external_browser_saml_login": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -553,6 +600,27 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed:            true,
 							Optional:            true,
 						},
+						"dpd": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("enable", "disable"),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"dpd_retry_count": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(10),
+							},
+							Computed: true,
+							Optional: true,
+						},
+						"dpd_retry_interval": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.AtMost(3600),
+							},
+							Computed: true,
+							Optional: true,
+						},
 						"saml_port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -568,28 +636,28 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Attributes: map[string]schema.Attribute{
 								"on_connect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_connect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_disconnect_windows": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
 								},
 								"on_disconnect_mac": schema.StringAttribute{
 									Validators: []validator.String{
-										stringvalidatorwarning.LengthAtMost(1023),
+										stringvalidatorwarning.LengthAtMost(2048),
 									},
 									Computed: true,
 									Optional: true,
@@ -600,10 +668,6 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						},
 						"posture_check": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
-								"tag": schema.StringAttribute{
-									Computed: true,
-									Optional: true,
-								},
 								"action": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -612,6 +676,21 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 									Optional: true,
 								},
 								"check_failed_message": schema.StringAttribute{
+									Computed: true,
+									Optional: true,
+								},
+								"tag": schema.SingleNestedAttribute{
+									Attributes: map[string]schema.Attribute{
+										"primary_key": schema.StringAttribute{
+											Optional: true,
+										},
+										"datasource": schema.StringAttribute{
+											Validators: []validator.String{
+												stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+											},
+											Optional: true,
+										},
+									},
 									Computed: true,
 									Optional: true,
 								},
@@ -880,6 +959,27 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						Computed:            true,
 						Optional:            true,
 					},
+					"dpd": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("enable", "disable"),
+						},
+						Computed: true,
+						Optional: true,
+					},
+					"dpd_retry_count": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validatorwarning.AtMost(10),
+						},
+						Computed: true,
+						Optional: true,
+					},
+					"dpd_retry_interval": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validatorwarning.AtMost(3600),
+						},
+						Computed: true,
+						Optional: true,
+					},
 					"encapsulation_mode": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("Auto", "TCP", "UDP"),
@@ -898,28 +998,28 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						Attributes: map[string]schema.Attribute{
 							"on_connect_windows": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 								Optional: true,
 							},
 							"on_connect_mac": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 								Optional: true,
 							},
 							"on_disconnect_windows": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 								Optional: true,
 							},
 							"on_disconnect_mac": schema.StringAttribute{
 								Validators: []validator.String{
-									stringvalidatorwarning.LengthAtMost(1023),
+									stringvalidatorwarning.LengthAtMost(2048),
 								},
 								Computed: true,
 								Optional: true,
@@ -930,10 +1030,6 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 					},
 					"posture_check": schema.SingleNestedAttribute{
 						Attributes: map[string]schema.Attribute{
-							"tag": schema.StringAttribute{
-								Computed: true,
-								Optional: true,
-							},
 							"action": schema.StringAttribute{
 								Validators: []validator.String{
 									stringvalidatorwarning.OneOf("allow", "prohibit"),
@@ -945,9 +1041,70 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 								Computed: true,
 								Optional: true,
 							},
+							"tag": schema.SingleNestedAttribute{
+								Attributes: map[string]schema.Attribute{
+									"primary_key": schema.StringAttribute{
+										Optional: true,
+									},
+									"datasource": schema.StringAttribute{
+										Validators: []validator.String{
+											stringvalidatorwarning.OneOf("endpoint/ztna-tags", "endpoint/ztna-tag-rules"),
+										},
+										Optional: true,
+									},
+								},
+								Computed: true,
+								Optional: true,
+							},
 						},
 						Computed: true,
 						Optional: true,
+					},
+					"dns_preference": schema.SingleNestedAttribute{
+						MarkdownDescription: "Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile.",
+						Attributes: map[string]schema.Attribute{
+							"on_net": schema.StringAttribute{
+								Validators: []validator.String{
+									stringvalidatorwarning.OneOf("sia", "local", "bothPreferSia"),
+								},
+								MarkdownDescription: "Applied to the on-net endpoint profile.\nSupported values: sia, local, bothPreferSia.",
+								Computed:            true,
+								Optional:            true,
+							},
+							"off_net": schema.StringAttribute{
+								Validators: []validator.String{
+									stringvalidatorwarning.OneOf("sia", "bothPreferSia"),
+								},
+								MarkdownDescription: "Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.\nSupported values: sia, bothPreferSia.",
+								Computed:            true,
+								Optional:            true,
+							},
+						},
+						Computed: true,
+						Optional: true,
+					},
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"dns_registration": schema.SingleNestedAttribute{
+				MarkdownDescription: "Which adapter addresses FortiClient registers with the DNS server, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile.",
+				Attributes: map[string]schema.Attribute{
+					"on_net": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("both", "physicalOnly", "tunnelOnly"),
+						},
+						MarkdownDescription: "Applied to the on-net endpoint profile.\nSupported values: both, physicalOnly, tunnelOnly.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"off_net": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("both", "physicalOnly", "tunnelOnly"),
+						},
+						MarkdownDescription: "Applied to the off-net endpoint profile.\nSupported values: both, physicalOnly, tunnelOnly.",
+						Computed:            true,
+						Optional:            true,
 					},
 				},
 				Computed: true,
@@ -1125,8 +1282,21 @@ func (r *resourceEndpointConnectionProfile) Create(ctx context.Context, req reso
 		if data.SecureInternetAccess != nil && data.SecureInternetAccess.PostureCheck != nil {
 			if secureInternetAccess, ok := read_output["secureInternetAccess"].(map[string]interface{}); ok {
 				if postureCheck, ok := secureInternetAccess["postureCheck"].(map[string]interface{}); ok {
+					// Compare the tag reference using the new object schema.
+					expectedTag := data.SecureInternetAccess.PostureCheck.Tag
+					tagMatches := postureCheck["tag"] == nil
+					if expectedTag != nil && !isZeroStruct(*expectedTag) {
+						actualTag, ok := postureCheck["tag"].(map[string]interface{})
+						tagMatches = ok
+						if !expectedTag.PrimaryKey.IsNull() && !expectedTag.PrimaryKey.IsUnknown() {
+							tagMatches = tagMatches && actualTag["primaryKey"] == expectedTag.PrimaryKey.ValueString()
+						}
+						if !expectedTag.Datasource.IsNull() && !expectedTag.Datasource.IsUnknown() {
+							tagMatches = tagMatches && actualTag["datasource"] == expectedTag.Datasource.ValueString()
+						}
+					}
 					if fmt.Sprintf("%v", postureCheck["action"]) != data.SecureInternetAccess.PostureCheck.Action.ValueString() ||
-						fmt.Sprintf("%v", postureCheck["tag"]) != data.SecureInternetAccess.PostureCheck.Tag.ValueString() ||
+						!tagMatches ||
 						fmt.Sprintf("%v", postureCheck["checkFailedMessage"]) != data.SecureInternetAccess.PostureCheck.CheckFailedMessage.ValueString() {
 						// diags.AddWarning(
 						// 	"Detected that secureInternetAccess was not accepted by the server. Resending the request...",
@@ -1214,7 +1384,7 @@ func (r *resourceEndpointConnectionProfile) Delete(ctx context.Context, req reso
 	defer lock.Unlock()
 	diags := &resp.Diagnostics
 
-	// Read Terraform plan data into the model
+	// Read Terraform state data into the model
 	var state resourceEndpointConnectionProfileModel
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
@@ -1224,7 +1394,7 @@ func (r *resourceEndpointConnectionProfile) Delete(ctx context.Context, req reso
 	result_model["onFabricRuleSet"] = nil
 	secureInternetAccess := make(map[string]interface{})
 	postureTag := make(map[string]interface{})
-	postureTag["tag"] = ""
+	postureTag["tag"] = nil
 	postureTag["action"] = "allow"
 	postureTag["checkFailedMessage"] = ""
 	secureInternetAccess["postureCheck"] = postureTag
@@ -1242,14 +1412,46 @@ func (r *resourceEndpointConnectionProfile) Delete(ctx context.Context, req reso
 		return
 	}
 
-	output, err := c.UpdateEndpointConnectionProfiles(&input_model)
-	if err != nil {
-		diags.AddError(
-			fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
-			getErrorDetail(&input_model, output),
-		)
+	var read_input_model forticlient.InputModel
+	read_input_model.Mkey = mkey
+	read_input_model.URLParams = *(state.getURLObjectEndpointConnectionProfile(ctx, "read", diags))
+	if diags.HasError() {
 		return
 	}
+
+	const maxAttempts = 4
+	for i := 0; i < maxAttempts; i++ {
+		output, err := c.UpdateEndpointConnectionProfiles(&input_model)
+		if err != nil {
+			diags.AddError(
+				fmt.Sprintf("Error to delete resource %s: %v", r.resourceName, err),
+				getErrorDetail(&input_model, output),
+			)
+			return
+		}
+
+		read_output, err := c.ReadEndpointConnectionProfiles(&read_input_model)
+		if err != nil {
+			return
+		}
+
+		// Verify the reset because a successful update may not be applied by the server.
+		actualSecureInternetAccess, ok := read_output["secureInternetAccess"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		actualPostureCheck, ok := actualSecureInternetAccess["postureCheck"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if actualPostureCheck["tag"] == nil &&
+			actualPostureCheck["action"] == "allow" &&
+			actualPostureCheck["checkFailedMessage"] == "" {
+			return
+		}
+	}
+
+	// Treat deletion as complete even if the reset could not be confirmed.
 }
 
 func (r *resourceEndpointConnectionProfile) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -1387,6 +1589,10 @@ func (m *resourceEndpointConnectionProfileModel) refreshEndpointConnectionProfil
 		m.DisableInternetCheck = parseStringValue(v)
 	}
 
+	if v, ok := o["dnsRegistration"]; ok {
+		m.DnsRegistration = m.DnsRegistration.flattenEndpointConnectionProfileDnsRegistration(ctx, v, &diags)
+	}
+
 	if v, ok := o["showDisconnectBtn"]; ok {
 		m.ShowDisconnectBtn = parseStringValue(v)
 	}
@@ -1511,6 +1717,10 @@ func (data *resourceEndpointConnectionProfileModel) getCreateObjectEndpointConne
 
 	if !data.DisableInternetCheck.IsNull() && !data.DisableInternetCheck.IsUnknown() {
 		result["disableInternetCheck"] = data.DisableInternetCheck.ValueString()
+	}
+
+	if data.DnsRegistration != nil && !isZeroStruct(*data.DnsRegistration) {
+		result["dnsRegistration"] = data.DnsRegistration.expandEndpointConnectionProfileDnsRegistration(ctx, diags)
 	}
 
 	if !data.ShowDisconnectBtn.IsNull() && !data.ShowDisconnectBtn.IsUnknown() {
@@ -1639,6 +1849,10 @@ func (data *resourceEndpointConnectionProfileModel) getUpdateObjectEndpointConne
 		result["disableInternetCheck"] = data.DisableInternetCheck.ValueString()
 	}
 
+	if data.DnsRegistration != nil {
+		result["dnsRegistration"] = data.DnsRegistration.expandEndpointConnectionProfileDnsRegistration(ctx, diags)
+	}
+
 	if !data.ShowDisconnectBtn.IsNull() && !data.ShowDisconnectBtn.IsUnknown() {
 		result["showDisconnectBtn"] = data.ShowDisconnectBtn.ValueString()
 	}
@@ -1681,12 +1895,16 @@ type resourceEndpointConnectionProfileAvailableVpnsModel struct {
 	ConnectDisconnectScripts *resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
 	Port                     types.Float64                                                                `tfsdk:"port"`
 	RequireCertificate       types.String                                                                 `tfsdk:"require_certificate"`
+	Ipv4Only                 types.String                                                                 `tfsdk:"ipv4_only"`
 	ExternalBrowserSamlLogin types.String                                                                 `tfsdk:"external_browser_saml_login"`
 	AuthMethod               types.String                                                                 `tfsdk:"auth_method"`
 	DnsSuffixes              types.Set                                                                    `tfsdk:"dns_suffixes"`
 	ShowPasscode             types.String                                                                 `tfsdk:"show_passcode"`
 	PostureCheck             *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel             `tfsdk:"posture_check"`
 	EapEnabled               types.Bool                                                                   `tfsdk:"eap_enabled"`
+	Dpd                      types.String                                                                 `tfsdk:"dpd"`
+	DpdRetryCount            types.Float64                                                                `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval         types.Float64                                                                `tfsdk:"dpd_retry_interval"`
 	SamlPort                 types.Float64                                                                `tfsdk:"saml_port"`
 	PreSharedKey             types.String                                                                 `tfsdk:"pre_shared_key"`
 }
@@ -1699,9 +1917,14 @@ type resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel
 }
 
 type resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel struct {
-	Tag                types.String `tfsdk:"tag"`
-	Action             types.String `tfsdk:"action"`
-	CheckFailedMessage types.String `tfsdk:"check_failed_message"`
+	Tag                *resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel `tfsdk:"tag"`
+	Action             types.String                                                        `tfsdk:"action"`
+	CheckFailedMessage types.String                                                        `tfsdk:"check_failed_message"`
+}
+
+type resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
 }
 
 type resourceEndpointConnectionProfileLockdownModel struct {
@@ -1780,7 +2003,11 @@ type resourceEndpointConnectionProfileSecureInternetAccessModel struct {
 	FailoverSequence         types.Set                                                                           `tfsdk:"failover_sequence"`
 	PostureCheck             *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel             `tfsdk:"posture_check"`
 	EapEnabled               types.Bool                                                                          `tfsdk:"eap_enabled"`
+	Dpd                      types.String                                                                        `tfsdk:"dpd"`
+	DpdRetryCount            types.Float64                                                                       `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval         types.Float64                                                                       `tfsdk:"dpd_retry_interval"`
 	EncapsulationMode        types.String                                                                        `tfsdk:"encapsulation_mode"`
+	DnsPreference            *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel            `tfsdk:"dns_preference"`
 	ExternalBrowserSamlLogin types.String                                                                        `tfsdk:"external_browser_saml_login"`
 }
 
@@ -1792,9 +2019,24 @@ type resourceEndpointConnectionProfileSecureInternetAccessConnectDisconnectScrip
 }
 
 type resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel struct {
-	Tag                types.String `tfsdk:"tag"`
-	Action             types.String `tfsdk:"action"`
-	CheckFailedMessage types.String `tfsdk:"check_failed_message"`
+	Tag                *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel `tfsdk:"tag"`
+	Action             types.String                                                               `tfsdk:"action"`
+	CheckFailedMessage types.String                                                               `tfsdk:"check_failed_message"`
+}
+
+type resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
+}
+
+type resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel struct {
+	OnNet  types.String `tfsdk:"on_net"`
+	OffNet types.String `tfsdk:"off_net"`
+}
+
+type resourceEndpointConnectionProfileDnsRegistrationModel struct {
+	OnNet  types.String `tfsdk:"on_net"`
+	OffNet types.String `tfsdk:"off_net"`
 }
 
 type resourceEndpointConnectionProfilePreLogonModel struct {
@@ -1891,6 +2133,10 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointCon
 		m.RequireCertificate = parseStringValue(v)
 	}
 
+	if v, ok := o["ipv4Only"]; ok {
+		m.Ipv4Only = parseStringValue(v)
+	}
+
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
 		m.ExternalBrowserSamlLogin = parseStringValue(v)
 	}
@@ -1915,6 +2161,18 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointCon
 
 	if v, ok := o["eapEnabled"]; ok {
 		m.EapEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["dpd"]; ok {
+		m.Dpd = parseStringValue(v)
+	}
+
+	if v, ok := o["dpdRetryCount"]; ok {
+		m.DpdRetryCount = parseFloat64Value(v)
+	}
+
+	if v, ok := o["dpdRetryInterval"]; ok {
+		m.DpdRetryInterval = parseFloat64Value(v)
 	}
 
 	if v, ok := o["samlPort"]; ok {
@@ -1996,7 +2254,7 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) flatte
 	}
 	o := input.(map[string]interface{})
 	if v, ok := o["tag"]; ok {
-		m.Tag = parseStringValue(v)
+		m.Tag = m.Tag.flattenEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx, v, diags)
 	}
 
 	if v, ok := o["action"]; ok {
@@ -2005,6 +2263,25 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) flatte
 
 	if v, ok := o["checkFailedMessage"]; ok {
 		m.CheckFailedMessage = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel) flattenEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel {
+	if input == nil {
+		return &resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
 	}
 
 	return m
@@ -2517,8 +2794,24 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessModel) flattenEndp
 		m.EapEnabled = parseBoolValue(v)
 	}
 
+	if v, ok := o["dpd"]; ok {
+		m.Dpd = parseStringValue(v)
+	}
+
+	if v, ok := o["dpdRetryCount"]; ok {
+		m.DpdRetryCount = parseFloat64Value(v)
+	}
+
+	if v, ok := o["dpdRetryInterval"]; ok {
+		m.DpdRetryInterval = parseFloat64Value(v)
+	}
+
 	if v, ok := o["encapsulationMode"]; ok {
 		m.EncapsulationMode = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsPreference"]; ok {
+		m.DnsPreference = m.DnsPreference.flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx, v, diags)
 	}
 
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
@@ -2564,7 +2857,7 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel)
 	}
 	o := input.(map[string]interface{})
 	if v, ok := o["tag"]; ok {
-		m.Tag = parseStringValue(v)
+		m.Tag = m.Tag.flattenEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx, v, diags)
 	}
 
 	if v, ok := o["action"]; ok {
@@ -2573,6 +2866,63 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel)
 
 	if v, ok := o["checkFailedMessage"]; ok {
 		m.CheckFailedMessage = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel) flattenEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel {
+	if input == nil {
+		return &resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel) flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel {
+	if input == nil {
+		return &resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["onNet"]; ok {
+		m.OnNet = parseStringValue(v)
+	}
+
+	if v, ok := o["offNet"]; ok {
+		m.OffNet = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (m *resourceEndpointConnectionProfileDnsRegistrationModel) flattenEndpointConnectionProfileDnsRegistration(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileDnsRegistrationModel {
+	if input == nil {
+		return &resourceEndpointConnectionProfileDnsRegistrationModel{}
+	}
+	if m == nil {
+		m = &resourceEndpointConnectionProfileDnsRegistrationModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["onNet"]; ok {
+		m.OnNet = parseStringValue(v)
+	}
+
+	if v, ok := o["offNet"]; ok {
+		m.OffNet = parseStringValue(v)
 	}
 
 	return m
@@ -2717,6 +3067,10 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsModel) expandEndpointC
 		result["requireCertificate"] = data.RequireCertificate.ValueString()
 	}
 
+	if !data.Ipv4Only.IsNull() && !data.Ipv4Only.IsUnknown() {
+		result["ipv4Only"] = data.Ipv4Only.ValueString()
+	}
+
 	if !data.ExternalBrowserSamlLogin.IsNull() && !data.ExternalBrowserSamlLogin.IsUnknown() {
 		result["externalBrowserSamlLogin"] = data.ExternalBrowserSamlLogin.ValueString()
 	}
@@ -2739,6 +3093,18 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsModel) expandEndpointC
 
 	if !data.EapEnabled.IsNull() && !data.EapEnabled.IsUnknown() {
 		result["eapEnabled"] = data.EapEnabled.ValueBool()
+	}
+
+	if !data.Dpd.IsNull() && !data.Dpd.IsUnknown() {
+		result["dpd"] = data.Dpd.ValueString()
+	}
+
+	if !data.DpdRetryCount.IsNull() && !data.DpdRetryCount.IsUnknown() {
+		result["dpdRetryCount"] = data.DpdRetryCount.ValueFloat64()
+	}
+
+	if !data.DpdRetryInterval.IsNull() && !data.DpdRetryInterval.IsUnknown() {
+		result["dpdRetryInterval"] = data.DpdRetryInterval.ValueFloat64()
 	}
 
 	if !data.SamlPort.IsNull() && !data.SamlPort.IsUnknown() {
@@ -2783,8 +3149,9 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScrip
 
 func (data *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) expandEndpointConnectionProfileAvailableVpnsPostureCheck(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Tag.IsNull() && !data.Tag.IsUnknown() {
-		result["tag"] = data.Tag.ValueString()
+	result["tag"] = nil
+	if data.Tag != nil && !isZeroStruct(*data.Tag) {
+		result["tag"] = data.Tag.expandEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx, diags)
 	}
 
 	if !data.Action.IsNull() && !data.Action.IsUnknown() {
@@ -2793,6 +3160,19 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel) exp
 
 	if !data.CheckFailedMessage.IsNull() && !data.CheckFailedMessage.IsUnknown() {
 		result["checkFailedMessage"] = data.CheckFailedMessage.ValueString()
+	}
+
+	return result
+}
+
+func (data *resourceEndpointConnectionProfileAvailableVpnsPostureCheckTagModel) expandEndpointConnectionProfileAvailableVpnsPostureCheckTag(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
 	}
 
 	return result
@@ -3067,8 +3447,24 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessModel) expandEn
 		result["eapEnabled"] = data.EapEnabled.ValueBool()
 	}
 
+	if !data.Dpd.IsNull() && !data.Dpd.IsUnknown() {
+		result["dpd"] = data.Dpd.ValueString()
+	}
+
+	if !data.DpdRetryCount.IsNull() && !data.DpdRetryCount.IsUnknown() {
+		result["dpdRetryCount"] = data.DpdRetryCount.ValueFloat64()
+	}
+
+	if !data.DpdRetryInterval.IsNull() && !data.DpdRetryInterval.IsUnknown() {
+		result["dpdRetryInterval"] = data.DpdRetryInterval.ValueFloat64()
+	}
+
 	if !data.EncapsulationMode.IsNull() && !data.EncapsulationMode.IsUnknown() {
 		result["encapsulationMode"] = data.EncapsulationMode.ValueString()
+	}
+
+	if data.DnsPreference != nil && !isZeroStruct(*data.DnsPreference) {
+		result["dnsPreference"] = data.DnsPreference.expandEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx, diags)
 	}
 
 	if !data.ExternalBrowserSamlLogin.IsNull() && !data.ExternalBrowserSamlLogin.IsUnknown() {
@@ -3101,8 +3497,9 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessConnectDisconne
 
 func (data *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel) expandEndpointConnectionProfileSecureInternetAccessPostureCheck(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
 	result := make(map[string]interface{})
-	if !data.Tag.IsNull() && !data.Tag.IsUnknown() {
-		result["tag"] = data.Tag.ValueString()
+	result["tag"] = nil
+	if data.Tag != nil && !isZeroStruct(*data.Tag) {
+		result["tag"] = data.Tag.expandEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx, diags)
 	}
 
 	if !data.Action.IsNull() && !data.Action.IsUnknown() {
@@ -3111,6 +3508,45 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckMod
 
 	if !data.CheckFailedMessage.IsNull() && !data.CheckFailedMessage.IsUnknown() {
 		result["checkFailedMessage"] = data.CheckFailedMessage.ValueString()
+	}
+
+	return result
+}
+
+func (data *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel) expandEndpointConnectionProfileSecureInternetAccessPostureCheckTag(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
+	}
+
+	return result
+}
+
+func (data *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel) expandEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.OnNet.IsNull() && !data.OnNet.IsUnknown() {
+		result["onNet"] = data.OnNet.ValueString()
+	}
+
+	if !data.OffNet.IsNull() && !data.OffNet.IsUnknown() {
+		result["offNet"] = data.OffNet.ValueString()
+	}
+
+	return result
+}
+
+func (data *resourceEndpointConnectionProfileDnsRegistrationModel) expandEndpointConnectionProfileDnsRegistration(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.OnNet.IsNull() && !data.OnNet.IsUnknown() {
+		result["onNet"] = data.OnNet.ValueString()
+	}
+
+	if !data.OffNet.IsNull() && !data.OffNet.IsUnknown() {
+		result["offNet"] = data.OffNet.ValueString()
 	}
 
 	return result

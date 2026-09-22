@@ -76,7 +76,7 @@ func (r *resourceSecurityVideoFilterProfile) Schema(ctx context.Context, req res
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "default"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "default"),
 							},
 							Computed: true,
 							Optional: true,

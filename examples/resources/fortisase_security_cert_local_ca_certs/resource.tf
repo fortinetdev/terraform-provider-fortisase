@@ -5,6 +5,7 @@ resource "fortisase_system_certificate" "ca_certificate" {
   format           = "regular" # "regular" or "pkcs12"
   file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
   key_file_content = base64encode(file("../path/to/my-ca-key.pem")) # Only required if format is "regular"
+  password         = "example_password"
 }
 
 # Method 2

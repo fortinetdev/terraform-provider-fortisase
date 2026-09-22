@@ -34,11 +34,13 @@ resource "fortisase_auth_radius_server" "radius_server" {
 ### Optional
 
 - `auth_type` (String)
+- `for_private` (Boolean)
 - `included_in_default_user_group` (Boolean)
 - `primary_secret` (String, Sensitive)
 - `primary_server` (String)
 - `secondary_secret` (String, Sensitive)
 - `secondary_server` (String)
+- `timeout` (Number)
 
 ### Read-Only
 

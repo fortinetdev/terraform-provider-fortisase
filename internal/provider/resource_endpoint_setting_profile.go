@@ -39,6 +39,9 @@ type resourceEndpointSettingProfileModel struct {
 	NotifyVpnIssue                  types.String                               `tfsdk:"notify_vpn_issue"`
 	UsersCanDisconnect              types.String                               `tfsdk:"users_can_disconnect"`
 	TriggerVulnScanOnSoftwareChange types.String                               `tfsdk:"trigger_vuln_scan_on_software_change"`
+	AllowShutdownWhenRegistered     types.String                               `tfsdk:"allow_shutdown_when_registered"`
+	SendApplicationInventory        types.String                               `tfsdk:"send_application_inventory"`
+	InvalidCertAction               types.String                               `tfsdk:"invalid_cert_action"`
 	FctGui                          *resourceEndpointSettingProfileFctGuiModel `tfsdk:"fct_gui"`
 	EmsDisconnectPassword           types.String                               `tfsdk:"ems_disconnect_password"`
 	PrimaryKey                      types.String                               `tfsdk:"primary_key"`
@@ -104,6 +107,27 @@ func (r *resourceEndpointSettingProfile) Schema(ctx context.Context, req resourc
 			"trigger_vuln_scan_on_software_change": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"allow_shutdown_when_registered": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"send_application_inventory": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+				Optional: true,
+			},
+			"invalid_cert_action": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("warn", "allow"),
 				},
 				Computed: true,
 				Optional: true,
@@ -376,6 +400,18 @@ func (m *resourceEndpointSettingProfileModel) refreshEndpointSettingProfile(ctx 
 		m.TriggerVulnScanOnSoftwareChange = parseStringValue(v)
 	}
 
+	if v, ok := o["allowShutdownWhenRegistered"]; ok {
+		m.AllowShutdownWhenRegistered = parseStringValue(v)
+	}
+
+	if v, ok := o["sendApplicationInventory"]; ok {
+		m.SendApplicationInventory = parseStringValue(v)
+	}
+
+	if v, ok := o["invalidCertAction"]; ok {
+		m.InvalidCertAction = parseStringValue(v)
+	}
+
 	if v, ok := o["fctGui"]; ok {
 		m.FctGui = m.FctGui.flattenEndpointSettingProfileFctGui(ctx, v, &diags)
 	}
@@ -417,6 +453,18 @@ func (data *resourceEndpointSettingProfileModel) getCreateObjectEndpointSettingP
 		result["triggerVulnScanOnSoftwareChange"] = data.TriggerVulnScanOnSoftwareChange.ValueString()
 	}
 
+	if !data.AllowShutdownWhenRegistered.IsNull() && !data.AllowShutdownWhenRegistered.IsUnknown() {
+		result["allowShutdownWhenRegistered"] = data.AllowShutdownWhenRegistered.ValueString()
+	}
+
+	if !data.SendApplicationInventory.IsNull() && !data.SendApplicationInventory.IsUnknown() {
+		result["sendApplicationInventory"] = data.SendApplicationInventory.ValueString()
+	}
+
+	if !data.InvalidCertAction.IsNull() && !data.InvalidCertAction.IsUnknown() {
+		result["invalidCertAction"] = data.InvalidCertAction.ValueString()
+	}
+
 	if data.FctGui != nil && !isZeroStruct(*data.FctGui) {
 		result["fctGui"] = data.FctGui.expandEndpointSettingProfileFctGui(ctx, diags)
 	}
@@ -456,6 +504,18 @@ func (data *resourceEndpointSettingProfileModel) getUpdateObjectEndpointSettingP
 
 	if !data.TriggerVulnScanOnSoftwareChange.IsNull() && !data.TriggerVulnScanOnSoftwareChange.IsUnknown() {
 		result["triggerVulnScanOnSoftwareChange"] = data.TriggerVulnScanOnSoftwareChange.ValueString()
+	}
+
+	if !data.AllowShutdownWhenRegistered.IsNull() && !data.AllowShutdownWhenRegistered.IsUnknown() {
+		result["allowShutdownWhenRegistered"] = data.AllowShutdownWhenRegistered.ValueString()
+	}
+
+	if !data.SendApplicationInventory.IsNull() && !data.SendApplicationInventory.IsUnknown() {
+		result["sendApplicationInventory"] = data.SendApplicationInventory.ValueString()
+	}
+
+	if !data.InvalidCertAction.IsNull() && !data.InvalidCertAction.IsUnknown() {
+		result["invalidCertAction"] = data.InvalidCertAction.ValueString()
 	}
 
 	if data.FctGui != nil {

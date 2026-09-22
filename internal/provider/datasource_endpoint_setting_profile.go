@@ -34,6 +34,9 @@ type datasourceEndpointSettingProfileModel struct {
 	NotifyVpnIssue                  types.String                                 `tfsdk:"notify_vpn_issue"`
 	UsersCanDisconnect              types.String                                 `tfsdk:"users_can_disconnect"`
 	TriggerVulnScanOnSoftwareChange types.String                                 `tfsdk:"trigger_vuln_scan_on_software_change"`
+	AllowShutdownWhenRegistered     types.String                                 `tfsdk:"allow_shutdown_when_registered"`
+	SendApplicationInventory        types.String                                 `tfsdk:"send_application_inventory"`
+	InvalidCertAction               types.String                                 `tfsdk:"invalid_cert_action"`
 	FctGui                          *datasourceEndpointSettingProfileFctGuiModel `tfsdk:"fct_gui"`
 	EmsDisconnectPassword           types.String                                 `tfsdk:"ems_disconnect_password"`
 	PrimaryKey                      types.String                                 `tfsdk:"primary_key"`
@@ -86,6 +89,24 @@ func (r *datasourceEndpointSettingProfile) Schema(ctx context.Context, req datas
 			"trigger_vuln_scan_on_software_change": schema.StringAttribute{
 				Validators: []validator.String{
 					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+			},
+			"allow_shutdown_when_registered": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+			},
+			"send_application_inventory": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				Computed: true,
+			},
+			"invalid_cert_action": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("warn", "allow"),
 				},
 				Computed: true,
 			},
@@ -197,6 +218,18 @@ func (m *datasourceEndpointSettingProfileModel) refreshEndpointSettingProfile(ct
 
 	if v, ok := o["triggerVulnScanOnSoftwareChange"]; ok {
 		m.TriggerVulnScanOnSoftwareChange = parseStringValue(v)
+	}
+
+	if v, ok := o["allowShutdownWhenRegistered"]; ok {
+		m.AllowShutdownWhenRegistered = parseStringValue(v)
+	}
+
+	if v, ok := o["sendApplicationInventory"]; ok {
+		m.SendApplicationInventory = parseStringValue(v)
+	}
+
+	if v, ok := o["invalidCertAction"]; ok {
+		m.InvalidCertAction = parseStringValue(v)
 	}
 
 	if v, ok := o["fctGui"]; ok {

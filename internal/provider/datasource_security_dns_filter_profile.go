@@ -128,7 +128,7 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 						},
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("allow", "block", "exempt", "monitor"),
+								stringvalidatorwarning.OneOf("allow", "block", "monitor"),
 							},
 							Computed: true,
 						},
@@ -171,7 +171,7 @@ func (r *datasourceSecurityDnsFilterProfile) Schema(ctx context.Context, req dat
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "disable"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block"),
 							},
 							Computed: true,
 						},

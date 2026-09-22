@@ -55,6 +55,9 @@ func (r *resourceSecurityDlpExactDataMatch) Schema(ctx context.Context, req reso
 				},
 			},
 			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 35),
+				},
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

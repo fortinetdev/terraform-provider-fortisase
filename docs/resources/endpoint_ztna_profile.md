@@ -15,25 +15,14 @@ ZTNA Profile Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
 resource "fortisase_endpoint_ztna_profile" "example" {
   primary_key             = fortisase_endpoint_profile.endpoint_profile.primary_key
+  status                  = "enable"
   allow_automatic_sign_on = "disable"
-  connection_rules = [
-    {
-      id         = 1
-      address    = "192.168.1.1"
-      uid        = "1"
-      gateways   = []
-      mask       = "255.255.255.0"
-      name       = "test"
-      port       = "80"
-      encryption = "enable"
-    }
-  ]
 }
 ```
 
@@ -61,12 +50,15 @@ resource "fortisase_endpoint_ztna_profile" "example" {
 Optional:
 
 - `address` (String)
+- `enable_udp` (Boolean)
 - `encryption` (String)
 - `gateways` (Attributes List) (see [below for nested schema](#nestedatt--connection_rules--gateways))
 - `id` (Number)
 - `mask` (String)
 - `name` (String)
 - `port` (String)
+- `redirect` (String) Application-level SAML external-browser redirect. Applies to EMS 7.4+. Omitted on earlier EMS, where redirect is per-gateway.
+Supported values: enable, disable.
 - `uid` (String)
 
 <a id="nestedatt--connection_rules--gateways"></a>
@@ -77,7 +69,8 @@ Optional:
 - `alias` (String)
 - `id` (Number)
 - `private_app_count` (Number)
-- `redirect` (String)
+- `redirect` (String) Per-gateway SAML external-browser redirect. Applies to EMS versions below 7.4. Omitted on EMS 7.4+, where redirect is application-level.
+Supported values: enable, disable.
 - `vip` (String)
 
 

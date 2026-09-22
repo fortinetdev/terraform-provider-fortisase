@@ -1,3 +1,3 @@
 data "fortisase_endpoint_profile" "example" {
-  primary_key = "<your_value>"
+  primary_key = "exampleEndpointProfile"
 }

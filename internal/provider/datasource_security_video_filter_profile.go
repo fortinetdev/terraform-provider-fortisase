@@ -60,7 +60,7 @@ func (r *datasourceSecurityVideoFilterProfile) Schema(ctx context.Context, req d
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
 							Validators: []validator.String{
-								stringvalidatorwarning.OneOf("allow", "monitor", "block", "warning", "default"),
+								stringvalidatorwarning.OneOf("allow", "monitor", "block", "default"),
 							},
 							Computed: true,
 						},

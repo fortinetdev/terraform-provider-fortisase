@@ -62,6 +62,9 @@ func (r *resourceSecurityDlpFingerprintDatabase) Schema(ctx context.Context, req
 				},
 			},
 			"primary_key": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.LengthBetween(1, 35),
+				},
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

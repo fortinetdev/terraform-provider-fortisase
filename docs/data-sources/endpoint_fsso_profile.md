@@ -28,7 +28,19 @@ data "fortisase_endpoint_fsso_profile" "example" {
 ### Read-Only
 
 - `enabled` (Boolean)
-- `host` (String)
-- `port` (Number)
+- `host` (String) Deprecated: use `servers` instead. On GET this mirrors the host of the first `servers` entry. Planned for removal in release 26.4.1.
+- `port` (Number) Deprecated: use `servers` instead. On GET this mirrors the port of the first `servers` entry. Planned for removal in release 26.4.1.
+Value at most 65535.
 - `pre_shared_key` (String)
 - `prefer_entra_id` (String)
+- `servers` (Attributes List) FSSO Mobility Agent servers. The first entry is the primary server. Replaces the deprecated `host`/`port` pair. (see [below for nested schema](#nestedatt--servers))
+
+<a id="nestedatt--servers"></a>
+### Nested Schema for `servers`
+
+Read-Only:
+
+- `host` (String) IPv4 address or hostname of the FSSO Mobility Agent server.
+Length at most 253.
+- `port` (Number) Listening port of the FSSO Mobility Agent server.
+Value between 1 and 65535.

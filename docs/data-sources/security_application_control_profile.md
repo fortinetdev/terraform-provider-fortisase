@@ -33,6 +33,7 @@ Supported values: internal-profiles, outbound-profiles.
 - `controls` (Attributes List) Generic controls defining actions for applications, filters, and overrides. Array order matters. Entries are evaluated first-to-last. Overrides must be placed ahead of application category controls for correct evaluation. (see [below for nested schema](#nestedatt--controls))
 - `network_protocol_enforcement` (String)
 - `network_protocols` (Attributes List) (see [below for nested schema](#nestedatt--network_protocols))
+- `other_application_action` (String)
 - `unknown_application_action` (String)
 
 <a id="nestedatt--controls"></a>
@@ -45,7 +46,7 @@ Read-Only:
 - `categories` (Attributes List) Set the control action for a given application category. For the 'Proxy' category, the action cannot be set to 'block' if the linked profile group is referenced by a proxy policy. (see [below for nested schema](#nestedatt--controls--categories))
 - `ips_attributes` (Attributes List) (see [below for nested schema](#nestedatt--controls--ips_attributes))
 - `popularity` (Set of Number) Popularity level(s) with 1 being lowest and 5 being highest
-- `risk` (Set of Number) Risk level(s) with 0 being lowest and 4 being highest
+- `risk` (Set of Number) Risk level(s) with 1 being lowest and 5 being highest
 
 <a id="nestedatt--controls--applications"></a>
 ### Nested Schema for `controls.applications`

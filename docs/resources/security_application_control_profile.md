@@ -103,6 +103,7 @@ resource "fortisase_security_application_control_profile" "application_control_p
 Supported values: internal-profiles, outbound-profiles.
 - `network_protocol_enforcement` (String)
 - `network_protocols` (Attributes List) (see [below for nested schema](#nestedatt--network_protocols))
+- `other_application_action` (String)
 - `unknown_application_action` (String)
 
 ### Read-Only
@@ -119,7 +120,7 @@ Optional:
 - `categories` (Attributes List) Set the control action for a given application category. For the 'Proxy' category, the action cannot be set to 'block' if the linked profile group is referenced by a proxy policy. (see [below for nested schema](#nestedatt--controls--categories))
 - `ips_attributes` (Attributes List) (see [below for nested schema](#nestedatt--controls--ips_attributes))
 - `popularity` (Set of Number) Popularity level(s) with 1 being lowest and 5 being highest
-- `risk` (Set of Number) Risk level(s) with 0 being lowest and 4 being highest
+- `risk` (Set of Number) Risk level(s) with 1 being lowest and 5 being highest
 
 <a id="nestedatt--controls--applications"></a>
 ### Nested Schema for `controls.applications`

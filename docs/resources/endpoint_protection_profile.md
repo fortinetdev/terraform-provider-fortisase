@@ -15,7 +15,7 @@ Protection Profile Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Endpoint management -> Configuration -> Profiles
 resource "fortisase_endpoint_profile" "endpoint_profile" {
-  primary_key = "example_endpoint_profile"
+  primary_key = "exampleEndpointProfile"
   enabled     = true
 }
 
@@ -95,11 +95,15 @@ resource "fortisase_endpoint_protection_profile" "endpoint_protection_profile" {
 - `automatic_vulnerability_patch_level` (String)
 - `automatically_patch_vulnerabilities` (String)
 - `default_action` (String)
-- `event_based_scanning` (String)
+- `event_based_scanning` (String) Deprecated by PMDB 42138. Replaced by the finer-grained scanOnRegistration, scanOnOsUpdate, and scanOnSignatureUpdate fields; the fetch layer keeps emitting this as the OR of the three replacements for backward compatibility.
+Supported values: enable, disable.
 - `exclusions` (Attributes) (see [below for nested schema](#nestedatt--exclusions))
 - `notify_endpoint_of_blocks` (String)
 - `protected_folders_path` (Set of String)
 - `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
+- `scan_on_os_update` (String)
+- `scan_on_registration` (String)
+- `scan_on_signature_update` (String)
 - `scheduled_antivirus_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_antivirus_scan))
 - `scheduled_scan` (Attributes) (see [below for nested schema](#nestedatt--scheduled_scan))
 - `show_vulnerability_popup` (String)
