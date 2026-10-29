@@ -15,12 +15,21 @@ FSSO Agent Resource API V2 for FortiSASE.
 ```terraform
 # GUI: Access & authentication -> Fortinet Single Sign-On (FSSO)
 resource "fortisase_auth_fsso_agent" "fsso_agent" {
-  primary_key      = "fsso_agent_name"
-  name             = "fsso_agent_name"
-  server           = "1.2.3.4"
-  port             = "8001"
-  password         = "password"
-  ssl_trusted_cert = "existing_remote_ca_certificate_name"
+  primary_key = "fsso_agent_name"
+  name        = "fsso_agent_name"
+  server      = "1.2.3.4"
+  port        = "8001"
+  password    = "password"
+  ssl_trusted_cert = {
+    primary_key = fortisase_system_certificate.remote_ca_certificate.primary_key
+    datasource  = "system/certificate/remote-ca-certificates"
+  }
+}
+
+resource "fortisase_system_certificate" "remote_ca_certificate" {
+  certificate_type = "remote-ca-certificate"
+  primary_key      = "example_remote_ca_cert"
+  file_content     = filebase64("./path/to/remote-ca-file.crt")
 }
 ```
 
@@ -50,12 +59,20 @@ resource "fortisase_auth_fsso_agent" "fsso_agent" {
 - `server3` (String)
 - `server4` (String)
 - `server5` (String)
-- `ssl_trusted_cert` (String)
+- `ssl_trusted_cert` (Attributes) The certificate the agent is trusted against. It resolves against `system/certificate/remote-ca-certificates` or `system/certificate/remote-certificates`. (see [below for nested schema](#nestedatt--ssl_trusted_cert))
 - `status` (String)
 
 ### Read-Only
 
 - `id` (String) Identifier, required by Terraform, not configurable.
+
+<a id="nestedatt--ssl_trusted_cert"></a>
+### Nested Schema for `ssl_trusted_cert`
+
+Optional:
+
+- `datasource` (String)
+- `primary_key` (String)
 
 ## Import
 

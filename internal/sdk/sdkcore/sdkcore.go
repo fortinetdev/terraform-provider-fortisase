@@ -18,7 +18,7 @@ func (c *FortiSDKClient) UpdateAuthFssoAgents(input_model *InputModel) (output m
 }
 func (c *FortiSDKClient) ReadAuthFssoAgents(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
-	input_model.URL = "/resource-api/v2/auth/fsso-agents/{primaryKey}"
+	input_model.URL = "/resource-api/v2/auth/fsso-agents/{primaryKey}?new_schema=true"
 	input_model.MkeyName = "primaryKey"
 	input_model.update()
 
@@ -751,6 +751,14 @@ func (c *FortiSDKClient) ReadEndpointsGroups(input_model *InputModel) (output ma
 	output, err = read(c, input_model)
 	return
 }
+func (c *FortiSDKClient) CreateEndpointsQuarantine(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/monitor-api/v1/endpoints/quarantine"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
+	return
+}
 func (c *FortiSDKClient) ReadEndpointsSoftwareOnClientUser(input_model *InputModel) (output map[string]interface{}, err error) {
 	input_model.HTTPMethod = "GET"
 	input_model.URL = "/monitor-api/v1/endpoints/software-on-client-user/{clientUserId}"
@@ -767,6 +775,14 @@ func (c *FortiSDKClient) ReadEndpointsSoftwareOnEndpoint(input_model *InputModel
 	input_model.update()
 
 	output, err = read(c, input_model)
+	return
+}
+func (c *FortiSDKClient) CreateEndpointsUnquarantine(input_model *InputModel) (output map[string]interface{}, err error) {
+	input_model.HTTPMethod = "POST"
+	input_model.URL = "/monitor-api/v1/endpoints/unquarantine"
+	input_model.update()
+
+	output, err = sendRequests(c, input_model)
 	return
 }
 func (c *FortiSDKClient) ReadInfraDataTransfer(input_model *InputModel) (output map[string]interface{}, err error) {

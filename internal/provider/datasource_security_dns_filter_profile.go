@@ -261,7 +261,25 @@ func (m *datasourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfil
 	}
 
 	if v, ok := o["useForEdgeDevices"]; ok {
-		m.UseForEdgeDevices = parseBoolValue(v)
+		m.UseForEdgeDevices = func() types.Bool {
+			switch value := v.(type) {
+			case nil:
+				return types.BoolNull()
+			case bool:
+				return types.BoolValue(value)
+			case string:
+				switch value {
+				case "enable":
+					return types.BoolValue(true)
+				case "disable":
+					return types.BoolValue(false)
+				}
+			}
+			diags.AddError("Unexpected API value", fmt.Sprintf(
+				"Attribute %q received an unmapped value: %v (%T).",
+				"useForEdgeDevices", v, v))
+			return types.BoolNull()
+		}()
 	}
 
 	if v, ok := o["useFortiguardFilters"]; ok {

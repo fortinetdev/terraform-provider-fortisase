@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,6 +32,8 @@ type resourceSecurityInternalProxyPolicy struct {
 // resourceSecurityInternalProxyPolicyModel describes the resource data model.
 type resourceSecurityInternalProxyPolicyModel struct {
 	ID           types.String                                           `tfsdk:"id"`
+	BeforePolicy types.String                                           `tfsdk:"before_policy"`
+	AfterPolicy  types.String                                           `tfsdk:"after_policy"`
 	PrimaryKey   types.String                                           `tfsdk:"primary_key"`
 	Enabled      types.Bool                                             `tfsdk:"enabled"`
 	Sources      []resourceSecurityInternalProxyPolicySourcesModel      `tfsdk:"sources"`
@@ -56,6 +59,22 @@ func (r *resourceSecurityInternalProxyPolicy) Schema(ctx context.Context, req re
 				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"before_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy before the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("after_policy")),
+				},
+			},
+			"after_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy after the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("before_policy")),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -263,6 +282,12 @@ func (r *resourceSecurityInternalProxyPolicy) Create(ctx context.Context, req re
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-proxy-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalProxyPolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -324,6 +349,12 @@ func (r *resourceSecurityInternalProxyPolicy) Update(ctx context.Context, req re
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-proxy-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalProxyPolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -613,13 +644,31 @@ func (s *resourceSecurityInternalProxyPolicyModel) flattenSecurityInternalProxyP
 	values := make([]resourceSecurityInternalProxyPolicySourcesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalProxyPolicySourcesModel
-		if i < len(s.Sources) {
-			m = s.Sources[i]
-		}
 		values[i] = *m.flattenSecurityInternalProxyPolicySources(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalProxyPolicySourcesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Sources {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalProxyPolicyUsersModel) flattenSecurityInternalProxyPolicyUsers(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalProxyPolicyUsersModel {
@@ -664,13 +713,31 @@ func (s *resourceSecurityInternalProxyPolicyModel) flattenSecurityInternalProxyP
 	values := make([]resourceSecurityInternalProxyPolicyUsersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalProxyPolicyUsersModel
-		if i < len(s.Users) {
-			m = s.Users[i]
-		}
 		values[i] = *m.flattenSecurityInternalProxyPolicyUsers(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalProxyPolicyUsersModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Users {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalProxyPolicyDestinationsModel) flattenSecurityInternalProxyPolicyDestinations(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalProxyPolicyDestinationsModel {
@@ -715,13 +782,31 @@ func (s *resourceSecurityInternalProxyPolicyModel) flattenSecurityInternalProxyP
 	values := make([]resourceSecurityInternalProxyPolicyDestinationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalProxyPolicyDestinationsModel
-		if i < len(s.Destinations) {
-			m = s.Destinations[i]
-		}
 		values[i] = *m.flattenSecurityInternalProxyPolicyDestinations(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalProxyPolicyDestinationsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Destinations {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalProxyPolicyScheduleModel) flattenSecurityInternalProxyPolicySchedule(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalProxyPolicyScheduleModel {

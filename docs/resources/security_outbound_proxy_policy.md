@@ -16,13 +16,16 @@ Outbound Proxy Policy Resource API V2 for FortiSASE.
 # GUI: Security -> Proxy policies
 resource "fortisase_security_outbound_proxy_policy" "example" {
   primary_key = "outbound_proxy_name"
-  enabled     = true
-  action      = "accept"
-  log_traffic = "all"
-  comments    = "tf test outbound proxy policy"
 
-  users = []
+  # [User]
+  users = [
+    # {
+    #   primary_key = "existing-user@example.com"
+    #   datasource  = "auth/users"
+    # }
+  ]
 
+  # [Destination]
   destinations = [
     {
       primary_key = "all"
@@ -30,20 +33,44 @@ resource "fortisase_security_outbound_proxy_policy" "example" {
     }
   ]
 
-  sources = []
+  # [Security Posture Tag]
+  sources = [
+    # {
+    #   primary_key = "existing_tag_rule_name"
+    #   datasource  = "endpoint/ztna-tag-rules" # EMS 7.4; for EMS 7.2, use "endpoint/ztna-tags" and the tag's primary key.
+    # }
+  ]
 
+  # [Profile Group]
   profile_group = {
     group = {
-      primary_key = "outbound"
+      primary_key = fortisase_security_profile_group.outbound_proxy.primary_key
       datasource  = "security/profile-groups"
     }
     force_cert_inspection = false
   }
 
+  # [Schedule]
   schedule = {
     primary_key = "always"
     datasource  = "security/recurring-schedules"
   }
+
+  # [Action]
+  action = "accept"
+
+  # [Status]
+  enabled = true
+
+  # [Log Violation Traffic]
+  log_traffic = "all"
+
+  # [Comments]
+  comments = "tf test outbound proxy policy"
+}
+
+resource "fortisase_security_profile_group" "outbound_proxy" {
+  primary_key = "tf-outbound-proxy-profile"
 }
 ```
 
@@ -57,6 +84,8 @@ resource "fortisase_security_outbound_proxy_policy" "example" {
 ### Optional
 
 - `action` (String)
+- `after_policy` (String) Move this policy after the target policy.
+- `before_policy` (String) Move this policy before the target policy.
 - `comments` (String)
 - `destinations` (Attributes List) (see [below for nested schema](#nestedatt--destinations))
 - `enabled` (Boolean)

@@ -31,27 +31,27 @@ type resourceAuthFssoAgent struct {
 
 // resourceAuthFssoAgentModel describes the resource data model.
 type resourceAuthFssoAgentModel struct {
-	ID             types.String `tfsdk:"id"`
-	PrimaryKey     types.String `tfsdk:"primary_key"`
-	ActiveServer   types.String `tfsdk:"active_server"`
-	Status         types.String `tfsdk:"status"`
-	Name           types.String `tfsdk:"name"`
-	Server         types.String `tfsdk:"server"`
-	Port           types.String `tfsdk:"port"`
-	Password       types.String `tfsdk:"password"`
-	Server2        types.String `tfsdk:"server2"`
-	Port2          types.String `tfsdk:"port2"`
-	Password2      types.String `tfsdk:"password2"`
-	Server3        types.String `tfsdk:"server3"`
-	Port3          types.String `tfsdk:"port3"`
-	Password3      types.String `tfsdk:"password3"`
-	Server4        types.String `tfsdk:"server4"`
-	Port4          types.String `tfsdk:"port4"`
-	Password4      types.String `tfsdk:"password4"`
-	Server5        types.String `tfsdk:"server5"`
-	Port5          types.String `tfsdk:"port5"`
-	Password5      types.String `tfsdk:"password5"`
-	SslTrustedCert types.String `tfsdk:"ssl_trusted_cert"`
+	ID             types.String                              `tfsdk:"id"`
+	PrimaryKey     types.String                              `tfsdk:"primary_key"`
+	ActiveServer   types.String                              `tfsdk:"active_server"`
+	Status         types.String                              `tfsdk:"status"`
+	Name           types.String                              `tfsdk:"name"`
+	Server         types.String                              `tfsdk:"server"`
+	Port           types.String                              `tfsdk:"port"`
+	Password       types.String                              `tfsdk:"password"`
+	Server2        types.String                              `tfsdk:"server2"`
+	Port2          types.String                              `tfsdk:"port2"`
+	Password2      types.String                              `tfsdk:"password2"`
+	Server3        types.String                              `tfsdk:"server3"`
+	Port3          types.String                              `tfsdk:"port3"`
+	Password3      types.String                              `tfsdk:"password3"`
+	Server4        types.String                              `tfsdk:"server4"`
+	Port4          types.String                              `tfsdk:"port4"`
+	Password4      types.String                              `tfsdk:"password4"`
+	Server5        types.String                              `tfsdk:"server5"`
+	Port5          types.String                              `tfsdk:"port5"`
+	Password5      types.String                              `tfsdk:"password5"`
+	SslTrustedCert *resourceAuthFssoAgentSslTrustedCertModel `tfsdk:"ssl_trusted_cert"`
 }
 
 func (r *resourceAuthFssoAgent) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -206,9 +206,18 @@ func (r *resourceAuthFssoAgent) Schema(ctx context.Context, req resource.SchemaR
 				Computed:  true,
 				Optional:  true,
 			},
-			"ssl_trusted_cert": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(79),
+			"ssl_trusted_cert": schema.SingleNestedAttribute{
+				MarkdownDescription: "The certificate the agent is trusted against. It resolves against `system/certificate/remote-ca-certificates` or `system/certificate/remote-certificates`.",
+				Attributes: map[string]schema.Attribute{
+					"primary_key": schema.StringAttribute{
+						Optional: true,
+					},
+					"datasource": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("system/certificate/remote-ca-certificates", "system/certificate/remote-certificates"),
+						},
+						Optional: true,
+					},
 				},
 				Computed: true,
 				Optional: true,
@@ -514,7 +523,7 @@ func (m *resourceAuthFssoAgentModel) refreshAuthFssoAgent(ctx context.Context, o
 	}
 
 	if v, ok := o["sslTrustedCert"]; ok {
-		m.SslTrustedCert = parseStringValue(v)
+		m.SslTrustedCert = m.SslTrustedCert.flattenAuthFssoAgentSslTrustedCert(ctx, v, &diags)
 	}
 
 	return diags
@@ -598,8 +607,9 @@ func (data *resourceAuthFssoAgentModel) getCreateObjectAuthFssoAgent(ctx context
 		result["password5"] = data.Password5.ValueString()
 	}
 
-	if !data.SslTrustedCert.IsNull() && !data.SslTrustedCert.IsUnknown() {
-		result["sslTrustedCert"] = data.SslTrustedCert.ValueString()
+	result["sslTrustedCert"] = nil
+	if data.SslTrustedCert != nil && !isZeroStruct(*data.SslTrustedCert) {
+		result["sslTrustedCert"] = data.SslTrustedCert.expandAuthFssoAgentSslTrustedCert(ctx, diags)
 	}
 
 	return &result
@@ -683,8 +693,9 @@ func (data *resourceAuthFssoAgentModel) getUpdateObjectAuthFssoAgent(ctx context
 		result["password5"] = data.Password5.ValueString()
 	}
 
-	if !data.SslTrustedCert.IsNull() && !data.SslTrustedCert.IsUnknown() {
-		result["sslTrustedCert"] = data.SslTrustedCert.ValueString()
+	result["sslTrustedCert"] = nil
+	if data.SslTrustedCert != nil && !isZeroStruct(*data.SslTrustedCert) {
+		result["sslTrustedCert"] = data.SslTrustedCert.expandAuthFssoAgentSslTrustedCert(ctx, diags)
 	}
 
 	return &result
@@ -697,4 +708,41 @@ func (data *resourceAuthFssoAgentModel) getURLObjectAuthFssoAgent(ctx context.Co
 	}
 
 	return &result
+}
+
+type resourceAuthFssoAgentSslTrustedCertModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
+}
+
+func (m *resourceAuthFssoAgentSslTrustedCertModel) flattenAuthFssoAgentSslTrustedCert(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceAuthFssoAgentSslTrustedCertModel {
+	if input == nil {
+		return &resourceAuthFssoAgentSslTrustedCertModel{}
+	}
+	if m == nil {
+		m = &resourceAuthFssoAgentSslTrustedCertModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
+	}
+
+	return m
+}
+
+func (data *resourceAuthFssoAgentSslTrustedCertModel) expandAuthFssoAgentSslTrustedCert(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
+	result := make(map[string]interface{})
+	if !data.PrimaryKey.IsNull() && !data.PrimaryKey.IsUnknown() {
+		result["primaryKey"] = data.PrimaryKey.ValueString()
+	}
+
+	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
+		result["datasource"] = data.Datasource.ValueString()
+	}
+
+	return result
 }

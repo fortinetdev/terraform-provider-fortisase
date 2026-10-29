@@ -27,21 +27,21 @@ type datasourceAuthFssoAgent struct {
 
 // datasourceAuthFssoAgentModel describes the datasource data model.
 type datasourceAuthFssoAgentModel struct {
-	PrimaryKey     types.String `tfsdk:"primary_key"`
-	ActiveServer   types.String `tfsdk:"active_server"`
-	Status         types.String `tfsdk:"status"`
-	Name           types.String `tfsdk:"name"`
-	Server         types.String `tfsdk:"server"`
-	Port           types.String `tfsdk:"port"`
-	Server2        types.String `tfsdk:"server2"`
-	Port2          types.String `tfsdk:"port2"`
-	Server3        types.String `tfsdk:"server3"`
-	Port3          types.String `tfsdk:"port3"`
-	Server4        types.String `tfsdk:"server4"`
-	Port4          types.String `tfsdk:"port4"`
-	Server5        types.String `tfsdk:"server5"`
-	Port5          types.String `tfsdk:"port5"`
-	SslTrustedCert types.String `tfsdk:"ssl_trusted_cert"`
+	PrimaryKey     types.String                                `tfsdk:"primary_key"`
+	ActiveServer   types.String                                `tfsdk:"active_server"`
+	Status         types.String                                `tfsdk:"status"`
+	Name           types.String                                `tfsdk:"name"`
+	Server         types.String                                `tfsdk:"server"`
+	Port           types.String                                `tfsdk:"port"`
+	Server2        types.String                                `tfsdk:"server2"`
+	Port2          types.String                                `tfsdk:"port2"`
+	Server3        types.String                                `tfsdk:"server3"`
+	Port3          types.String                                `tfsdk:"port3"`
+	Server4        types.String                                `tfsdk:"server4"`
+	Port4          types.String                                `tfsdk:"port4"`
+	Server5        types.String                                `tfsdk:"server5"`
+	Port5          types.String                                `tfsdk:"port5"`
+	SslTrustedCert *datasourceAuthFssoAgentSslTrustedCertModel `tfsdk:"ssl_trusted_cert"`
 }
 
 func (r *datasourceAuthFssoAgent) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -133,9 +133,18 @@ func (r *datasourceAuthFssoAgent) Schema(ctx context.Context, req datasource.Sch
 				},
 				Computed: true,
 			},
-			"ssl_trusted_cert": schema.StringAttribute{
-				Validators: []validator.String{
-					stringvalidatorwarning.LengthAtMost(79),
+			"ssl_trusted_cert": schema.SingleNestedAttribute{
+				MarkdownDescription: "The certificate the agent is trusted against. It resolves against `system/certificate/remote-ca-certificates` or `system/certificate/remote-certificates`.",
+				Attributes: map[string]schema.Attribute{
+					"primary_key": schema.StringAttribute{
+						Computed: true,
+					},
+					"datasource": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("system/certificate/remote-ca-certificates", "system/certificate/remote-certificates"),
+						},
+						Computed: true,
+					},
 				},
 				Computed: true,
 			},
@@ -259,7 +268,7 @@ func (m *datasourceAuthFssoAgentModel) refreshAuthFssoAgent(ctx context.Context,
 	}
 
 	if v, ok := o["sslTrustedCert"]; ok {
-		m.SslTrustedCert = parseStringValue(v)
+		m.SslTrustedCert = m.SslTrustedCert.flattenAuthFssoAgentSslTrustedCert(ctx, v, &diags)
 	}
 
 	return diags
@@ -272,4 +281,28 @@ func (data *datasourceAuthFssoAgentModel) getURLObjectAuthFssoAgent(ctx context.
 	}
 
 	return &result
+}
+
+type datasourceAuthFssoAgentSslTrustedCertModel struct {
+	PrimaryKey types.String `tfsdk:"primary_key"`
+	Datasource types.String `tfsdk:"datasource"`
+}
+
+func (m *datasourceAuthFssoAgentSslTrustedCertModel) flattenAuthFssoAgentSslTrustedCert(ctx context.Context, input interface{}, diags *diag.Diagnostics) *datasourceAuthFssoAgentSslTrustedCertModel {
+	if input == nil {
+		return &datasourceAuthFssoAgentSslTrustedCertModel{}
+	}
+	if m == nil {
+		m = &datasourceAuthFssoAgentSslTrustedCertModel{}
+	}
+	o := input.(map[string]interface{})
+	if v, ok := o["primaryKey"]; ok {
+		m.PrimaryKey = parseStringValue(v)
+	}
+
+	if v, ok := o["datasource"]; ok {
+		m.Datasource = parseStringValue(v)
+	}
+
+	return m
 }

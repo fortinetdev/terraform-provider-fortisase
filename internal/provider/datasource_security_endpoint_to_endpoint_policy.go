@@ -37,6 +37,7 @@ type datasourceSecurityEndpointToEndpointPolicyModel struct {
 	Comments     types.String                                                 `tfsdk:"comments"`
 	ProfileGroup *datasourceSecurityEndpointToEndpointPolicyProfileGroupModel `tfsdk:"profile_group"`
 	LogTraffic   types.String                                                 `tfsdk:"log_traffic"`
+	NatEnabled   types.Bool                                                   `tfsdk:"nat_enabled"`
 }
 
 func (r *datasourceSecurityEndpointToEndpointPolicy) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -73,6 +74,10 @@ func (r *datasourceSecurityEndpointToEndpointPolicy) Schema(ctx context.Context,
 					stringvalidatorwarning.OneOf("all", "utm", "disable"),
 				},
 				Computed: true,
+			},
+			"nat_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Source NAT for traffic matching this policy. Same-PoP client-to-client traffic does not need NAT, and NAT breaks protocols that carry the peer address in the payload (for example SIP). When omitted on create the policy is created with NAT disabled; when omitted on update the current setting is kept.",
+				Computed:            true,
 			},
 			"users": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -259,6 +264,10 @@ func (m *datasourceSecurityEndpointToEndpointPolicyModel) refreshSecurityEndpoin
 
 	if v, ok := o["logTraffic"]; ok {
 		m.LogTraffic = parseStringValue(v)
+	}
+
+	if v, ok := o["natEnabled"]; ok {
+		m.NatEnabled = parseBoolValue(v)
 	}
 
 	return diags

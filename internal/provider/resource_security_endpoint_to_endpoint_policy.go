@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +33,8 @@ type resourceSecurityEndpointToEndpointPolicy struct {
 // resourceSecurityEndpointToEndpointPolicyModel describes the resource data model.
 type resourceSecurityEndpointToEndpointPolicyModel struct {
 	ID           types.String                                               `tfsdk:"id"`
+	BeforePolicy types.String                                               `tfsdk:"before_policy"`
+	AfterPolicy  types.String                                               `tfsdk:"after_policy"`
 	PrimaryKey   types.String                                               `tfsdk:"primary_key"`
 	Enabled      types.Bool                                                 `tfsdk:"enabled"`
 	Users        []resourceSecurityEndpointToEndpointPolicyUsersModel       `tfsdk:"users"`
@@ -42,6 +45,7 @@ type resourceSecurityEndpointToEndpointPolicyModel struct {
 	Comments     types.String                                               `tfsdk:"comments"`
 	ProfileGroup *resourceSecurityEndpointToEndpointPolicyProfileGroupModel `tfsdk:"profile_group"`
 	LogTraffic   types.String                                               `tfsdk:"log_traffic"`
+	NatEnabled   types.Bool                                                 `tfsdk:"nat_enabled"`
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicy) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,6 +61,22 @@ func (r *resourceSecurityEndpointToEndpointPolicy) Schema(ctx context.Context, r
 				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"before_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy before the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("after_policy")),
+				},
+			},
+			"after_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy after the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("before_policy")),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -92,6 +112,11 @@ func (r *resourceSecurityEndpointToEndpointPolicy) Schema(ctx context.Context, r
 				},
 				Computed: true,
 				Optional: true,
+			},
+			"nat_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Source NAT for traffic matching this policy. Same-PoP client-to-client traffic does not need NAT, and NAT breaks protocols that carry the peer address in the payload (for example SIP). When omitted on create the policy is created with NAT disabled; when omitted on update the current setting is kept.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"users": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
@@ -288,6 +313,12 @@ func (r *resourceSecurityEndpointToEndpointPolicy) Create(ctx context.Context, r
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/endpoint-to-endpoint-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -349,6 +380,12 @@ func (r *resourceSecurityEndpointToEndpointPolicy) Update(ctx context.Context, r
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/endpoint-to-endpoint-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityEndpointToEndpointPolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -468,6 +505,10 @@ func (m *resourceSecurityEndpointToEndpointPolicyModel) refreshSecurityEndpointT
 		m.LogTraffic = parseStringValue(v)
 	}
 
+	if v, ok := o["natEnabled"]; ok {
+		m.NatEnabled = parseBoolValue(v)
+	}
+
 	return diags
 }
 
@@ -508,6 +549,10 @@ func (data *resourceSecurityEndpointToEndpointPolicyModel) getCreateObjectSecuri
 
 	if !data.LogTraffic.IsNull() && !data.LogTraffic.IsUnknown() {
 		result["logTraffic"] = data.LogTraffic.ValueString()
+	}
+
+	if !data.NatEnabled.IsNull() && !data.NatEnabled.IsUnknown() {
+		result["natEnabled"] = data.NatEnabled.ValueBool()
 	}
 
 	return &result
@@ -554,6 +599,10 @@ func (data *resourceSecurityEndpointToEndpointPolicyModel) getUpdateObjectSecuri
 
 	if !data.LogTraffic.IsNull() && !data.LogTraffic.IsUnknown() {
 		result["logTraffic"] = data.LogTraffic.ValueString()
+	}
+
+	if !data.NatEnabled.IsNull() && !data.NatEnabled.IsUnknown() {
+		result["natEnabled"] = data.NatEnabled.ValueBool()
 	}
 
 	return &result
@@ -640,13 +689,31 @@ func (s *resourceSecurityEndpointToEndpointPolicyModel) flattenSecurityEndpointT
 	values := make([]resourceSecurityEndpointToEndpointPolicyUsersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityEndpointToEndpointPolicyUsersModel
-		if i < len(s.Users) {
-			m = s.Users[i]
-		}
 		values[i] = *m.flattenSecurityEndpointToEndpointPolicyUsers(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityEndpointToEndpointPolicyUsersModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Users {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityEndpointToEndpointPolicySourcesModel) flattenSecurityEndpointToEndpointPolicySources(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityEndpointToEndpointPolicySourcesModel {
@@ -691,13 +758,31 @@ func (s *resourceSecurityEndpointToEndpointPolicyModel) flattenSecurityEndpointT
 	values := make([]resourceSecurityEndpointToEndpointPolicySourcesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityEndpointToEndpointPolicySourcesModel
-		if i < len(s.Sources) {
-			m = s.Sources[i]
-		}
 		values[i] = *m.flattenSecurityEndpointToEndpointPolicySources(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityEndpointToEndpointPolicySourcesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Sources {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityEndpointToEndpointPolicyServicesModel) flattenSecurityEndpointToEndpointPolicyServices(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityEndpointToEndpointPolicyServicesModel {
@@ -742,13 +827,31 @@ func (s *resourceSecurityEndpointToEndpointPolicyModel) flattenSecurityEndpointT
 	values := make([]resourceSecurityEndpointToEndpointPolicyServicesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityEndpointToEndpointPolicyServicesModel
-		if i < len(s.Services) {
-			m = s.Services[i]
-		}
 		values[i] = *m.flattenSecurityEndpointToEndpointPolicyServices(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityEndpointToEndpointPolicyServicesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Services {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityEndpointToEndpointPolicyScheduleModel) flattenSecurityEndpointToEndpointPolicySchedule(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityEndpointToEndpointPolicyScheduleModel {

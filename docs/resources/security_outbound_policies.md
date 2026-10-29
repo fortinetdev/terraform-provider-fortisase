@@ -106,8 +106,7 @@ resource "fortisase_security_outbound_policy" "example" {
   ### Specify ###
   # profile_group = {
   #   group = {
-  #     # If your profile group name is "example", the primary key should be "outbound-example"
-  #     primary_key = "outbound-{your profile group name}"
+  #     primary_key = "existing_profile_group_name"
   #     datasource  = "security/profile-groups"
   #   }
   #   # Basic certificate inspection override
@@ -155,6 +154,8 @@ resource "fortisase_security_outbound_policy" "example" {
 ### Optional
 
 - `action` (String)
+- `after_policy` (String) Move this policy after the target policy.
+- `before_policy` (String) Move this policy before the target policy.
 - `captive_portal_exempt` (Boolean)
 - `comments` (String)
 - `destinations` (Attributes List) (see [below for nested schema](#nestedatt--destinations))

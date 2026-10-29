@@ -41,5 +41,13 @@ data "fortisase_auth_fsso_agent" "example" {
 - `server3` (String)
 - `server4` (String)
 - `server5` (String)
-- `ssl_trusted_cert` (String)
+- `ssl_trusted_cert` (Attributes) The certificate the agent is trusted against. It resolves against `system/certificate/remote-ca-certificates` or `system/certificate/remote-certificates`. (see [below for nested schema](#nestedatt--ssl_trusted_cert))
 - `status` (String)
+
+<a id="nestedatt--ssl_trusted_cert"></a>
+### Nested Schema for `ssl_trusted_cert`
+
+Read-Only:
+
+- `datasource` (String)
+- `primary_key` (String)

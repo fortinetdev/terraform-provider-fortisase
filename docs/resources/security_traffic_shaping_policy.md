@@ -152,8 +152,10 @@ resource "fortisase_security_traffic_shaping_policy" "bandwidth_control_policy" 
 
 ### Optional
 
+- `after_policy` (String) Move this policy after the target policy.
 - `app_categories` (Attributes List) (see [below for nested schema](#nestedatt--app_categories))
 - `applications` (Attributes List) (see [below for nested schema](#nestedatt--applications))
+- `before_policy` (String) Move this policy before the target policy.
 - `comment` (String)
 - `destination_scope` (String)
 - `destinations` (Attributes List) (see [below for nested schema](#nestedatt--destinations))

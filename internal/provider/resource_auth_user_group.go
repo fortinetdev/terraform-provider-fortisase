@@ -540,13 +540,31 @@ func (s *resourceAuthUserGroupModel) flattenAuthUserGroupLocalUsersList(ctx cont
 	values := make([]resourceAuthUserGroupLocalUsersModel, len(l))
 	for i, ele := range l {
 		var m resourceAuthUserGroupLocalUsersModel
-		if i < len(s.LocalUsers) {
-			m = s.LocalUsers[i]
-		}
 		values[i] = *m.flattenAuthUserGroupLocalUsers(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceAuthUserGroupLocalUsersModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.LocalUsers {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceAuthUserGroupRemoteUserGroupsModel) flattenAuthUserGroupRemoteUserGroups(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceAuthUserGroupRemoteUserGroupsModel {

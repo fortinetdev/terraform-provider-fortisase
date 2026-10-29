@@ -126,12 +126,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},
@@ -159,12 +161,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-local-categories"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},
@@ -192,12 +196,14 @@ func (r *resourceSecurityWebFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/url-threat-feeds"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},
@@ -1163,13 +1169,31 @@ func (s *resourceSecurityWebFilterProfileHttpHeadersModel) flattenSecurityWebFil
 	values := make([]resourceSecurityWebFilterProfileHttpHeadersDestinationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityWebFilterProfileHttpHeadersDestinationsModel
-		if i < len(s.Destinations) {
-			m = s.Destinations[i]
-		}
 		values[i] = *m.flattenSecurityWebFilterProfileHttpHeadersDestinations(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityWebFilterProfileHttpHeadersDestinationsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Destinations {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecurityWebFilterProfileFortiguardFiltersModel) expandSecurityWebFilterProfileFortiguardFilters(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

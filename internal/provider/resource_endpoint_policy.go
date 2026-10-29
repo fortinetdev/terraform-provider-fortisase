@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +33,8 @@ type resourceEndpointPolicy struct {
 // resourceEndpointPolicyModel describes the resource data model.
 type resourceEndpointPolicyModel struct {
 	ID                              types.String `tfsdk:"id"`
+	BeforePolicy                    types.String `tfsdk:"before_policy"`
+	AfterPolicy                     types.String `tfsdk:"after_policy"`
 	PrimaryKey                      types.String `tfsdk:"primary_key"`
 	Enabled                         types.Bool   `tfsdk:"enabled"`
 	SkipOffNetProfileCreationOnEdit types.Bool   `tfsdk:"skip_off_net_profile_creation_on_edit"`
@@ -50,6 +53,22 @@ func (r *resourceEndpointPolicy) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"before_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy before the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("after_policy")),
+				},
+			},
+			"after_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy after the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("before_policy")),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -173,6 +192,12 @@ func (r *resourceEndpointPolicy) Create(ctx context.Context, req resource.Create
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/endpoint/policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceEndpointPolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -234,6 +259,12 @@ func (r *resourceEndpointPolicy) Update(ctx context.Context, req resource.Update
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/endpoint/policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceEndpointPolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

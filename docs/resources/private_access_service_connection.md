@@ -13,16 +13,8 @@ Secure Private Access Resource API for FortiSASE.
 ## Example Usage
 
 ```terraform
-resource "fortisase_private_access_network_configuration" "example" {
-  bgp_design            = "loopback" # overlay or loopback
-  bgp_router_ids_subnet = "172.1.0.0/24"
-  as_number             = "65400"
-  sdwan_rule_enable     = "true"
-  sdwan_health_check_vm = "10.255.255.100"
-  recursive_next_hop    = "true"
-}
-
-# Secure private access. fortisase_private_access_network_configuration must be created first.
+# GUI: Operations -> Secure private access
+# fortisase_private_access_network_configuration must be created first.
 resource "fortisase_private_access_service_connection" "example" {
   type = fortisase_private_access_network_configuration.example.bgp_design # overlay or loopback
 
@@ -68,6 +60,15 @@ resource "fortisase_private_access_service_connection" "example" {
 
   # [IKE version for IPSEC]
   ipsec_ike_version = "2" # Only support 2 for now
+}
+
+resource "fortisase_private_access_network_configuration" "example" {
+  bgp_design            = "loopback" # overlay or loopback
+  bgp_router_ids_subnet = "172.1.0.0/24"
+  as_number             = "65400"
+  sdwan_rule_enable     = "true"
+  sdwan_health_check_vm = "10.255.255.100"
+  recursive_next_hop    = "true"
 }
 ```
 

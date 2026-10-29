@@ -420,13 +420,31 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 	values := make([]resourceSecurityFileFilterProfileBlockModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityFileFilterProfileBlockModel
-		if i < len(s.Block) {
-			m = s.Block[i]
-		}
 		values[i] = *m.flattenSecurityFileFilterProfileBlock(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityFileFilterProfileBlockModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Block {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityFileFilterProfileMonitorModel) flattenSecurityFileFilterProfileMonitor(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityFileFilterProfileMonitorModel {
@@ -471,13 +489,31 @@ func (s *resourceSecurityFileFilterProfileModel) flattenSecurityFileFilterProfil
 	values := make([]resourceSecurityFileFilterProfileMonitorModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityFileFilterProfileMonitorModel
-		if i < len(s.Monitor) {
-			m = s.Monitor[i]
-		}
 		values[i] = *m.flattenSecurityFileFilterProfileMonitor(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityFileFilterProfileMonitorModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Monitor {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecurityFileFilterProfileBlockModel) expandSecurityFileFilterProfileBlock(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

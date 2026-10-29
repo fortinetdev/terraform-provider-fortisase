@@ -591,13 +591,31 @@ func (s *resourceInfraSsidModel) flattenInfraSsidSecurityGroupsList(ctx context.
 	values := make([]resourceInfraSsidSecurityGroupsModel, len(l))
 	for i, ele := range l {
 		var m resourceInfraSsidSecurityGroupsModel
-		if i < len(s.SecurityGroups) {
-			m = s.SecurityGroups[i]
-		}
 		values[i] = *m.flattenInfraSsidSecurityGroups(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceInfraSsidSecurityGroupsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.SecurityGroups {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceInfraSsidRadiusServerModel) flattenInfraSsidRadiusServer(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceInfraSsidRadiusServerModel {
@@ -661,13 +679,31 @@ func (s *resourceInfraSsidModel) flattenInfraSsidUserGroupsList(ctx context.Cont
 	values := make([]resourceInfraSsidUserGroupsModel, len(l))
 	for i, ele := range l {
 		var m resourceInfraSsidUserGroupsModel
-		if i < len(s.UserGroups) {
-			m = s.UserGroups[i]
-		}
 		values[i] = *m.flattenInfraSsidUserGroups(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceInfraSsidUserGroupsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.UserGroups {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceInfraSsidSecurityGroupsModel) expandInfraSsidSecurityGroups(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

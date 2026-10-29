@@ -183,12 +183,14 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/fortiguard-categories"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},
@@ -213,12 +215,14 @@ func (r *resourceSecurityDnsFilterProfile) Schema(ctx context.Context, req resou
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/domain-threat-feeds"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},
@@ -425,7 +429,25 @@ func (m *resourceSecurityDnsFilterProfileModel) refreshSecurityDnsFilterProfile(
 	}
 
 	if v, ok := o["useForEdgeDevices"]; ok {
-		m.UseForEdgeDevices = parseBoolValue(v)
+		m.UseForEdgeDevices = func() types.Bool {
+			switch value := v.(type) {
+			case nil:
+				return types.BoolNull()
+			case bool:
+				return types.BoolValue(value)
+			case string:
+				switch value {
+				case "enable":
+					return types.BoolValue(true)
+				case "disable":
+					return types.BoolValue(false)
+				}
+			}
+			diags.AddError("Unexpected API value", fmt.Sprintf(
+				"Attribute %q received an unmapped value: %v (%T).",
+				"useForEdgeDevices", v, v))
+			return types.BoolNull()
+		}()
 	}
 
 	if v, ok := o["useFortiguardFilters"]; ok {
@@ -482,7 +504,7 @@ func (data *resourceSecurityDnsFilterProfileModel) getCreateObjectSecurityDnsFil
 	}
 
 	if !data.UseForEdgeDevices.IsNull() && !data.UseForEdgeDevices.IsUnknown() {
-		result["useForEdgeDevices"] = data.UseForEdgeDevices.ValueBool()
+		result["useForEdgeDevices"] = map[bool]string{true: "enable", false: "disable"}[data.UseForEdgeDevices.ValueBool()]
 	}
 
 	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {
@@ -523,7 +545,7 @@ func (data *resourceSecurityDnsFilterProfileModel) getUpdateObjectSecurityDnsFil
 	}
 
 	if !data.UseForEdgeDevices.IsNull() && !data.UseForEdgeDevices.IsUnknown() {
-		result["useForEdgeDevices"] = data.UseForEdgeDevices.ValueBool()
+		result["useForEdgeDevices"] = map[bool]string{true: "enable", false: "disable"}[data.UseForEdgeDevices.ValueBool()]
 	}
 
 	if !data.UseFortiguardFilters.IsNull() && !data.UseFortiguardFilters.IsUnknown() {

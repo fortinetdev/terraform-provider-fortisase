@@ -29,6 +29,8 @@ resource "fortisase_endpoint_policy" "endpoint_profile" {
 
 ### Optional
 
+- `after_policy` (String) Move this policy after the target policy.
+- `before_policy` (String) Move this policy before the target policy.
 - `enabled` (Boolean)
 - `skip_off_net_profile_creation_on_edit` (Boolean)
 

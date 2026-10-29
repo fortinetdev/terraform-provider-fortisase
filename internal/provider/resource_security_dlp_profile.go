@@ -583,13 +583,31 @@ func (s *resourceSecurityDlpProfileDlpRulesModel) flattenSecurityDlpProfileDlpRu
 	values := make([]resourceSecurityDlpProfileDlpRulesDlpSensorsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityDlpProfileDlpRulesDlpSensorsModel
-		if i < len(s.DlpSensors) {
-			m = s.DlpSensors[i]
-		}
 		values[i] = *m.flattenSecurityDlpProfileDlpRulesDlpSensors(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityDlpProfileDlpRulesDlpSensorsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.DlpSensors {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityDlpProfileDlpRulesSensitivityLabelModel) flattenSecurityDlpProfileDlpRulesSensitivityLabel(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityDlpProfileDlpRulesSensitivityLabelModel {

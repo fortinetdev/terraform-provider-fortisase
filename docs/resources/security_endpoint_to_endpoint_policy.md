@@ -16,33 +16,53 @@ Endpoint to Endpoint Policy Resource API V2 for FortiSASE.
 # GUI: Security > Policies > Secure private access > Same PoP client-to-client
 resource "fortisase_security_endpoint_to_endpoint_policy" "example" {
   primary_key = "example"
-  enabled     = true
+
+  # [Security Posture Tag]
+  sources = [
+    # {
+    #   primary_key = "existing_ztna_tag"
+    #   datasource  = "endpoint/ztna-tags"
+    # }
+  ]
+
+  # [Service]
   services = [
     {
       primary_key = "ALL"
       datasource  = "security/services"
     }
   ]
-  action      = "accept"
-  log_traffic = "all"
-  profile_group = {
-    group = {
-      primary_key = "existing_profile_group"
-      datasource  = "security/profile-groups"
-    }
-    force_cert_inspection = true
-  }
-  sources = [
-    {
-      primary_key = "existing_tag"
-      datasource  = "endpoint/ztna-tags"
-    }
-  ]
+
+  # [Schedule]
   schedule = {
     primary_key = "always"
     datasource  = "security/recurring-schedules"
   }
+
+  # [Action]
+  action = "accept"
+
+  # [Profile Group] Required if action = "accept"
+  profile_group = {
+    group = {
+      primary_key = fortisase_security_profile_group.endpoint_to_endpoint.primary_key
+      datasource  = "security/profile-groups"
+    }
+    force_cert_inspection = true
+  }
+
+  # [Status]
+  enabled = true
+
+  # [Log Violation Traffic]
+  log_traffic = "all"
+
+  # [Comments]
   comments = "Your comment"
+}
+
+resource "fortisase_security_profile_group" "endpoint_to_endpoint" {
+  primary_key = "endpoint-to-endpoint-profile"
 }
 ```
 
@@ -56,9 +76,12 @@ resource "fortisase_security_endpoint_to_endpoint_policy" "example" {
 ### Optional
 
 - `action` (String)
+- `after_policy` (String) Move this policy after the target policy.
+- `before_policy` (String) Move this policy before the target policy.
 - `comments` (String)
 - `enabled` (Boolean)
 - `log_traffic` (String)
+- `nat_enabled` (Boolean) Source NAT for traffic matching this policy. Same-PoP client-to-client traffic does not need NAT, and NAT breaks protocols that carry the peer address in the payload (for example SIP). When omitted on create the policy is created with NAT disabled; when omitted on update the current setting is kept.
 - `profile_group` (Attributes) (see [below for nested schema](#nestedatt--profile_group))
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--schedule))
 - `services` (Attributes List) (see [below for nested schema](#nestedatt--services))

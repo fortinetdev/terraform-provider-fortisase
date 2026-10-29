@@ -15,10 +15,9 @@ HTML Template Images Resource API V2 for FortiSASE.
 ```terraform
 # GUI: System -> HTML templates -> Images
 resource "fortisase_security_html_template_image" "example" {
-  primary_key = "your_image"
-  image_type  = "png"
-  # 1x1 transparent PNG
-  image_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAsdEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+  primary_key  = "your_image"
+  image_type   = "png"
+  image_base64 = filebase64("./path/to/fortinet.png")
 }
 ```
 

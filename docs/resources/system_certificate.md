@@ -16,21 +16,38 @@ Certificates can be found in the GUI: System -> Certificates
 
 ```terraform
 # [Local Certificate]
-resource "fortisase_system_certificate" "local_certificate" {
+resource "fortisase_system_certificate" "local_certificate_regular" {
   certificate_type = "local-certificate"
-  primary_key      = "example_local_cert"
-  format           = "regular" # "regular" or "pkcs12"
-  file_content     = base64encode(file("../path/to/my-server-cert.pem"))
-  key_file_content = base64encode(file("../path/to/my-server-key.pem")) # Only required if format is "regular"
+  primary_key      = "example_local_cert_regular"
+  format           = "regular"
+  file_content     = filebase64("./path/to/local-cert-file.crt")
+  key_file_content = filebase64("./path/to/local-cert-file-key.pem")
+  password         = "example_password"
+}
+
+resource "fortisase_system_certificate" "local_certificate_pkcs12" {
+  certificate_type = "local-certificate"
+  primary_key      = "example_local_cert_pkcs12"
+  format           = "pkcs12"
+  file_content     = filebase64("./path/to/local-cert-file.p12")
+  password         = "example_password"
 }
 
 # [CA Certificate]
-resource "fortisase_system_certificate" "ca_certificate" {
+resource "fortisase_system_certificate" "ca_certificate_regular" {
   certificate_type = "ca-certificate"
-  primary_key      = "example_ca_cert"
-  format           = "regular" # "regular" or "pkcs12"
-  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
-  key_file_content = base64encode(file("../path/to/my-ca-key.pem")) # Only required if format is "regular"
+  primary_key      = "example_ca_cert_regular"
+  format           = "regular"
+  file_content     = filebase64("./path/to/ca-cert-file.crt")
+  key_file_content = filebase64("./path/to/ca-cert-file-key.pem")
+  password         = "example_password"
+}
+
+resource "fortisase_system_certificate" "ca_certificate_pkcs12" {
+  certificate_type = "ca-certificate"
+  primary_key      = "example_ca_cert_pkcs12"
+  format           = "pkcs12"
+  file_content     = filebase64("./path/to/ca-cert-file.p12")
   password         = "example_password"
 }
 
@@ -38,22 +55,22 @@ resource "fortisase_system_certificate" "ca_certificate" {
 resource "fortisase_system_certificate" "remote_certificate" {
   certificate_type = "remote-certificate"
   primary_key      = "example_remote_cert"
-  file_content     = base64encode(file("../path/to/my-server-cert.pem"))
+  file_content     = filebase64("./path/to/remote-cert-file.crt")
 }
 
 # [Remote CA Certificate]
 resource "fortisase_system_certificate" "remote_ca_certificate" {
   certificate_type = "remote-ca-certificate"
   primary_key      = "example_remote_ca_cert"
-  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
+  file_content     = filebase64("./path/to/remote-ca-file.crt")
 }
 
 # [HSM Local Certificate]
-# Requires HSM to be enabled; otherwise the request is rejected with 403.
+# This feature required HSM setup. Otherwise the request is rejected.
 resource "fortisase_system_certificate" "hsm_local_certificate" {
   certificate_type = "hsm-local-certificate"
   primary_key      = "example_hsm_local_cert"
-  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
+  file_content     = filebase64("./path/to/hsm-local-file.crt")
 }
 ```
 

@@ -47,9 +47,6 @@ resource "fortisase_endpoint_protection_profile" "endpoint_protection_profile" {
     # day  = 1       # 1 ~ 7 if repeat is "weekly", 1 ~ 31 if repeat is "monthly"
   }
 
-  # Event-based scanning
-  event_based_scanning = "enable"
-
   # Automatically patch vulnerabilities
   automatically_patch_vulnerabilities = "enable"
   automatic_vulnerability_patch_level = "medium" # Required if automatically_patch_vulnerabilities is "enable"

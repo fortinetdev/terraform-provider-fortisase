@@ -1,6 +1,5 @@
 resource "fortisase_security_dlp_dictionary" "dlp_dictionary" {
   primary_key         = "dlp_dictionary"
-  dictionary_type     = "sensor"
   entries_to_evaluate = "all"
   entries = [
     {

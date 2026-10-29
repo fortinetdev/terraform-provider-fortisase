@@ -1,10 +1,18 @@
 # Method 1: fortisase_system_certificate is recommended for new configurations.
-resource "fortisase_system_certificate" "ca_certificate" {
+resource "fortisase_system_certificate" "ca_certificate_regular" {
   certificate_type = "ca-certificate"
-  primary_key      = "example_ca_cert"
-  format           = "regular" # "regular" or "pkcs12"
-  file_content     = base64encode(file("../path/to/my-ca-cert.pem"))
-  key_file_content = base64encode(file("../path/to/my-ca-key.pem")) # Only required if format is "regular"
+  primary_key      = "example_ca_cert_regular"
+  format           = "regular"
+  file_content     = filebase64("./path/to/ca-cert-file.crt")
+  key_file_content = filebase64("./path/to/ca-cert-file-key.pem")
+  password         = "example_password"
+}
+
+resource "fortisase_system_certificate" "ca_certificate_pkcs12" {
+  certificate_type = "ca-certificate"
+  primary_key      = "example_ca_cert_pkcs12"
+  format           = "pkcs12"
+  file_content     = filebase64("./path/to/ca-cert-file.p12")
   password         = "example_password"
 }
 
@@ -13,6 +21,6 @@ resource "fortisase_security_cert_local_ca_cert" "local_ca_cert" {
   cert_name        = "local_ca_cert"
   format           = "regular"
   password         = "your_password"
-  file_content     = base64encode(file("./path/to/ca_cert.crt"))
-  key_file_content = base64encode(file("./path/to/private.key"))
+  file_content     = filebase64("./path/to/ca-cert-file2.crt")
+  key_file_content = filebase64("./path/to/ca-cert-file-key2.pem")
 }

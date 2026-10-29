@@ -84,12 +84,14 @@ func (r *resourceSecurityVideoFilterProfile) Schema(ctx context.Context, req res
 						"category": schema.SingleNestedAttribute{
 							Attributes: map[string]schema.Attribute{
 								"primary_key": schema.StringAttribute{
+									Computed: true,
 									Optional: true,
 								},
 								"datasource": schema.StringAttribute{
 									Validators: []validator.String{
 										stringvalidatorwarning.OneOf("security/video-filter-fortiguard-categories"),
 									},
+									Computed: true,
 									Optional: true,
 								},
 							},

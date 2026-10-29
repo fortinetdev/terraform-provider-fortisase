@@ -137,6 +137,8 @@ func (p *FortisaseProvider) Resources(ctx context.Context) []func() resource.Res
 		newResourceEndpointsAccessProxyDisconnect,
 		newResourceEndpointsDisableManagement,
 		newResourceEndpointsEnableManagement,
+		newResourceEndpointsQuarantine,
+		newResourceEndpointsUnquarantine,
 		newResourceInfraIpamSetting,
 		newResourceInfraSecureWebGatewaySupplementaryData,
 		newResourceInfraSsid,

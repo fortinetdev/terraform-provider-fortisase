@@ -49,6 +49,10 @@ Supported values: webBrowser, electron.
 - `off_net_split_tunnel` (Attributes) (see [below for nested schema](#nestedatt--off_net_split_tunnel))
 - `on_fabric_rule_set` (Attributes) (see [below for nested schema](#nestedatt--on_fabric_rule_set))
 - `pre_logon` (Attributes) (see [below for nested schema](#nestedatt--pre_logon))
+- `prefer_ipsec_vpn_dns` (String) Add both the tunnel DNS and the physical DNS to the default NRPT rule for every IPsec tunnel in this profile. Also controls DNS suffix capacity: enable applies every suffix to the global search list, disable applies only the first suffix per tunnel. Cannot be enabled at the same time as any tunnel's dnsResolution. Windows only, FortiClient 7.4.8 and later.
+Supported values: enable, disable.
+- `prefer_ipsec_vpn_dns_off_net` (String) Applied to the off-net endpoint profile. On GET, mirrors preferIpsecVpnDns when the policy has no off-net profile.
+Supported values: enable, disable.
 - `preferred_dtls_tunnel` (String)
 - `secure_internet_access` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access))
 - `show_disconnect_btn` (String)
@@ -62,10 +66,19 @@ Supported values: webBrowser, electron.
 
 Read-Only:
 
+- `allow_concurrent_vpn` (Boolean) When enabled, marks this manual IPsec VPN tunnel as eligible to run concurrently with the Secure Internet Access tunnel and other concurrent-enabled tunnels. Takes effect only while the SIA-level allowConcurrentVPN is enabled. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later. The property is rejected on writes and omitted from reads on older EMS.
 - `allow_fido_auth` (String)
 - `auth_method` (String)
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--connect_disconnect_scripts))
+- `dns_priority` (Number) DNS priority for this manual IPsec VPN tunnel. Lower values take higher priority. Valid range is 1-50. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
+Value between 1 and 50.
+- `dns_resolution` (String) Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
+- `dns_resolution_conflict` (Boolean) Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.
+- `dns_resolution_conflict_off_net` (Boolean) Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.
+- `dns_resolution_off_net` (String) Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
 - `dns_suffixes` (Set of String)
 - `dpd` (String)
 - `dpd_retry_count` (Number)
@@ -76,6 +89,7 @@ Read-Only:
 - `external_browser_saml_login` (String)
 - `ipv4_only` (String)
 - `name` (String)
+- `pinned` (Boolean) Pins this VPN tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting the Secure Internet Access tunnel. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vp_ns--posture_check))
 - `pre_shared_key` (String)
@@ -128,10 +142,19 @@ Read-Only:
 
 Read-Only:
 
+- `allow_concurrent_vpn` (Boolean) When enabled, marks this manual IPsec VPN tunnel as eligible to run concurrently with the Secure Internet Access tunnel and other concurrent-enabled tunnels. Takes effect only while the SIA-level allowConcurrentVPN is enabled. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later. The property is rejected on writes and omitted from reads on older EMS.
 - `allow_fido_auth` (String)
 - `auth_method` (String)
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--connect_disconnect_scripts))
+- `dns_priority` (Number) DNS priority for this manual IPsec VPN tunnel. Lower values take higher priority. Valid range is 1-50. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
+Value between 1 and 50.
+- `dns_resolution` (String) Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
+- `dns_resolution_conflict` (Boolean) Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.
+- `dns_resolution_conflict_off_net` (Boolean) Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.
+- `dns_resolution_off_net` (String) Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
 - `dns_suffixes` (Set of String)
 - `dpd` (String)
 - `dpd_retry_count` (Number)
@@ -142,6 +165,7 @@ Read-Only:
 - `external_browser_saml_login` (String)
 - `ipv4_only` (String)
 - `name` (String)
+- `pinned` (Boolean) Pins this VPN tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting the Secure Internet Access tunnel. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
 - `port` (Number)
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--available_vpns--posture_check))
 - `pre_shared_key` (String)
@@ -315,10 +339,18 @@ Read-Only:
 
 Read-Only:
 
+- `allow_concurrent_vpn` (Boolean) Allows the Secure Internet Access tunnel to run concurrently with other VPN tunnels on the FortiClient. Only valid when vpnType is ipSecVPN. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
 - `allow_fido_auth` (String)
 - `authenticate_with_sso` (String)
 - `connect_disconnect_scripts` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--connect_disconnect_scripts))
-- `dns_preference` (Attributes) Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile. (see [below for nested schema](#nestedatt--secure_internet_access--dns_preference))
+- `dns_priority` (Number) DNS priority for the Secure Internet Access IPsec tunnel. Lower values take higher priority. Valid range is 1-50. Only valid when vpnType is ipSecVPN. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
+Value between 1 and 50.
+- `dns_resolution` (String) Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
+- `dns_resolution_conflict` (Boolean) Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.
+- `dns_resolution_conflict_off_net` (Boolean) Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.
+- `dns_resolution_off_net` (String) Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.
+Supported values: default, vpnDnsOnly, physicalDnsOnly.
 - `dns_suffixes` (Set of String)
 - `dpd` (String)
 - `dpd_retry_count` (Number)
@@ -328,6 +360,7 @@ Read-Only:
 - `encapsulation_mode` (String)
 - `external_browser_saml_login` (String)
 - `failover_sequence` (Set of String)
+- `pinned` (Boolean) Pins the Secure Internet Access tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting this one. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.
 - `posture_check` (Attributes) (see [below for nested schema](#nestedatt--secure_internet_access--posture_check))
 
 <a id="nestedatt--secure_internet_access--connect_disconnect_scripts"></a>
@@ -339,17 +372,6 @@ Read-Only:
 - `on_connect_windows` (String)
 - `on_disconnect_mac` (String)
 - `on_disconnect_windows` (String)
-
-
-<a id="nestedatt--secure_internet_access--dns_preference"></a>
-### Nested Schema for `secure_internet_access.dns_preference`
-
-Read-Only:
-
-- `off_net` (String) Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.
-Supported values: sia, bothPreferSia.
-- `on_net` (String) Applied to the on-net endpoint profile.
-Supported values: sia, local, bothPreferSia.
 
 
 <a id="nestedatt--secure_internet_access--posture_check"></a>

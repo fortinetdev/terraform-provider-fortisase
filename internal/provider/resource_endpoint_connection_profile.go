@@ -56,6 +56,8 @@ type resourceEndpointConnectionProfileModel struct {
 	VpnType                        types.String                                                `tfsdk:"vpn_type"`
 	DisableInternetCheck           types.String                                                `tfsdk:"disable_internet_check"`
 	DnsRegistration                *resourceEndpointConnectionProfileDnsRegistrationModel      `tfsdk:"dns_registration"`
+	PreferIpsecVpnDns              types.String                                                `tfsdk:"prefer_ipsec_vpn_dns"`
+	PreferIpsecVpnDnsOffNet        types.String                                                `tfsdk:"prefer_ipsec_vpn_dns_off_net"`
 	ShowDisconnectBtn              types.String                                                `tfsdk:"show_disconnect_btn"`
 	EnableInvalidServerCertWarning types.String                                                `tfsdk:"enable_invalid_server_cert_warning"`
 	PreLogon                       *resourceEndpointConnectionProfilePreLogonModel             `tfsdk:"pre_logon"`
@@ -168,6 +170,22 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 				},
 				Computed: true,
 				Optional: true,
+			},
+			"prefer_ipsec_vpn_dns": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				MarkdownDescription: "Add both the tunnel DNS and the physical DNS to the default NRPT rule for every IPsec tunnel in this profile. Also controls DNS suffix capacity: enable applies every suffix to the global search list, disable applies only the first suffix per tunnel. Cannot be enabled at the same time as any tunnel's dnsResolution. Windows only, FortiClient 7.4.8 and later.\nSupported values: enable, disable.",
+				Computed:            true,
+				Optional:            true,
+			},
+			"prefer_ipsec_vpn_dns_off_net": schema.StringAttribute{
+				Validators: []validator.String{
+					stringvalidatorwarning.OneOf("enable", "disable"),
+				},
+				MarkdownDescription: "Applied to the off-net endpoint profile. On GET, mirrors preferIpsecVpnDns when the policy has no off-net profile.\nSupported values: enable, disable.",
+				Computed:            true,
+				Optional:            true,
 			},
 			"show_disconnect_btn": schema.StringAttribute{
 				Validators: []validator.String{
@@ -291,6 +309,11 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed: true,
 							Optional: true,
 						},
+						"pinned": schema.BoolAttribute{
+							MarkdownDescription: "Pins this VPN tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting the Secure Internet Access tunnel. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.",
+							Computed:            true,
+							Optional:            true,
+						},
 						"port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -331,6 +354,32 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Optional:    true,
 							ElementType: types.StringType,
 						},
+						"dns_resolution": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+							},
+							MarkdownDescription: "Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_off_net": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+							},
+							MarkdownDescription: "Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_conflict": schema.BoolAttribute{
+							MarkdownDescription: "Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_conflict_off_net": schema.BoolAttribute{
+							MarkdownDescription: "Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.",
+							Computed:            true,
+							Optional:            true,
+						},
 						"show_passcode": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -340,6 +389,19 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						},
 						"eap_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"allow_concurrent_vpn": schema.BoolAttribute{
+							MarkdownDescription: "When enabled, marks this manual IPsec VPN tunnel as eligible to run concurrently with the Secure Internet Access tunnel and other concurrent-enabled tunnels. Takes effect only while the SIA-level allowConcurrentVPN is enabled. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later. The property is rejected on writes and omitted from reads on older EMS.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_priority": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.Between(1, 50),
+							},
+							MarkdownDescription: "DNS priority for this manual IPsec VPN tunnel. Lower values take higher priority. Valid range is 1-50. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.\nValue between 1 and 50.",
 							Computed:            true,
 							Optional:            true,
 						},
@@ -548,6 +610,11 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Computed: true,
 							Optional: true,
 						},
+						"pinned": schema.BoolAttribute{
+							MarkdownDescription: "Pins this VPN tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting the Secure Internet Access tunnel. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.",
+							Computed:            true,
+							Optional:            true,
+						},
 						"port": schema.Float64Attribute{
 							Validators: []validator.Float64{
 								float64validatorwarning.AtMost(65535),
@@ -588,6 +655,32 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 							Optional:    true,
 							ElementType: types.StringType,
 						},
+						"dns_resolution": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+							},
+							MarkdownDescription: "Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_off_net": schema.StringAttribute{
+							Validators: []validator.String{
+								stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+							},
+							MarkdownDescription: "Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_conflict": schema.BoolAttribute{
+							MarkdownDescription: "Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_resolution_conflict_off_net": schema.BoolAttribute{
+							MarkdownDescription: "Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.",
+							Computed:            true,
+							Optional:            true,
+						},
 						"show_passcode": schema.StringAttribute{
 							Validators: []validator.String{
 								stringvalidatorwarning.OneOf("enable", "disable"),
@@ -597,6 +690,19 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						},
 						"eap_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Per-tunnel EAP for this manual IPsec VPN entry in availableVPNs.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"allow_concurrent_vpn": schema.BoolAttribute{
+							MarkdownDescription: "When enabled, marks this manual IPsec VPN tunnel as eligible to run concurrently with the Secure Internet Access tunnel and other concurrent-enabled tunnels. Takes effect only while the SIA-level allowConcurrentVPN is enabled. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later. The property is rejected on writes and omitted from reads on older EMS.",
+							Computed:            true,
+							Optional:            true,
+						},
+						"dns_priority": schema.Float64Attribute{
+							Validators: []validator.Float64{
+								float64validatorwarning.Between(1, 50),
+							},
+							MarkdownDescription: "DNS priority for this manual IPsec VPN tunnel. Lower values take higher priority. Valid range is 1-50. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.\nValue between 1 and 50.",
 							Computed:            true,
 							Optional:            true,
 						},
@@ -959,6 +1065,24 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						Computed:            true,
 						Optional:            true,
 					},
+					"allow_concurrent_vpn": schema.BoolAttribute{
+						MarkdownDescription: "Allows the Secure Internet Access tunnel to run concurrently with other VPN tunnels on the FortiClient. Only valid when vpnType is ipSecVPN. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"dns_priority": schema.Float64Attribute{
+						Validators: []validator.Float64{
+							float64validatorwarning.Between(1, 50),
+						},
+						MarkdownDescription: "DNS priority for the Secure Internet Access IPsec tunnel. Lower values take higher priority. Valid range is 1-50. Only valid when vpnType is ipSecVPN. Requires EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.\nValue between 1 and 50.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"pinned": schema.BoolAttribute{
+						MarkdownDescription: "Pins the Secure Internet Access tunnel to raise its visibility in FortiClient: the pinned tunnel is surfaced to the top of the FortiClient right-click (FortiTray) menu and the available-VPNs list for quick connect, and appears in the 'Selected VPNs' view. Applies to both SSL and IPsec tunnels. At most 3 tunnels can be pinned per profile, counting this one. Requires FortiClient 7.4.4+ and EMS 7.4.4 or later; the property is rejected on writes and omitted from reads otherwise.",
+						Computed:            true,
+						Optional:            true,
+					},
 					"dpd": schema.StringAttribute{
 						Validators: []validator.String{
 							stringvalidatorwarning.OneOf("enable", "disable"),
@@ -986,6 +1110,32 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 						},
 						Computed: true,
 						Optional: true,
+					},
+					"dns_resolution": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+						},
+						MarkdownDescription: "Windows DNS resolution for this IPsec tunnel. Requires preferIpsecVpnDns to be disabled; a profile-wide preferIpsecVpnDns supersedes it. Windows only, FortiClient 7.4.8 and later.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"dns_resolution_off_net": schema.StringAttribute{
+						Validators: []validator.String{
+							stringvalidatorwarning.OneOf("default", "vpnDnsOnly", "physicalDnsOnly"),
+						},
+						MarkdownDescription: "Applied to the off-net endpoint profile. On GET, mirrors dnsResolution when the policy has no off-net profile.\nSupported values: default, vpnDnsOnly, physicalDnsOnly.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"dns_resolution_conflict": schema.BoolAttribute{
+						MarkdownDescription: "Read-only. True when the stored tunnel has both block_outside_dns and no_vnic_dns_server enabled, a combination this enum cannot express. Returned on GET and ignored on PUT.",
+						Computed:            true,
+						Optional:            true,
+					},
+					"dns_resolution_conflict_off_net": schema.BoolAttribute{
+						MarkdownDescription: "Read-only. Applied to the off-net endpoint profile. Returned on GET and ignored on PUT.",
+						Computed:            true,
+						Optional:            true,
 					},
 					"external_browser_saml_login": schema.StringAttribute{
 						Validators: []validator.String{
@@ -1055,29 +1205,6 @@ func (r *resourceEndpointConnectionProfile) Schema(ctx context.Context, req reso
 								},
 								Computed: true,
 								Optional: true,
-							},
-						},
-						Computed: true,
-						Optional: true,
-					},
-					"dns_preference": schema.SingleNestedAttribute{
-						MarkdownDescription: "Windows DNS resolution order for the SIA tunnel, selected per profile scope: onNet applies to the on-net endpoint profile, offNet to the off-net profile. On GET, offNet mirrors onNet when the policy has no off-net profile.",
-						Attributes: map[string]schema.Attribute{
-							"on_net": schema.StringAttribute{
-								Validators: []validator.String{
-									stringvalidatorwarning.OneOf("sia", "local", "bothPreferSia"),
-								},
-								MarkdownDescription: "Applied to the on-net endpoint profile.\nSupported values: sia, local, bothPreferSia.",
-								Computed:            true,
-								Optional:            true,
-							},
-							"off_net": schema.StringAttribute{
-								Validators: []validator.String{
-									stringvalidatorwarning.OneOf("sia", "bothPreferSia"),
-								},
-								MarkdownDescription: "Applied to the off-net endpoint profile. 'local' is on-net only, so it is not accepted here.\nSupported values: sia, bothPreferSia.",
-								Computed:            true,
-								Optional:            true,
 							},
 						},
 						Computed: true,
@@ -1593,6 +1720,14 @@ func (m *resourceEndpointConnectionProfileModel) refreshEndpointConnectionProfil
 		m.DnsRegistration = m.DnsRegistration.flattenEndpointConnectionProfileDnsRegistration(ctx, v, &diags)
 	}
 
+	if v, ok := o["preferIpsecVpnDns"]; ok {
+		m.PreferIpsecVpnDns = parseStringValue(v)
+	}
+
+	if v, ok := o["preferIpsecVpnDnsOffNet"]; ok {
+		m.PreferIpsecVpnDnsOffNet = parseStringValue(v)
+	}
+
 	if v, ok := o["showDisconnectBtn"]; ok {
 		m.ShowDisconnectBtn = parseStringValue(v)
 	}
@@ -1721,6 +1856,14 @@ func (data *resourceEndpointConnectionProfileModel) getCreateObjectEndpointConne
 
 	if data.DnsRegistration != nil && !isZeroStruct(*data.DnsRegistration) {
 		result["dnsRegistration"] = data.DnsRegistration.expandEndpointConnectionProfileDnsRegistration(ctx, diags)
+	}
+
+	if !data.PreferIpsecVpnDns.IsNull() && !data.PreferIpsecVpnDns.IsUnknown() {
+		result["preferIpsecVpnDns"] = data.PreferIpsecVpnDns.ValueString()
+	}
+
+	if !data.PreferIpsecVpnDnsOffNet.IsNull() && !data.PreferIpsecVpnDnsOffNet.IsUnknown() {
+		result["preferIpsecVpnDnsOffNet"] = data.PreferIpsecVpnDnsOffNet.ValueString()
 	}
 
 	if !data.ShowDisconnectBtn.IsNull() && !data.ShowDisconnectBtn.IsUnknown() {
@@ -1853,6 +1996,14 @@ func (data *resourceEndpointConnectionProfileModel) getUpdateObjectEndpointConne
 		result["dnsRegistration"] = data.DnsRegistration.expandEndpointConnectionProfileDnsRegistration(ctx, diags)
 	}
 
+	if !data.PreferIpsecVpnDns.IsNull() && !data.PreferIpsecVpnDns.IsUnknown() {
+		result["preferIpsecVpnDns"] = data.PreferIpsecVpnDns.ValueString()
+	}
+
+	if !data.PreferIpsecVpnDnsOffNet.IsNull() && !data.PreferIpsecVpnDnsOffNet.IsUnknown() {
+		result["preferIpsecVpnDnsOffNet"] = data.PreferIpsecVpnDnsOffNet.ValueString()
+	}
+
 	if !data.ShowDisconnectBtn.IsNull() && !data.ShowDisconnectBtn.IsUnknown() {
 		result["showDisconnectBtn"] = data.ShowDisconnectBtn.ValueString()
 	}
@@ -1878,35 +2029,42 @@ func (data *resourceEndpointConnectionProfileModel) getURLObjectEndpointConnecti
 }
 
 type resourceEndpointConnectionProfileAvailableVpnsModel struct {
-	Type                     types.String                                                                 `tfsdk:"type"`
-	Name                     types.String                                                                 `tfsdk:"name"`
-	RemoteGateway            types.String                                                                 `tfsdk:"remote_gateway"`
-	UsernamePrompt           types.String                                                                 `tfsdk:"username_prompt"`
-	SaveUsername             types.String                                                                 `tfsdk:"save_username"`
-	ShowAlwaysUp             types.String                                                                 `tfsdk:"show_always_up"`
-	ShowAutoConnect          types.String                                                                 `tfsdk:"show_auto_connect"`
-	ShowRememberPassword     types.String                                                                 `tfsdk:"show_remember_password"`
-	AuthenticateWithSso      types.String                                                                 `tfsdk:"authenticate_with_sso"`
-	AllowFidoAuth            types.String                                                                 `tfsdk:"allow_fido_auth"`
-	EnableLocalLan           types.String                                                                 `tfsdk:"enable_local_lan"`
-	EncapsulationMode        types.String                                                                 `tfsdk:"encapsulation_mode"`
-	UdpPort                  types.Float64                                                                `tfsdk:"udp_port"`
-	TcpPort                  types.Float64                                                                `tfsdk:"tcp_port"`
-	ConnectDisconnectScripts *resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
-	Port                     types.Float64                                                                `tfsdk:"port"`
-	RequireCertificate       types.String                                                                 `tfsdk:"require_certificate"`
-	Ipv4Only                 types.String                                                                 `tfsdk:"ipv4_only"`
-	ExternalBrowserSamlLogin types.String                                                                 `tfsdk:"external_browser_saml_login"`
-	AuthMethod               types.String                                                                 `tfsdk:"auth_method"`
-	DnsSuffixes              types.Set                                                                    `tfsdk:"dns_suffixes"`
-	ShowPasscode             types.String                                                                 `tfsdk:"show_passcode"`
-	PostureCheck             *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel             `tfsdk:"posture_check"`
-	EapEnabled               types.Bool                                                                   `tfsdk:"eap_enabled"`
-	Dpd                      types.String                                                                 `tfsdk:"dpd"`
-	DpdRetryCount            types.Float64                                                                `tfsdk:"dpd_retry_count"`
-	DpdRetryInterval         types.Float64                                                                `tfsdk:"dpd_retry_interval"`
-	SamlPort                 types.Float64                                                                `tfsdk:"saml_port"`
-	PreSharedKey             types.String                                                                 `tfsdk:"pre_shared_key"`
+	Type                        types.String                                                                 `tfsdk:"type"`
+	Name                        types.String                                                                 `tfsdk:"name"`
+	RemoteGateway               types.String                                                                 `tfsdk:"remote_gateway"`
+	UsernamePrompt              types.String                                                                 `tfsdk:"username_prompt"`
+	SaveUsername                types.String                                                                 `tfsdk:"save_username"`
+	ShowAlwaysUp                types.String                                                                 `tfsdk:"show_always_up"`
+	ShowAutoConnect             types.String                                                                 `tfsdk:"show_auto_connect"`
+	ShowRememberPassword        types.String                                                                 `tfsdk:"show_remember_password"`
+	AuthenticateWithSso         types.String                                                                 `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth               types.String                                                                 `tfsdk:"allow_fido_auth"`
+	EnableLocalLan              types.String                                                                 `tfsdk:"enable_local_lan"`
+	EncapsulationMode           types.String                                                                 `tfsdk:"encapsulation_mode"`
+	UdpPort                     types.Float64                                                                `tfsdk:"udp_port"`
+	TcpPort                     types.Float64                                                                `tfsdk:"tcp_port"`
+	ConnectDisconnectScripts    *resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
+	Pinned                      types.Bool                                                                   `tfsdk:"pinned"`
+	Port                        types.Float64                                                                `tfsdk:"port"`
+	RequireCertificate          types.String                                                                 `tfsdk:"require_certificate"`
+	Ipv4Only                    types.String                                                                 `tfsdk:"ipv4_only"`
+	ExternalBrowserSamlLogin    types.String                                                                 `tfsdk:"external_browser_saml_login"`
+	AuthMethod                  types.String                                                                 `tfsdk:"auth_method"`
+	DnsSuffixes                 types.Set                                                                    `tfsdk:"dns_suffixes"`
+	DnsResolution               types.String                                                                 `tfsdk:"dns_resolution"`
+	DnsResolutionOffNet         types.String                                                                 `tfsdk:"dns_resolution_off_net"`
+	DnsResolutionConflict       types.Bool                                                                   `tfsdk:"dns_resolution_conflict"`
+	DnsResolutionConflictOffNet types.Bool                                                                   `tfsdk:"dns_resolution_conflict_off_net"`
+	ShowPasscode                types.String                                                                 `tfsdk:"show_passcode"`
+	PostureCheck                *resourceEndpointConnectionProfileAvailableVpnsPostureCheckModel             `tfsdk:"posture_check"`
+	EapEnabled                  types.Bool                                                                   `tfsdk:"eap_enabled"`
+	AllowConcurrentVpn          types.Bool                                                                   `tfsdk:"allow_concurrent_vpn"`
+	DnsPriority                 types.Float64                                                                `tfsdk:"dns_priority"`
+	Dpd                         types.String                                                                 `tfsdk:"dpd"`
+	DpdRetryCount               types.Float64                                                                `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval            types.Float64                                                                `tfsdk:"dpd_retry_interval"`
+	SamlPort                    types.Float64                                                                `tfsdk:"saml_port"`
+	PreSharedKey                types.String                                                                 `tfsdk:"pre_shared_key"`
 }
 
 type resourceEndpointConnectionProfileAvailableVpnsConnectDisconnectScriptsModel struct {
@@ -1995,20 +2153,26 @@ type resourceEndpointConnectionProfileSplitTunnelSubnetsModel struct {
 }
 
 type resourceEndpointConnectionProfileSecureInternetAccessModel struct {
-	AuthenticateWithSso      types.String                                                                        `tfsdk:"authenticate_with_sso"`
-	AllowFidoAuth            types.String                                                                        `tfsdk:"allow_fido_auth"`
-	ConnectDisconnectScripts *resourceEndpointConnectionProfileSecureInternetAccessConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
-	DnsSuffixes              types.Set                                                                           `tfsdk:"dns_suffixes"`
-	EnableLocalLan           types.String                                                                        `tfsdk:"enable_local_lan"`
-	FailoverSequence         types.Set                                                                           `tfsdk:"failover_sequence"`
-	PostureCheck             *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel             `tfsdk:"posture_check"`
-	EapEnabled               types.Bool                                                                          `tfsdk:"eap_enabled"`
-	Dpd                      types.String                                                                        `tfsdk:"dpd"`
-	DpdRetryCount            types.Float64                                                                       `tfsdk:"dpd_retry_count"`
-	DpdRetryInterval         types.Float64                                                                       `tfsdk:"dpd_retry_interval"`
-	EncapsulationMode        types.String                                                                        `tfsdk:"encapsulation_mode"`
-	DnsPreference            *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel            `tfsdk:"dns_preference"`
-	ExternalBrowserSamlLogin types.String                                                                        `tfsdk:"external_browser_saml_login"`
+	AuthenticateWithSso         types.String                                                                        `tfsdk:"authenticate_with_sso"`
+	AllowFidoAuth               types.String                                                                        `tfsdk:"allow_fido_auth"`
+	ConnectDisconnectScripts    *resourceEndpointConnectionProfileSecureInternetAccessConnectDisconnectScriptsModel `tfsdk:"connect_disconnect_scripts"`
+	DnsSuffixes                 types.Set                                                                           `tfsdk:"dns_suffixes"`
+	EnableLocalLan              types.String                                                                        `tfsdk:"enable_local_lan"`
+	FailoverSequence            types.Set                                                                           `tfsdk:"failover_sequence"`
+	PostureCheck                *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel             `tfsdk:"posture_check"`
+	EapEnabled                  types.Bool                                                                          `tfsdk:"eap_enabled"`
+	AllowConcurrentVpn          types.Bool                                                                          `tfsdk:"allow_concurrent_vpn"`
+	DnsPriority                 types.Float64                                                                       `tfsdk:"dns_priority"`
+	Pinned                      types.Bool                                                                          `tfsdk:"pinned"`
+	Dpd                         types.String                                                                        `tfsdk:"dpd"`
+	DpdRetryCount               types.Float64                                                                       `tfsdk:"dpd_retry_count"`
+	DpdRetryInterval            types.Float64                                                                       `tfsdk:"dpd_retry_interval"`
+	EncapsulationMode           types.String                                                                        `tfsdk:"encapsulation_mode"`
+	DnsResolution               types.String                                                                        `tfsdk:"dns_resolution"`
+	DnsResolutionOffNet         types.String                                                                        `tfsdk:"dns_resolution_off_net"`
+	DnsResolutionConflict       types.Bool                                                                          `tfsdk:"dns_resolution_conflict"`
+	DnsResolutionConflictOffNet types.Bool                                                                          `tfsdk:"dns_resolution_conflict_off_net"`
+	ExternalBrowserSamlLogin    types.String                                                                        `tfsdk:"external_browser_saml_login"`
 }
 
 type resourceEndpointConnectionProfileSecureInternetAccessConnectDisconnectScriptsModel struct {
@@ -2027,11 +2191,6 @@ type resourceEndpointConnectionProfileSecureInternetAccessPostureCheckModel stru
 type resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagModel struct {
 	PrimaryKey types.String `tfsdk:"primary_key"`
 	Datasource types.String `tfsdk:"datasource"`
-}
-
-type resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel struct {
-	OnNet  types.String `tfsdk:"on_net"`
-	OffNet types.String `tfsdk:"off_net"`
 }
 
 type resourceEndpointConnectionProfileDnsRegistrationModel struct {
@@ -2125,6 +2284,10 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointCon
 		m.ConnectDisconnectScripts = m.ConnectDisconnectScripts.flattenEndpointConnectionProfileAvailableVpnsConnectDisconnectScripts(ctx, v, diags)
 	}
 
+	if v, ok := o["pinned"]; ok {
+		m.Pinned = parseBoolValue(v)
+	}
+
 	if v, ok := o["port"]; ok {
 		m.Port = parseFloat64Value(v)
 	}
@@ -2151,6 +2314,22 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointCon
 		m.DnsSuffixes = types.SetNull(types.StringType)
 	}
 
+	if v, ok := o["dnsResolution"]; ok {
+		m.DnsResolution = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsResolutionOffNet"]; ok {
+		m.DnsResolutionOffNet = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsResolutionConflict"]; ok {
+		m.DnsResolutionConflict = parseBoolValue(v)
+	}
+
+	if v, ok := o["dnsResolutionConflictOffNet"]; ok {
+		m.DnsResolutionConflictOffNet = parseBoolValue(v)
+	}
+
 	if v, ok := o["showPasscode"]; ok {
 		m.ShowPasscode = parseStringValue(v)
 	}
@@ -2161,6 +2340,14 @@ func (m *resourceEndpointConnectionProfileAvailableVpnsModel) flattenEndpointCon
 
 	if v, ok := o["eapEnabled"]; ok {
 		m.EapEnabled = parseBoolValue(v)
+	}
+
+	if v, ok := o["allowConcurrentVPN"]; ok {
+		m.AllowConcurrentVpn = parseBoolValue(v)
+	}
+
+	if v, ok := o["dnsPriority"]; ok {
+		m.DnsPriority = parseFloat64Value(v)
 	}
 
 	if v, ok := o["dpd"]; ok {
@@ -2545,13 +2732,31 @@ func (s *resourceEndpointConnectionProfileOffNetSplitTunnelModel) flattenEndpoin
 	values := make([]resourceEndpointConnectionProfileOffNetSplitTunnelIsdbsModel, len(l))
 	for i, ele := range l {
 		var m resourceEndpointConnectionProfileOffNetSplitTunnelIsdbsModel
-		if i < len(s.Isdbs) {
-			m = s.Isdbs[i]
-		}
 		values[i] = *m.flattenEndpointConnectionProfileOffNetSplitTunnelIsdbs(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceEndpointConnectionProfileOffNetSplitTunnelIsdbsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Isdbs {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceEndpointConnectionProfileOffNetSplitTunnelSubnetsModel) flattenEndpointConnectionProfileOffNetSplitTunnelSubnets(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileOffNetSplitTunnelSubnetsModel {
@@ -2596,13 +2801,31 @@ func (s *resourceEndpointConnectionProfileOffNetSplitTunnelModel) flattenEndpoin
 	values := make([]resourceEndpointConnectionProfileOffNetSplitTunnelSubnetsModel, len(l))
 	for i, ele := range l {
 		var m resourceEndpointConnectionProfileOffNetSplitTunnelSubnetsModel
-		if i < len(s.Subnets) {
-			m = s.Subnets[i]
-		}
 		values[i] = *m.flattenEndpointConnectionProfileOffNetSplitTunnelSubnets(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceEndpointConnectionProfileOffNetSplitTunnelSubnetsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Subnets {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceEndpointConnectionProfileSplitTunnelModel) flattenEndpointConnectionProfileSplitTunnel(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSplitTunnelModel {
@@ -2688,13 +2911,31 @@ func (s *resourceEndpointConnectionProfileSplitTunnelModel) flattenEndpointConne
 	values := make([]resourceEndpointConnectionProfileSplitTunnelIsdbsModel, len(l))
 	for i, ele := range l {
 		var m resourceEndpointConnectionProfileSplitTunnelIsdbsModel
-		if i < len(s.Isdbs) {
-			m = s.Isdbs[i]
-		}
 		values[i] = *m.flattenEndpointConnectionProfileSplitTunnelIsdbs(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceEndpointConnectionProfileSplitTunnelIsdbsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Isdbs {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceEndpointConnectionProfileSplitTunnelSubnetsModel) flattenEndpointConnectionProfileSplitTunnelSubnets(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSplitTunnelSubnetsModel {
@@ -2739,13 +2980,31 @@ func (s *resourceEndpointConnectionProfileSplitTunnelModel) flattenEndpointConne
 	values := make([]resourceEndpointConnectionProfileSplitTunnelSubnetsModel, len(l))
 	for i, ele := range l {
 		var m resourceEndpointConnectionProfileSplitTunnelSubnetsModel
-		if i < len(s.Subnets) {
-			m = s.Subnets[i]
-		}
 		values[i] = *m.flattenEndpointConnectionProfileSplitTunnelSubnets(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceEndpointConnectionProfileSplitTunnelSubnetsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Subnets {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceEndpointConnectionProfileSecureInternetAccessModel) flattenEndpointConnectionProfileSecureInternetAccess(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSecureInternetAccessModel {
@@ -2794,6 +3053,18 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessModel) flattenEndp
 		m.EapEnabled = parseBoolValue(v)
 	}
 
+	if v, ok := o["allowConcurrentVPN"]; ok {
+		m.AllowConcurrentVpn = parseBoolValue(v)
+	}
+
+	if v, ok := o["dnsPriority"]; ok {
+		m.DnsPriority = parseFloat64Value(v)
+	}
+
+	if v, ok := o["pinned"]; ok {
+		m.Pinned = parseBoolValue(v)
+	}
+
 	if v, ok := o["dpd"]; ok {
 		m.Dpd = parseStringValue(v)
 	}
@@ -2810,8 +3081,20 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessModel) flattenEndp
 		m.EncapsulationMode = parseStringValue(v)
 	}
 
-	if v, ok := o["dnsPreference"]; ok {
-		m.DnsPreference = m.DnsPreference.flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx, v, diags)
+	if v, ok := o["dnsResolution"]; ok {
+		m.DnsResolution = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsResolutionOffNet"]; ok {
+		m.DnsResolutionOffNet = parseStringValue(v)
+	}
+
+	if v, ok := o["dnsResolutionConflict"]; ok {
+		m.DnsResolutionConflict = parseBoolValue(v)
+	}
+
+	if v, ok := o["dnsResolutionConflictOffNet"]; ok {
+		m.DnsResolutionConflictOffNet = parseBoolValue(v)
 	}
 
 	if v, ok := o["externalBrowserSamlLogin"]; ok {
@@ -2885,25 +3168,6 @@ func (m *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTagMod
 
 	if v, ok := o["datasource"]; ok {
 		m.Datasource = parseStringValue(v)
-	}
-
-	return m
-}
-
-func (m *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel) flattenEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel {
-	if input == nil {
-		return &resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
-	}
-	if m == nil {
-		m = &resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel{}
-	}
-	o := input.(map[string]interface{})
-	if v, ok := o["onNet"]; ok {
-		m.OnNet = parseStringValue(v)
-	}
-
-	if v, ok := o["offNet"]; ok {
-		m.OffNet = parseStringValue(v)
 	}
 
 	return m
@@ -3059,6 +3323,10 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsModel) expandEndpointC
 		result["connectDisconnectScripts"] = data.ConnectDisconnectScripts.expandEndpointConnectionProfileAvailableVpnsConnectDisconnectScripts(ctx, diags)
 	}
 
+	if !data.Pinned.IsNull() && !data.Pinned.IsUnknown() {
+		result["pinned"] = data.Pinned.ValueBool()
+	}
+
 	if !data.Port.IsNull() && !data.Port.IsUnknown() {
 		result["port"] = data.Port.ValueFloat64()
 	}
@@ -3083,6 +3351,22 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsModel) expandEndpointC
 		result["dnsSuffixes"] = expandSetToStringList(data.DnsSuffixes)
 	}
 
+	if !data.DnsResolution.IsNull() && !data.DnsResolution.IsUnknown() {
+		result["dnsResolution"] = data.DnsResolution.ValueString()
+	}
+
+	if !data.DnsResolutionOffNet.IsNull() && !data.DnsResolutionOffNet.IsUnknown() {
+		result["dnsResolutionOffNet"] = data.DnsResolutionOffNet.ValueString()
+	}
+
+	if !data.DnsResolutionConflict.IsNull() && !data.DnsResolutionConflict.IsUnknown() {
+		result["dnsResolutionConflict"] = data.DnsResolutionConflict.ValueBool()
+	}
+
+	if !data.DnsResolutionConflictOffNet.IsNull() && !data.DnsResolutionConflictOffNet.IsUnknown() {
+		result["dnsResolutionConflictOffNet"] = data.DnsResolutionConflictOffNet.ValueBool()
+	}
+
 	if !data.ShowPasscode.IsNull() && !data.ShowPasscode.IsUnknown() {
 		result["showPasscode"] = data.ShowPasscode.ValueString()
 	}
@@ -3093,6 +3377,14 @@ func (data *resourceEndpointConnectionProfileAvailableVpnsModel) expandEndpointC
 
 	if !data.EapEnabled.IsNull() && !data.EapEnabled.IsUnknown() {
 		result["eapEnabled"] = data.EapEnabled.ValueBool()
+	}
+
+	if !data.AllowConcurrentVpn.IsNull() && !data.AllowConcurrentVpn.IsUnknown() {
+		result["allowConcurrentVPN"] = data.AllowConcurrentVpn.ValueBool()
+	}
+
+	if !data.DnsPriority.IsNull() && !data.DnsPriority.IsUnknown() {
+		result["dnsPriority"] = data.DnsPriority.ValueFloat64()
 	}
 
 	if !data.Dpd.IsNull() && !data.Dpd.IsUnknown() {
@@ -3447,6 +3739,18 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessModel) expandEn
 		result["eapEnabled"] = data.EapEnabled.ValueBool()
 	}
 
+	if !data.AllowConcurrentVpn.IsNull() && !data.AllowConcurrentVpn.IsUnknown() {
+		result["allowConcurrentVPN"] = data.AllowConcurrentVpn.ValueBool()
+	}
+
+	if !data.DnsPriority.IsNull() && !data.DnsPriority.IsUnknown() {
+		result["dnsPriority"] = data.DnsPriority.ValueFloat64()
+	}
+
+	if !data.Pinned.IsNull() && !data.Pinned.IsUnknown() {
+		result["pinned"] = data.Pinned.ValueBool()
+	}
+
 	if !data.Dpd.IsNull() && !data.Dpd.IsUnknown() {
 		result["dpd"] = data.Dpd.ValueString()
 	}
@@ -3463,8 +3767,20 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessModel) expandEn
 		result["encapsulationMode"] = data.EncapsulationMode.ValueString()
 	}
 
-	if data.DnsPreference != nil && !isZeroStruct(*data.DnsPreference) {
-		result["dnsPreference"] = data.DnsPreference.expandEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx, diags)
+	if !data.DnsResolution.IsNull() && !data.DnsResolution.IsUnknown() {
+		result["dnsResolution"] = data.DnsResolution.ValueString()
+	}
+
+	if !data.DnsResolutionOffNet.IsNull() && !data.DnsResolutionOffNet.IsUnknown() {
+		result["dnsResolutionOffNet"] = data.DnsResolutionOffNet.ValueString()
+	}
+
+	if !data.DnsResolutionConflict.IsNull() && !data.DnsResolutionConflict.IsUnknown() {
+		result["dnsResolutionConflict"] = data.DnsResolutionConflict.ValueBool()
+	}
+
+	if !data.DnsResolutionConflictOffNet.IsNull() && !data.DnsResolutionConflictOffNet.IsUnknown() {
+		result["dnsResolutionConflictOffNet"] = data.DnsResolutionConflictOffNet.ValueBool()
 	}
 
 	if !data.ExternalBrowserSamlLogin.IsNull() && !data.ExternalBrowserSamlLogin.IsUnknown() {
@@ -3521,19 +3837,6 @@ func (data *resourceEndpointConnectionProfileSecureInternetAccessPostureCheckTag
 
 	if !data.Datasource.IsNull() && !data.Datasource.IsUnknown() {
 		result["datasource"] = data.Datasource.ValueString()
-	}
-
-	return result
-}
-
-func (data *resourceEndpointConnectionProfileSecureInternetAccessDnsPreferenceModel) expandEndpointConnectionProfileSecureInternetAccessDnsPreference(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
-	result := make(map[string]interface{})
-	if !data.OnNet.IsNull() && !data.OnNet.IsUnknown() {
-		result["onNet"] = data.OnNet.ValueString()
-	}
-
-	if !data.OffNet.IsNull() && !data.OffNet.IsUnknown() {
-		result["offNet"] = data.OffNet.ValueString()
 	}
 
 	return result

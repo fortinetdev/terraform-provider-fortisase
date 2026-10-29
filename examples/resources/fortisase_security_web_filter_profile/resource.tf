@@ -66,8 +66,15 @@ resource "fortisase_security_web_filter_profile" "web_filter_profile" {
     action  = "add-to-request"
     content = "example_header_content"
     destinations = [{
-      primary_key = "existing_host_example"
+      primary_key = fortisase_network_host.header_destination.primary_key
       datasource  = "network/hosts"
     }]
   }]
+}
+
+resource "fortisase_network_host" "header_destination" {
+  primary_key = "tf-header-destination"
+  type        = "fqdn"
+  location    = "external"
+  fqdn        = "headers.example.com"
 }

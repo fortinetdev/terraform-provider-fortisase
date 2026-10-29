@@ -412,13 +412,31 @@ func (s *resourceSecurityScheduleGroupModel) flattenSecurityScheduleGroupMembers
 	values := make([]resourceSecurityScheduleGroupMembersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityScheduleGroupMembersModel
-		if i < len(s.Members) {
-			m = s.Members[i]
-		}
 		values[i] = *m.flattenSecurityScheduleGroupMembers(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityScheduleGroupMembersModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Members {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecurityScheduleGroupMembersModel) expandSecurityScheduleGroupMembers(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

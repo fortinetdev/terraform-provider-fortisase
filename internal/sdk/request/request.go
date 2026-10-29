@@ -86,7 +86,6 @@ func (r *Request) Send() error {
 	access_token := r.Config.Auth.AccessToken
 	r.HTTPRequest.Header.Set("Authorization", "Bearer "+access_token)
 	u := r.buildURL()
-
 	r.HTTPRequest.URL, err = url.Parse(u)
 	if err != nil {
 		return err
@@ -121,10 +120,27 @@ func (r *Request) Send() error {
 }
 
 func (r *Request) buildURL() string {
-	u := FortiSASEAPIURL()
-	u += r.Path
+	rawURL := FortiSASEAPIURL() + r.Path
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	params, ok := r.Params.(map[string]interface{})
+	if !ok || len(params) == 0 {
+		return u.String()
+	}
 
-	return u
+	query, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return rawURL
+	}
+	for key, value := range params {
+		if value != nil {
+			query.Add(key, fmt.Sprint(value))
+		}
+	}
+	u.RawQuery = query.Encode()
+	return u.String()
 }
 
 // GenToken logs in to FortiSASE with a username and password and returns tokens.
@@ -171,7 +187,7 @@ func GenToken(cfg config.Config) (string, string, error) {
 		StatusMessage string `json:"status_message"`
 	}
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", "", fmt.Errorf("cannot decode token response: %w", err)
+		return "", "", fmt.Errorf("cannot decode token response: %w; body: %s", err, body)
 	}
 
 	if result.AccessToken == "" || result.RefreshToken == "" {

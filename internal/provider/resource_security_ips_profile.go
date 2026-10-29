@@ -455,14 +455,6 @@ func (m *resourceSecurityIpsProfileModel) refreshSecurityIpsProfile(ctx context.
 		return diags
 	}
 
-	if v, ok := o["profileType"]; ok {
-		m.ProfileType = parseStringValue(v)
-	}
-
-	if v, ok := o["customRuleGroups"]; ok {
-		m.CustomRuleGroups = m.flattenSecurityIpsProfileCustomRuleGroupsList(ctx, v, &diags)
-	}
-
 	if v, ok := o["isBlockingMaliciousUrl"]; ok {
 		m.IsBlockingMaliciousUrl = parseBoolValue(v)
 	}
@@ -712,13 +704,31 @@ func (s *resourceSecurityIpsProfileCustomRuleGroupsModel) flattenSecurityIpsProf
 	values := make([]resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel
-		if i < len(s.Signatures) {
-			m = s.Signatures[i]
-		}
 		values[i] = *m.flattenSecurityIpsProfileCustomRuleGroupsSignatures(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityIpsProfileCustomRuleGroupsSignaturesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Signatures {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntries(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityIpsProfileEntriesModel {
@@ -876,13 +886,31 @@ func (s *resourceSecurityIpsProfileEntriesModel) flattenSecurityIpsProfileEntrie
 	values := make([]resourceSecurityIpsProfileEntriesRuleModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityIpsProfileEntriesRuleModel
-		if i < len(s.Rule) {
-			m = s.Rule[i]
-		}
 		values[i] = *m.flattenSecurityIpsProfileEntriesRule(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityIpsProfileEntriesRuleModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Rule {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityIpsProfileEntriesVulnTypeModel) flattenSecurityIpsProfileEntriesVulnType(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityIpsProfileEntriesVulnTypeModel {

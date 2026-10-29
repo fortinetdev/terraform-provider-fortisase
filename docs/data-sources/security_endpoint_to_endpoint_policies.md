@@ -33,6 +33,7 @@ data "fortisase_security_endpoint_to_endpoint_policy" "example" {
 - `comments` (String)
 - `enabled` (Boolean)
 - `log_traffic` (String)
+- `nat_enabled` (Boolean) Source NAT for traffic matching this policy. Same-PoP client-to-client traffic does not need NAT, and NAT breaks protocols that carry the peer address in the payload (for example SIP). When omitted on create the policy is created with NAT disabled; when omitted on update the current setting is kept.
 - `profile_group` (Attributes) (see [below for nested schema](#nestedatt--profile_group))
 - `schedule` (Attributes) (see [below for nested schema](#nestedatt--schedule))
 - `services` (Attributes List) (see [below for nested schema](#nestedatt--services))

@@ -1,3 +1,4 @@
+# GUI: Network -> BGP
 resource "fortisase_private_access_network_configuration" "example" {
   bgp_design            = "loopback"
   bgp_router_ids_subnet = "172.1.0.0/24"

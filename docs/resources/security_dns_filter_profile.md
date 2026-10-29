@@ -31,8 +31,17 @@ resource "fortisase_security_dns_filter_profile" "dns_filter_profile" {
   allow_dns_requests_on_rating_error = "enable"
   dns_translation_entries            = []
   domain_filters                     = []
-  domain_threat_feed_filters         = []
-  use_for_edge_devices               = false
+  fortiguard_filters = [
+    {
+      action = "block"
+      category = {
+        primary_key = "Drug Abuse"
+        datasource  = "security/fortiguard-categories"
+      }
+    }
+  ]
+  domain_threat_feed_filters = []
+  use_for_edge_devices       = false
 }
 ```
 

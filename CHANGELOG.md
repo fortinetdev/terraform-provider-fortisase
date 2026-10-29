@@ -1,4 +1,23 @@
-## 1.5.0 (Unreleased)
+## 1.6.0 (Unreleased)
+
+## 1.5.0 (October 29, 2026)
+
+FEATURES:
+- **New Resource:** `fortisase_endpoints_quarantine`
+- **New Resource:** `fortisase_endpoints_unquarantine`
+
+IMPROVEMENTS:
+- Adopt the schema of FortiSASE API 26.3.2;
+- Policy resources support `after_policy` and `before_policy` attributes to adjust their relative order;
+- Improve the documentation examples;
+
+BUG FIXES:
+- Resource `fortisase_security_dns_filter_profile`: Handle API changes to `use_for_edge_devices` without requiring changes to existing Terraform configurations;
+- Fix an issue that could cause the provider to return errors when processing collections of objects containing `primary_key` and `datasource`;
+
+BREAKING CHANGES:
+- Resource `fortisase_auth_fsso_agent`: `ssl_trusted_cert` changed from a string to an object containing `primary_key` and `datasource`.
+- Resource `fortisase_endpoint_connection_profile`: `secure_internet_access.dns_preference` has been removed. Please use `prefer_ipsec_vpn_dns`, `prefer_ipsec_vpn_dns_off_net`, `dns_resolution` and `dns_resolution_off_net` attributes.
 
 ## 1.4.0 (September 18, 2026)
 
@@ -6,7 +25,7 @@ IMPROVEMENTS:
 - Support the schema of FortiSASE API 26.3.1;
 - Improve the documentation examples;
 
-Breaking Changes:
+BREAKING CHANGES:
 - All fortisase_usage_xxx data sources are removed in version 1.4;
 - `fortisase_endpoint_connection_profile`: Posture check `tag` changed from a string to an object containing `primary_key` and `datasource`;
 

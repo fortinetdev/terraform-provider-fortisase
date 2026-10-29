@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +33,8 @@ type resourceSecurityInternalReversePolicy struct {
 // resourceSecurityInternalReversePolicyModel describes the resource data model.
 type resourceSecurityInternalReversePolicyModel struct {
 	ID           types.String                                             `tfsdk:"id"`
+	BeforePolicy types.String                                             `tfsdk:"before_policy"`
+	AfterPolicy  types.String                                             `tfsdk:"after_policy"`
 	PrimaryKey   types.String                                             `tfsdk:"primary_key"`
 	Enabled      types.Bool                                               `tfsdk:"enabled"`
 	Scope        types.String                                             `tfsdk:"scope"`
@@ -58,6 +61,22 @@ func (r *resourceSecurityInternalReversePolicy) Schema(ctx context.Context, req 
 				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"before_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy before the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("after_policy")),
+				},
+			},
+			"after_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy after the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("before_policy")),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -325,6 +344,12 @@ func (r *resourceSecurityInternalReversePolicy) Create(ctx context.Context, req 
 		}
 	}
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-reverse-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalReversePolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -386,6 +411,12 @@ func (r *resourceSecurityInternalReversePolicy) Update(ctx context.Context, req 
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-reverse-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalReversePolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -689,13 +720,31 @@ func (s *resourceSecurityInternalReversePolicyModel) flattenSecurityInternalReve
 	values := make([]resourceSecurityInternalReversePolicySourcesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalReversePolicySourcesModel
-		if i < len(s.Sources) {
-			m = s.Sources[i]
-		}
 		values[i] = *m.flattenSecurityInternalReversePolicySources(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalReversePolicySourcesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Sources {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalReversePolicyServicesModel) flattenSecurityInternalReversePolicyServices(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalReversePolicyServicesModel {
@@ -740,13 +789,31 @@ func (s *resourceSecurityInternalReversePolicyModel) flattenSecurityInternalReve
 	values := make([]resourceSecurityInternalReversePolicyServicesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalReversePolicyServicesModel
-		if i < len(s.Services) {
-			m = s.Services[i]
-		}
 		values[i] = *m.flattenSecurityInternalReversePolicyServices(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalReversePolicyServicesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Services {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalReversePolicyScheduleModel) flattenSecurityInternalReversePolicySchedule(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalReversePolicyScheduleModel {
@@ -848,13 +915,31 @@ func (s *resourceSecurityInternalReversePolicyModel) flattenSecurityInternalReve
 	values := make([]resourceSecurityInternalReversePolicyDestinationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalReversePolicyDestinationsModel
-		if i < len(s.Destinations) {
-			m = s.Destinations[i]
-		}
 		values[i] = *m.flattenSecurityInternalReversePolicyDestinations(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalReversePolicyDestinationsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Destinations {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecurityInternalReversePolicySourcesModel) expandSecurityInternalReversePolicySources(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

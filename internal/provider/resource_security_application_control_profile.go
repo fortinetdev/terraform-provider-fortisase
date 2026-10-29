@@ -659,13 +659,31 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	values := make([]resourceSecurityApplicationControlProfileControlsApplicationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsApplicationsModel
-		if i < len(s.Applications) {
-			m = s.Applications[i]
-		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControlsApplications(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityApplicationControlProfileControlsApplicationsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Applications {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityApplicationControlProfileControlsCategoriesModel) flattenSecurityApplicationControlProfileControlsCategories(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileControlsCategoriesModel {
@@ -710,13 +728,31 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	values := make([]resourceSecurityApplicationControlProfileControlsCategoriesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsCategoriesModel
-		if i < len(s.Categories) {
-			m = s.Categories[i]
-		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControlsCategories(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityApplicationControlProfileControlsCategoriesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Categories {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityApplicationControlProfileControlsIpsAttributesModel) flattenSecurityApplicationControlProfileControlsIpsAttributes(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileControlsIpsAttributesModel {
@@ -761,13 +797,31 @@ func (s *resourceSecurityApplicationControlProfileControlsModel) flattenSecurity
 	values := make([]resourceSecurityApplicationControlProfileControlsIpsAttributesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityApplicationControlProfileControlsIpsAttributesModel
-		if i < len(s.IpsAttributes) {
-			m = s.IpsAttributes[i]
-		}
 		values[i] = *m.flattenSecurityApplicationControlProfileControlsIpsAttributes(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityApplicationControlProfileControlsIpsAttributesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.IpsAttributes {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityApplicationControlProfileNetworkProtocolsModel) flattenSecurityApplicationControlProfileNetworkProtocols(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityApplicationControlProfileNetworkProtocolsModel {

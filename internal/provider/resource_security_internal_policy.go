@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/sdkcore"
 	"github.com/fortinetdev/terraform-provider-fortisase/internal/sdk/validators/stringvalidatorwarning"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,6 +33,8 @@ type resourceSecurityInternalPolicy struct {
 // resourceSecurityInternalPolicyModel describes the resource data model.
 type resourceSecurityInternalPolicyModel struct {
 	ID                  types.String                                      `tfsdk:"id"`
+	BeforePolicy        types.String                                      `tfsdk:"before_policy"`
+	AfterPolicy         types.String                                      `tfsdk:"after_policy"`
 	PrimaryKey          types.String                                      `tfsdk:"primary_key"`
 	Enabled             types.Bool                                        `tfsdk:"enabled"`
 	Scope               types.String                                      `tfsdk:"scope"`
@@ -60,6 +63,22 @@ func (r *resourceSecurityInternalPolicy) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Identifier, required by Terraform, not configurable.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"before_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy before the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("after_policy")),
+				},
+			},
+			"after_policy": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Move this policy after the target policy.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("before_policy")),
 				},
 			},
 			"primary_key": schema.StringAttribute{
@@ -349,6 +368,12 @@ func (r *resourceSecurityInternalPolicy) Create(ctx context.Context, req resourc
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalPolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -410,6 +435,12 @@ func (r *resourceSecurityInternalPolicy) Update(ctx context.Context, req resourc
 	}
 
 	diags.Append(resp.State.Set(ctx, &data)...)
+	if diags.HasError() {
+		return
+	}
+	if err := c.EnsurePolicyOrder("/resource-api/v2/security/internal-policies", data.ID.ValueString(), data.BeforePolicy.ValueString(), data.AfterPolicy.ValueString()); err != nil {
+		diags.AddError("Error Ordering Policy", err.Error())
+	}
 }
 
 func (r *resourceSecurityInternalPolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -740,13 +771,31 @@ func (s *resourceSecurityInternalPolicyModel) flattenSecurityInternalPolicyUsers
 	values := make([]resourceSecurityInternalPolicyUsersModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalPolicyUsersModel
-		if i < len(s.Users) {
-			m = s.Users[i]
-		}
 		values[i] = *m.flattenSecurityInternalPolicyUsers(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalPolicyUsersModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Users {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalPolicyDestinationsModel) flattenSecurityInternalPolicyDestinations(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalPolicyDestinationsModel {
@@ -791,13 +840,31 @@ func (s *resourceSecurityInternalPolicyModel) flattenSecurityInternalPolicyDesti
 	values := make([]resourceSecurityInternalPolicyDestinationsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalPolicyDestinationsModel
-		if i < len(s.Destinations) {
-			m = s.Destinations[i]
-		}
 		values[i] = *m.flattenSecurityInternalPolicyDestinations(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalPolicyDestinationsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Destinations {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalPolicyServicesModel) flattenSecurityInternalPolicyServices(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalPolicyServicesModel {
@@ -842,13 +909,31 @@ func (s *resourceSecurityInternalPolicyModel) flattenSecurityInternalPolicyServi
 	values := make([]resourceSecurityInternalPolicyServicesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalPolicyServicesModel
-		if i < len(s.Services) {
-			m = s.Services[i]
-		}
 		values[i] = *m.flattenSecurityInternalPolicyServices(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalPolicyServicesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Services {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecurityInternalPolicyScheduleModel) flattenSecurityInternalPolicySchedule(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecurityInternalPolicyScheduleModel {
@@ -950,13 +1035,31 @@ func (s *resourceSecurityInternalPolicyModel) flattenSecurityInternalPolicySourc
 	values := make([]resourceSecurityInternalPolicySourcesModel, len(l))
 	for i, ele := range l {
 		var m resourceSecurityInternalPolicySourcesModel
-		if i < len(s.Sources) {
-			m = s.Sources[i]
-		}
 		values[i] = *m.flattenSecurityInternalPolicySources(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecurityInternalPolicySourcesModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.Sources {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecurityInternalPolicyUsersModel) expandSecurityInternalPolicyUsers(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {

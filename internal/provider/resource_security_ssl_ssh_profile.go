@@ -683,13 +683,31 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileHostExe
 	values := make([]resourceSecuritySslSshProfileHostExemptionsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecuritySslSshProfileHostExemptionsModel
-		if i < len(s.HostExemptions) {
-			m = s.HostExemptions[i]
-		}
 		values[i] = *m.flattenSecuritySslSshProfileHostExemptions(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecuritySslSshProfileHostExemptionsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.HostExemptions {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (m *resourceSecuritySslSshProfileUrlCategoryExemptionsModel) flattenSecuritySslSshProfileUrlCategoryExemptions(ctx context.Context, input interface{}, diags *diag.Diagnostics) *resourceSecuritySslSshProfileUrlCategoryExemptionsModel {
@@ -734,13 +752,31 @@ func (s *resourceSecuritySslSshProfileModel) flattenSecuritySslSshProfileUrlCate
 	values := make([]resourceSecuritySslSshProfileUrlCategoryExemptionsModel, len(l))
 	for i, ele := range l {
 		var m resourceSecuritySslSshProfileUrlCategoryExemptionsModel
-		if i < len(s.UrlCategoryExemptions) {
-			m = s.UrlCategoryExemptions[i]
-		}
 		values[i] = *m.flattenSecuritySslSshProfileUrlCategoryExemptions(ctx, ele, diags)
 	}
 
-	return values
+	aligned := make([]resourceSecuritySslSshProfileUrlCategoryExemptionsModel, 0, len(values))
+	used := make([]bool, len(values))
+	for _, previous := range s.UrlCategoryExemptions {
+		if previous.PrimaryKey.IsNull() || previous.PrimaryKey.IsUnknown() ||
+			previous.Datasource.IsNull() || previous.Datasource.IsUnknown() {
+			continue
+		}
+		for i, current := range values {
+			if !used[i] && previous.PrimaryKey.Equal(current.PrimaryKey) &&
+				previous.Datasource.Equal(current.Datasource) {
+				aligned = append(aligned, current)
+				used[i] = true
+				break
+			}
+		}
+	}
+	for i, current := range values {
+		if !used[i] {
+			aligned = append(aligned, current)
+		}
+	}
+	return aligned
 }
 
 func (data *resourceSecuritySslSshProfileProfileProtocolOptionsModel) expandSecuritySslSshProfileProfileProtocolOptions(ctx context.Context, diags *diag.Diagnostics) map[string]interface{} {
